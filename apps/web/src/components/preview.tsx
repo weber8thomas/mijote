@@ -121,7 +121,7 @@ function PreviewCard({ current, onClose }: { current: Current; onClose: () => vo
               );
             })}
           </ul>
-          <p className="flex gap-2 rounded-2xl bg-primary-soft/70 px-3 py-2.5 text-sm text-primary-ink">
+          <p className="flex gap-2 rounded-2xl bg-sage-soft/70 px-3 py-2.5 text-sm text-sage-ink">
             <Baby className="mt-0.5 size-4 shrink-0" aria-hidden />
             <span>
               <strong>Pour bébé :</strong> {recipe.babyAdaptation.when}. {recipe.babyAdaptation.texture}. {recipe.babyAdaptation.amount}.

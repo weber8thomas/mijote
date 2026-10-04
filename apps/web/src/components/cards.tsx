@@ -127,7 +127,7 @@ export function Badge({ children, tone = "plain" }: { children: ReactNode; tone?
     plain: "bg-card/95 text-foreground",
     plum: "bg-plum-soft text-plum-ink",
     terracotta: "bg-terracotta-soft text-terracotta-ink",
-    sage: "bg-primary-soft text-primary-ink",
+    sage: "bg-sage-soft text-sage-ink",
     ochre: "bg-ochre-soft text-ochre-ink",
   };
   return <span className={cn("inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[0.68rem] font-bold shadow-sm", tones[tone])}>{children}</span>;

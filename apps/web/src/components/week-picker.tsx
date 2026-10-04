@@ -45,7 +45,7 @@ function plannedRanges(weeks: Record<string, WeekPlan>) {
 }
 
 function DayWithDot({ children, modifiers, ...props }: DayButtonProps) {
-  const tone = modifiers.validated ? "bg-primary" : modifiers.draft ? "bg-ochre" : undefined;
+  const tone = modifiers.validated ? "bg-sage" : modifiers.draft ? "bg-ochre" : undefined;
   return (
     <CalendarDayButton modifiers={modifiers} {...props}>
       {children}
@@ -135,7 +135,7 @@ export function WeekCalendarSheet({ open, onOpenChange }: { open: boolean; onOpe
       />
       <ul className="mt-3 flex flex-wrap items-center justify-center gap-x-5 gap-y-1 text-xs font-semibold text-muted-foreground">
         <li className="flex items-center gap-1.5">
-          <i aria-hidden className="size-2 rounded-full bg-primary" /> Validée
+          <i aria-hidden className="size-2 rounded-full bg-sage" /> Validée
         </li>
         <li className="flex items-center gap-1.5">
           <i aria-hidden className="size-2 rounded-full bg-ochre" /> En préparation

@@ -15,8 +15,9 @@ Univers **botanique illustré** : fruits et légumes à l'aquarelle, papier crè
 | `--card` | `#fffaf1` | cartes, feuilles | — |
 | `--foreground` | `#2f2a24` | encre | 12,6:1 sur papier |
 | `--muted-foreground` | `#6b6052` | textes secondaires | 5,5:1 |
-| `--primary` | `#4f6b3f` | sauge profonde : boutons, sélection | blanc dessus 6,0:1 |
-| `--primary-soft` / `--primary-ink` | `#e4ead6` / `#3f5a33` | bébé, succès | 6,3:1 |
+| `--primary` | `#b85532` | terracotta, la couleur du « é » du logo : boutons, onglet actif, sélection | blanc dessus 4,8:1 |
+| `--primary-soft` / `--primary-ink` | `#f5ddd0` / `#9a4426` | fonds et textes d'accent | 5,0:1 |
+| `--sage` / `-soft` / `-ink` | `#4f6b3f` / `#e4ead6` / `#3f5a33` | le végétal et tout ce qui concerne bébé (« Pour bébé », semaines validées) | 6,3:1 |
 | `--terracotta` / `-soft` / `-ink` | `#b85532` / `#f5ddd0` / `#9a4426` | cocotte, cuisson longue, favoris | 5,0:1 |
 | `--ochre` / `-soft` / `-ink` | `#d79a2b` / `#f8ebcc` / `#7a5710` | prix, alertes douces | 5,6:1 |
 | `--plum` / `-soft` / `-ink` | `#8a3b5c` / `#f2dfe6` / `#7d3452` | « la veille » | 6,6:1 |

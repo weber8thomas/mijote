@@ -118,7 +118,7 @@ export function RecipeMeta({ recipe, className, compact = false, dense = false }
         </span>
       )}
       {!compact && (
-        <span className="inline-flex items-center gap-1 text-primary-ink" title="Adaptable pour bébé">
+        <span className="inline-flex items-center gap-1 text-sage-ink" title="Adaptable pour bébé">
           <Baby className="size-3.5" aria-hidden />
           <span className="sr-only">Adaptable pour bébé</span>
         </span>
@@ -191,7 +191,7 @@ export function EmptyState({ illustration, title, children, action }: { illustra
 
 export function Disclaimer({ className }: { className?: string }) {
   return (
-    <p className={cn("flex items-start gap-2 rounded-2xl bg-primary-soft/60 px-4 py-3 text-xs leading-relaxed text-primary-ink", className)}>
+    <p className={cn("flex items-start gap-2 rounded-2xl bg-sage-soft/60 px-4 py-3 text-xs leading-relaxed text-sage-ink", className)}>
       <Baby className="mt-0.5 size-4 shrink-0" aria-hidden />
       {BABY_DISCLAIMER}
     </p>
@@ -200,7 +200,7 @@ export function Disclaimer({ className }: { className?: string }) {
 
 export function Box({ title, icon, tone = "sage", children, className }: { title: ReactNode; icon?: ReactNode; tone?: "sage" | "plum" | "ochre" | "terracotta"; children: ReactNode; className?: string }) {
   const tones = {
-    sage: "bg-primary-soft/70 text-primary-ink",
+    sage: "bg-sage-soft/70 text-sage-ink",
     plum: "bg-plum-soft/80 text-plum-ink",
     ochre: "bg-ochre-soft text-ochre-ink",
     terracotta: "bg-terracotta-soft/80 text-terracotta-ink",

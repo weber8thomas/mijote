@@ -13,11 +13,14 @@
   --card-foreground: var(--foreground);
   --popover: #fffaf1;
   --popover-foreground: var(--foreground);
-  --primary: #4f6b3f; /* sauge profonde */
-  --primary-hover: #42593a;
+  --primary: #b85532; /* terracotta, la couleur du « é » du logo */
+  --primary-hover: #9a4426;
   --primary-foreground: #ffffff;
-  --primary-soft: #e4ead6;
-  --primary-ink: #3f5a33;
+  --primary-soft: #f5ddd0;
+  --primary-ink: #9a4426;
+  --sage: #4f6b3f; /* sauge : le végétal, et tout ce qui concerne bébé */
+  --sage-soft: #e4ead6;
+  --sage-ink: #3f5a33;
   --secondary: #f0e8d8;
   --secondary-foreground: var(--foreground);
   --muted: #f0e8d8;
@@ -37,7 +40,7 @@
   --border: #e5d9c3;
   --border-strong: #d3c3a6;
   --input: #d3c3a6;
-  --ring: #4f6b3f;
+  --ring: #b85532;
   --radius: 1rem;
   --shadow-card: 0 1px 0 rgb(80 60 30 / 0.04), 0 6px 18px -10px rgb(80 60 30 / 0.28);
   --shadow-float: 0 18px 50px -18px rgb(60 45 20 / 0.45);
@@ -63,6 +66,9 @@
   --color-primary-foreground: var(--primary-foreground);
   --color-primary-soft: var(--primary-soft);
   --color-primary-ink: var(--primary-ink);
+  --color-sage: var(--sage);
+  --color-sage-soft: var(--sage-soft);
+  --color-sage-ink: var(--sage-ink);
   --color-secondary: var(--secondary);
   --color-secondary-foreground: var(--secondary-foreground);
   --color-muted: var(--muted);
@@ -92,7 +98,7 @@
   --radius-4xl: calc(var(--radius) * 2.6);
   --shadow-card: var(--shadow-card);
   --shadow-float: var(--shadow-float);
-  --shadow-brand: 0 6px 16px -8px rgb(79 107 63 / 0.6);
+  --shadow-brand: 0 6px 16px -8px rgb(184 85 50 / 0.55);
 }
 
 @layer base {

@@ -135,7 +135,7 @@ function RecipeDetail({ recipe }: { recipe: Recipe }) {
                       {ri.note && <span className="text-muted-foreground"> · {ri.note}</span>}
                     </span>
                     {ri.adultOnly && <span className="rounded-full bg-terracotta-soft px-2 py-0.5 text-xs font-bold text-terracotta-ink">adultes</span>}
-                    {ri.babyPortionOnly && <span className="rounded-full bg-primary-soft px-2 py-0.5 text-xs font-bold text-primary-ink">bébé</span>}
+                    {ri.babyPortionOnly && <span className="rounded-full bg-sage-soft px-2 py-0.5 text-xs font-bold text-sage-ink">bébé</span>}
                   </li>
                 );
               })}
