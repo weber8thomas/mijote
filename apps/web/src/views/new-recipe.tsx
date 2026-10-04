@@ -2,7 +2,7 @@ import { ILLUSTRATION_KEYS, lintRecipe, PROTEIN_LABELS, QtyUnit, Recipe, SLOT_LA
 import { AlertTriangle, Check, ChevronLeft, Plus, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
-import { Illustration } from "@/components/illustrations";
+import { Art } from "@/components/art";
 import { Chip, PageHeader } from "@/components/kit";
 import { Shell } from "@/components/shell";
 import { Button } from "@/components/ui/button";
@@ -163,7 +163,7 @@ export function NewRecipeView() {
                     aria-label={k}
                     className={cn("grid aspect-square place-items-center rounded-2xl bg-card ring-1 ring-border", illustration === k && "ring-2 ring-primary")}
                   >
-                    <Illustration name={k} className="size-[80%]" />
+                    <Art name={k} className="size-[80%]" />
                   </button>
                 ))}
               </div>

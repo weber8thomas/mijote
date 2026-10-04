@@ -3,7 +3,7 @@ import { Baby, Ban, ChefHat, ChevronLeft, ChevronRight, Clock, Flame, Heart, Lea
 import { AnimatePresence, motion } from "motion/react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { Box, CostTier, Disclaimer, EmptyState, formatMinutes, IronLeaves, RecipeVisual, useCost } from "@/components/kit";
+import { Box, CostTier, Disclaimer, EmptyState, formatMinutes, IronGauge, RecipeVisual, useCost } from "@/components/kit";
 import { Shell } from "@/components/shell";
 import { Button } from "@/components/ui/button";
 import { actions, ingredientsOf, recipeMap, today, useStore } from "@/data/store";
@@ -94,7 +94,7 @@ function RecipeDetail({ recipe }: { recipe: Recipe }) {
               </Fact>
               {recipe.ironScore > 0 && (
                 <Fact>
-                  <IronLeaves level={recipe.ironScore} /> fer
+                  <IronGauge level={recipe.ironScore} />
                 </Fact>
               )}
               {recipe.longCook && <Fact icon={<Flame className="size-4 text-terracotta-ink" />}>Cuisson longue</Fact>}
@@ -215,7 +215,12 @@ function Stepper({ label, value, min, max, onChange }: { label: string; value: n
 /** Mode cuisine : une étape à la fois, en grand, écran maintenu allumé (Wake Lock) si possible. */
 function CookMode({ recipe, onClose }: { recipe: Recipe; onClose: () => void }) {
   const [i, setI] = useState(0);
+  const [dir, setDir] = useState(1);
   const [locked, setLocked] = useState(false);
+  const step = (d: number) => {
+    setDir(d);
+    setI((k) => k + d);
+  };
   useEffect(() => {
     let lock: WakeLockSentinel | undefined;
     navigator.wakeLock
@@ -229,11 +234,21 @@ function CookMode({ recipe, onClose }: { recipe: Recipe; onClose: () => void }) 
   }, []);
   const last = recipe.steps.length - 1;
   return (
-    <motion.div className="paper fixed inset-0 z-[70] flex flex-col" initial={{ y: "100%" }} animate={{ y: 0 }} exit={{ y: "100%" }} transition={{ type: "spring", damping: 32, stiffness: 300 }} role="dialog" aria-modal="true" aria-label={`Mode cuisine : ${recipe.title}`}>
+    <motion.div
+      className="fixed inset-0 z-[70] flex flex-col bg-card"
+      style={{ willChange: "transform, opacity" }}
+      initial={{ opacity: 0, y: 32 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: 32, transition: { duration: 0.18, ease: "easeIn" } }}
+      transition={{ duration: 0.3, ease: [0.22, 0.8, 0.3, 1] }}
+      role="dialog"
+      aria-modal="true"
+      aria-label={`Mode cuisine : ${recipe.title}`}
+    >
       <div className="pt-safe flex items-center justify-between px-4 py-3">
         <div className="min-w-0">
           <p className="truncate font-heading text-lg font-semibold">{recipe.title}</p>
-          <p className="text-xs text-muted-foreground">{locked ? "L'écran reste allumé" : "Mode cuisine"}</p>
+          <p className="text-xs text-muted-foreground">{locked ? "L'écran reste allumé · glisse pour changer d'étape" : "Glisse pour changer d'étape"}</p>
         </div>
         <button type="button" onClick={onClose} className="grid size-12 place-items-center rounded-full bg-muted" aria-label="Quitter le mode cuisine">
           <X className="size-5" />
@@ -241,23 +256,38 @@ function CookMode({ recipe, onClose }: { recipe: Recipe; onClose: () => void }) 
       </div>
       <div className="flex gap-1.5 px-4">
         {recipe.steps.map((_, k) => (
-          <span key={k} className={cn("h-1.5 flex-1 rounded-full", k <= i ? "bg-primary" : "bg-paper-deep")} />
+          <span key={k} className={cn("h-1.5 flex-1 rounded-full transition-colors duration-300", k <= i ? "bg-primary" : "bg-paper-deep")} />
         ))}
       </div>
-      <div className="flex flex-1 flex-col justify-center px-6 py-8">
-        <AnimatePresence mode="wait">
-          <motion.div key={i} initial={{ opacity: 0, x: 30 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -30 }} transition={{ duration: 0.2 }}>
+      <motion.div
+        className="flex flex-1 touch-pan-y flex-col justify-center overflow-hidden px-6 py-8"
+        onPanEnd={(_, info) => {
+          if (info.offset.x < -60 && i < last) step(1);
+          if (info.offset.x > 60 && i > 0) step(-1);
+        }}
+      >
+        <AnimatePresence mode="popLayout" initial={false} custom={dir}>
+          <motion.div
+            key={i}
+            custom={dir}
+            variants={{ enter: (d: number) => ({ opacity: 0, x: d * 40 }), center: { opacity: 1, x: 0 }, exit: (d: number) => ({ opacity: 0, x: d * -40 }) }}
+            initial="enter"
+            animate="center"
+            exit="exit"
+            transition={{ duration: 0.24, ease: [0.22, 0.8, 0.3, 1] }}
+            style={{ willChange: "transform, opacity" }}
+          >
             <p className="font-heading text-xl font-semibold text-primary-ink">Étape {i + 1}</p>
             <p className="mt-3 text-3xl leading-snug font-medium md:text-4xl">{recipe.steps[i]}</p>
           </motion.div>
         </AnimatePresence>
-      </div>
+      </motion.div>
       <div className="pb-safe grid grid-cols-2 gap-3 px-4 pt-2 pb-4">
-        <Button variant="outline" size="lg" className="h-16 text-base" disabled={i === 0} onClick={() => setI(i - 1)}>
+        <Button variant="outline" size="lg" className="h-16 text-base" disabled={i === 0} onClick={() => step(-1)}>
           <ChevronLeft aria-hidden /> Précédente
         </Button>
         {i < last ? (
-          <Button size="lg" className="h-16 text-base" onClick={() => setI(i + 1)}>
+          <Button size="lg" className="h-16 text-base" onClick={() => step(1)}>
             Suivante <ChevronRight aria-hidden />
           </Button>
         ) : (

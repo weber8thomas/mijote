@@ -1,7 +1,7 @@
 import { BABY_DISCLAIMER, costPerPortion, costTier, tierLabel, type Recipe } from "@mijote/shared";
 import { Baby, Clock, Flame, MoonStar } from "lucide-react";
 import type { ReactNode } from "react";
-import { Illustration, PaperLeaf } from "@/components/illustrations";
+import { Art, Plate } from "@/components/art";
 import { ingredientsOf, useStore } from "@/data/store";
 import { cn } from "@/lib/utils";
 
@@ -45,22 +45,26 @@ const TINTS: Record<string, string> = {
 
 export const tintOf = (key: string) => TINTS[key] ?? "#efe6d3";
 
-export function RecipeVisual({ recipe, className, size = "md" }: { recipe: Pick<Recipe, "illustration">; className?: string; size?: "sm" | "md" | "lg" }) {
+/** Visuel d'une recette : l'assiette aquarelle (protéine, légume, féculent) sur un lavis de couleur. */
+export function RecipeVisual({ recipe, className, size = "md" }: { recipe: Recipe; className?: string; size?: "sm" | "md" | "lg" }) {
   return (
     <div className={cn("relative grid place-items-center overflow-hidden", className)} style={{ backgroundColor: tintOf(recipe.illustration) }}>
       <div className="absolute inset-0 opacity-70" style={{ backgroundImage: "var(--paper-noise)" }} aria-hidden />
-      <Illustration name={recipe.illustration} className={cn("relative drop-shadow-[0_2px_2px_rgb(80_60_30_/_0.08)]", size === "sm" ? "size-[78%]" : size === "lg" ? "size-[62%] max-h-56" : "size-[72%]")} />
+      <Plate recipe={recipe} className={cn("relative", size === "sm" ? "h-[92%]" : size === "lg" ? "h-[86%] max-h-64" : "h-[88%]")} />
     </div>
   );
 }
 
-export function IronLeaves({ level, className, label = true }: { level: number; className?: string; label?: boolean }) {
+/** Jauge de fer : « Fe » + 3 barres (0 à 3). */
+export function IronGauge({ level, className }: { level: number; className?: string }) {
   return (
-    <span className={cn("inline-flex items-center gap-0.5", className)} role="img" aria-label={`Fer : ${level} sur 3`} title={`Fer : ${level}/3`}>
-      {[1, 2, 3].map((i) => (
-        <PaperLeaf key={i} filled={i <= level} className="size-4" />
-      ))}
-      {label && <span className="sr-only">Fer {level}/3</span>}
+    <span className={cn("inline-flex items-center gap-1", className)} role="img" aria-label={`Fer : ${level} sur 3`} title={`Fer : ${level}/3`}>
+      <span className="grid h-[1.15rem] min-w-[1.4rem] place-items-center rounded-md bg-[#5a4a5e] px-1 text-[0.62rem] leading-none font-extrabold tracking-tight text-white">Fe</span>
+      <span className="flex items-end gap-[2px]" aria-hidden>
+        {[1, 2, 3].map((i) => (
+          <span key={i} className={cn("w-[3px] rounded-full", i <= level ? "bg-[#5a4a5e]" : "bg-[#5a4a5e]/20")} style={{ height: `${5 + i * 3}px` }} />
+        ))}
+      </span>
     </span>
   );
 }
@@ -74,7 +78,7 @@ export function useCost(recipe: Recipe) {
 export function CostTier({ recipe, className }: { recipe: Recipe; className?: string }) {
   const { tier, per } = useCost(recipe);
   return (
-    <span className={cn("font-semibold tracking-tight text-ochre-ink tabular-nums", className)} title={`~ ${per.toFixed(2).replace(".", ",")} € par portion adulte`}>
+    <span className={cn("font-semibold tracking-tight whitespace-nowrap text-ochre-ink tabular-nums", className)} title={`~ ${per.toFixed(2).replace(".", ",")} € par portion adulte`}>
       {tierLabel(tier)}
       <span className="text-ochre-ink/30">{"€".repeat(3 - tier)}</span>
     </span>
@@ -85,23 +89,24 @@ export const minutes = (r: Recipe) => r.prepMinutes + r.cookMinutes;
 export const formatMinutes = (m: number) => (m >= 60 ? `${Math.floor(m / 60)} h${m % 60 ? ` ${String(m % 60).padStart(2, "0")}` : ""}` : `${m} min`);
 
 /** Pictos d'une recette : temps, prix, fer, veille, cuisson longue. */
-export function RecipeMeta({ recipe, className, compact = false }: { recipe: Recipe; className?: string; compact?: boolean }) {
+/** compact : pictos sans libellés · dense : en plus, sans les pictos veille / cuisson longue (déjà en badge). */
+export function RecipeMeta({ recipe, className, compact = false, dense = false }: { recipe: Recipe; className?: string; compact?: boolean; dense?: boolean }) {
   return (
     <div className={cn("flex flex-wrap items-center gap-x-2.5 gap-y-1 text-xs text-muted-foreground", className)}>
-      <span className="inline-flex items-center gap-1">
+      <span className="inline-flex items-center gap-1 whitespace-nowrap">
         <Clock className="size-3.5" aria-hidden />
         {formatMinutes(minutes(recipe))}
       </span>
       <CostTier recipe={recipe} />
-      {recipe.ironScore > 0 && <IronLeaves level={recipe.ironScore} />}
-      {recipe.prepAhead && (
+      {recipe.ironScore > 0 && <IronGauge level={recipe.ironScore} />}
+      {recipe.prepAhead && !dense && (
         <span className="inline-flex items-center gap-1 text-plum-ink" title="Se prépare la veille">
           <MoonStar className="size-3.5" aria-hidden />
           {!compact && "veille"}
           <span className="sr-only">À préparer la veille</span>
         </span>
       )}
-      {recipe.longCook && (
+      {recipe.longCook && !dense && (
         <span className="inline-flex items-center gap-1 text-terracotta-ink" title="Cuisson longue">
           <Flame className="size-3.5" aria-hidden />
           {!compact && "mijote"}
@@ -172,7 +177,7 @@ export function PageHeader({ title, subtitle, actions, className }: { title: Rea
 export function EmptyState({ illustration, title, children, action }: { illustration: string; title: string; children?: ReactNode; action?: ReactNode }) {
   return (
     <div className="paper flex flex-col items-center rounded-3xl border border-border px-6 py-10 text-center shadow-card">
-      <Illustration name={illustration} className="size-28" />
+      <Art name={illustration} className="size-28" />
       <h2 className="mt-3 text-2xl font-semibold">{title}</h2>
       {children && <div className="mt-2 max-w-sm text-muted-foreground">{children}</div>}
       {action && <div className="mt-6 w-full max-w-xs">{action}</div>}

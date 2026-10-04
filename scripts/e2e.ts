@@ -25,6 +25,7 @@ const shot = (page: Page, name: string) => page.screenshot({ path: `${out}flow-$
 const browser = await chromium.launch({ executablePath });
 const ctx = await browser.newContext({ ...devices["iPhone 13"], locale: "fr-FR", timezoneId: "Europe/Paris" });
 const page = await ctx.newPage();
+page.setDefaultTimeout(10000);
 const errors: string[] = [];
 page.on("pageerror", (e) => errors.push(e.message));
 
@@ -34,53 +35,57 @@ await step("l'accueil s'ouvre sur la semaine en cours", async () => {
   await page.getByText("Ce soir, pour demain").waitFor();
 });
 
-await step("préparer la semaine prochaine", async () => {
+await step("préparer la semaine prochaine → choix repas par repas", async () => {
   await page.goto(`${base}#/semaine`);
   await page.getByRole("tab", { name: "Semaine prochaine" }).click();
   await page.getByRole("button", { name: "Préparer la semaine" }).click();
-  await page.getByRole("region", { name: "Lundi" }).waitFor();
-  const tiles = await page.locator("section[aria-label] button[aria-label*='Appui long']").count();
-  if (tiles !== 28) throw new Error(`28 vignettes attendues, ${tiles} trouvées`);
-  await shot(page, "1-semaine");
+  await page.getByText("Repas 1/14", { exact: false }).waitFor();
+  const cards = await page.locator("main .grid > div > button:first-child").count();
+  if (cards !== 6) throw new Error(`6 choix attendus, ${cards} trouvés`);
+  await shot(page, "1-choix");
 });
 
-for (const [i, day] of (["Mardi", "Mercredi", "Jeudi"] as const).entries()) {
-  await step(`remplacer un repas (${day})`, async () => {
-    const tile = page.getByRole("region", { name: day }).locator("button[aria-label^='Soir']");
-    const before = await tile.getAttribute("aria-label");
-    await tile.click();
-    const sheet = page.getByRole("dialog");
-    await sheet.getByText("autres idées").waitFor();
-    if (i === 0) await shot(page, "2-alternatives");
-    await sheet.locator(".grid > div > button").first().click();
-    await sheet.waitFor({ state: "detached" });
-    await page.waitForTimeout(400); // fin de l'animation de fermeture (voile)
-    const after = await tile.getAttribute("aria-label");
-    if (before === after) throw new Error("la recette n'a pas changé");
-  });
-}
-
-await step("aperçu par appui long, relâcher ferme", async () => {
-  const tile = page.getByRole("region", { name: "Vendredi" }).locator("button[aria-label^='Midi']");
-  await tile.evaluate((el) => el.scrollIntoView({ block: "center" }));
-  await page.waitForTimeout(300);
-  const box = (await tile.boundingBox())!;
+await step("aperçu par appui long sur un choix, relâcher ferme", async () => {
+  const card = page.locator("main .grid > div > button:first-child").nth(3);
+  const box = (await card.boundingBox())!;
   await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
   await page.mouse.down();
-  await page.waitForTimeout(700);
+  await page.waitForTimeout(800);
   await page.getByRole("dialog", { name: /Aperçu/ }).waitFor();
-  await shot(page, "3-apercu");
+  await shot(page, "2-apercu");
   await page.mouse.up();
   await page.getByRole("dialog", { name: /Aperçu/ }).waitFor({ state: "detached" });
+  await page.waitForTimeout(200);
 });
 
-await step("pas de doublon après les remplacements", async () => {
-  const dup = await page.getByText(/apparaît deux fois/).count();
-  if (dup) throw new Error("une recette apparaît deux fois");
+await step("choisir les 14 repas", async () => {
+  for (let i = 0; i < 14; i++) {
+    await page.getByText(`Repas ${i + 1}/14`, { exact: false }).waitFor();
+    await page.locator("main .grid > div > button:first-child").nth(i % 6).click();
+    await page.waitForTimeout(450);
+  }
+  await page.getByRole("heading", { name: "Semaine" }).waitFor();
+  await shot(page, "3-semaine");
+});
+
+await step("changer un repas depuis la semaine (sheet 2 × 3)", async () => {
+  const tile = page.getByRole("region", { name: "Mercredi" }).locator("button[aria-label^='Midi']");
+  await tile.evaluate((el) => el.scrollIntoView({ block: "center" }));
+  const before = await tile.getAttribute("aria-label");
+  await tile.click();
+  const sheet = page.getByRole("dialog");
+  await sheet.getByText("6 idées").waitFor();
+  await sheet.locator(".grid > div > button:first-child").nth(4).click();
+  await sheet.waitFor({ state: "detached" });
+  await page.waitForTimeout(400);
+  if (before === (await tile.getAttribute("aria-label"))) throw new Error("la recette n'a pas changé");
+});
+
+await step("pas de doublon dans la semaine", async () => {
+  if (await page.getByText(/apparaît deux fois/).count()) throw new Error("une recette apparaît deux fois");
 });
 
 await step("valider la semaine", async () => {
-  await page.waitForTimeout(300);
   await page.getByRole("button", { name: "Valider" }).first().click();
   await page.getByRole("dialog").getByRole("button", { name: "Valider" }).click();
   await page.getByText("Validée", { exact: true }).first().waitFor();

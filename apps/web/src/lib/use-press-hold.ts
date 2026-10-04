@@ -6,13 +6,16 @@ const HOLD_MS = 450;
 const MOVE_TOLERANCE = 10;
 
 /** onRelease reçoit le point de relâche : glisser jusqu'à un bouton de l'aperçu puis relâcher l'active (« peek and pop »). */
-export function usePressHold(onHold: () => void, onRelease?: (point: { x: number; y: number }) => void) {
+export function usePressHold(onHold: (origin: DOMRect) => void, onRelease?: (point: { x: number; y: number }) => void) {
   const timer = useRef<number | undefined>(undefined);
   const start = useRef<{ x: number; y: number } | null>(null);
   const [holding, setHolding] = useState(false);
+  /** Doigt posé, aperçu pas encore déclenché : la carte s'enfonce doucement. */
+  const [pressing, setPressing] = useState(false);
   const fired = useRef(false);
 
   const clear = useCallback(() => {
+    setPressing(false);
     window.clearTimeout(timer.current);
     timer.current = undefined;
     start.current = null;
@@ -24,11 +27,14 @@ export function usePressHold(onHold: () => void, onRelease?: (point: { x: number
     if (e.button !== 0) return;
     fired.current = false;
     start.current = { x: e.clientX, y: e.clientY };
+    const target = e.currentTarget as HTMLElement;
+    setPressing(true);
     timer.current = window.setTimeout(() => {
       fired.current = true;
+      setPressing(false);
       setHolding(true);
       navigator.vibrate?.(10);
-      onHold();
+      onHold(target.getBoundingClientRect());
     }, HOLD_MS);
   };
 
@@ -47,6 +53,7 @@ export function usePressHold(onHold: () => void, onRelease?: (point: { x: number
 
   return {
     holding,
+    pressing,
     /** Vrai si l'appui en cours a déclenché l'aperçu : le clic qui suit doit être ignoré. */
     consumed: () => fired.current,
     handlers: {

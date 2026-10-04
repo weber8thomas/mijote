@@ -12,7 +12,7 @@ const byId = new Map(ingredients.map((i) => [i.id, i]));
 let errors = 0;
 let warnings = 0;
 const seen = new Set<string>();
-const files = ["recipes/breakfast.json", "recipes/lunch.json", "recipes/dinner.json", "recipes/dessert.json", "ai-samples.json"];
+const files = ["recipes/lunch.json", "recipes/dinner.json", "recipes/dessert.json", "ai-samples.json"];
 
 for (const file of files) {
   const raw: unknown[] = read(file);

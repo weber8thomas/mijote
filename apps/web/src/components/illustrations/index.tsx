@@ -8,6 +8,7 @@ import { Sprig } from "./decor";
 import { Betterave, Brocoli, Carotte, Celeri, Champignon, Chou, ChouFleur, Courge, Epinard, Navet, Oignon, Panais, PatateDouce, Poireau, Poivron, PommeDeTerre, Potiron, Tomate } from "./vegetables";
 import { Citron, Clementine, Coing, Figue, Kiwi, Poire, Pomme, Raisin } from "./fruits";
 import { Avoine, Chataigne, Lentilles, Oeuf, PoisChiche, Poisson } from "./pantry";
+import { Cereales, Haricot, Pain, Pates, Poulet, Riz, Tofu, Viande } from "./staples";
 
 export { WatercolorDefs } from "./defs";
 export { PaperLeaf, Sprig } from "./decor";
@@ -46,6 +47,14 @@ export const ILLUSTRATIONS: Record<IllustrationKey, ComponentType<IllustrationPr
   poisson: Poisson,
   oeuf: Oeuf,
   avoine: Avoine,
+  viande: Viande,
+  poulet: Poulet,
+  haricot: Haricot,
+  tofu: Tofu,
+  pates: Pates,
+  riz: Riz,
+  cereales: Cereales,
+  pain: Pain,
 };
 
 const isKey = (name: string): name is IllustrationKey => Object.hasOwn(ILLUSTRATIONS, name);

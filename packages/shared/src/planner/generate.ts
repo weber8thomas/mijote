@@ -1,10 +1,11 @@
 import { addDays, monthOfWeek } from "../dates";
 import { costPerPortion, costTier, householdPortions } from "../pricing";
-import type { Household, Ingredient, MainProtein, PlanEntry, Recipe, Slot, WeekPlan } from "../schemas";
+import type { Household, Ingredient, MainProtein, MealSlot, PlanEntry, Recipe, Slot, WeekPlan } from "../schemas";
 import { SLOTS } from "../schemas";
 import { isInSeason } from "../seasons";
 
 // Planificateur déterministe : mêmes entrées + même graine = même semaine. Pas d'IA.
+// La semaine compte 14 repas (midi et soir) + 1 dessert par jour. Pour chacun : 6 choix, le premier est la suggestion.
 
 export type PlanContext = {
   recipes: Recipe[];
@@ -14,8 +15,8 @@ export type PlanContext = {
   previousRecipeIds?: string[];
 };
 
-export const ALTERNATIVES = 6;
-export const LIMITS = { redMeat: 2, fish: 2, legumes: 2, longCook: 2, leftovers: 2, repeatable: 3, sideRepeat: 2 };
+export const CHOICES = 6;
+export const LIMITS = { redMeat: 2, fish: 2, legumes: 2, longCook: 2, leftovers: 2, dessertRepeat: 2, repeatable: 3 };
 
 /** Générateur pseudo-aléatoire reproductible (mulberry32). */
 export function rng(seed: number) {
@@ -30,11 +31,14 @@ export function rng(seed: number) {
 }
 
 const isFish = (p: MainProtein) => p === "fish" || p === "oily-fish";
-const isMain = (s: Slot) => s === "lunch" || s === "dinner";
 const isWeekend = (day: number) => day >= 5;
 const totalMinutes = (r: Recipe) => r.prepMinutes + r.cookMinutes;
 /** Protéines qui ne doivent pas se suivre deux repas de suite. */
 const tracked = (p: MainProtein) => p !== "veggie" && p !== "none" && p !== "dairy";
+const isMeal = (s: Slot): s is MealSlot => s === "lunch" || s === "dinner";
+/** Rang chronologique d'un repas dans la semaine (lundi midi = 0, lundi soir = 1, lundi dessert = 2…). */
+export const mealIndex = (e: Pick<PlanEntry, "day" | "slot">) => e.day * 3 + SLOTS.indexOf(e.slot);
+const byOrder = (a: PlanEntry, b: PlanEntry) => mealIndex(a) - mealIndex(b);
 
 /** Compteurs d'une semaine en cours de construction (ou déjà construite). */
 export type Tally = {
@@ -57,7 +61,7 @@ export function tally(entries: PlanEntry[], byId: Map<string, Recipe>): Tally {
       continue;
     }
     t.uses.set(r.id, (t.uses.get(r.id) ?? 0) + 1);
-    if (!isMain(e.slot)) continue;
+    if (!isMeal(e.slot)) continue;
     if (r.mainProtein === "red-meat") t.redMeat++;
     if (isFish(r.mainProtein)) t.fish++;
     if (r.mainProtein === "oily-fish") t.oilyFish++;
@@ -67,37 +71,36 @@ export function tally(entries: PlanEntry[], byId: Map<string, Recipe>): Tally {
   return t;
 }
 
-/** Repas principal qui précède (midi → soir de la veille, soir → midi du jour). */
-export function previousMain(entries: PlanEntry[], day: number, slot: Slot): PlanEntry | undefined {
-  if (slot === "lunch") return entries.find((e) => e.day === day - 1 && e.slot === "dinner");
-  if (slot === "dinner") return entries.find((e) => e.day === day && e.slot === "lunch");
-  return undefined;
+/** Repas qui précède (midi → soir de la veille, soir → midi du jour). */
+export function previousMain(entries: PlanEntry[], day: number, slot: MealSlot): PlanEntry | undefined {
+  return slot === "lunch" ? entries.find((e) => e.day === day - 1 && e.slot === "dinner") : entries.find((e) => e.day === day && e.slot === "lunch");
 }
 
-export function nextMain(entries: PlanEntry[], day: number, slot: Slot): PlanEntry | undefined {
-  if (slot === "lunch") return entries.find((e) => e.day === day && e.slot === "dinner");
-  if (slot === "dinner") return entries.find((e) => e.day === day + 1 && e.slot === "lunch");
-  return undefined;
+export function nextMain(entries: PlanEntry[], day: number, slot: MealSlot): PlanEntry | undefined {
+  return slot === "lunch" ? entries.find((e) => e.day === day && e.slot === "dinner") : entries.find((e) => e.day === day + 1 && e.slot === "lunch");
 }
 
-type SlotCtx = { day: number; slot: Slot; entries: PlanEntry[]; tally: Tally; month: number; excludeId?: string };
+type SlotCtx = { day: number; slot: Slot; entries: PlanEntry[]; tally: Tally; month: number; dessertSlot: MealSlot };
 
-/** Contraintes dures : une recette qui ne les respecte pas n'est ni retenue ni proposée. */
-/** relaxed : seules restent les règles qui fâchent vraiment (créneau, écartée, doublon) ; le reste devient une alerte douce. */
+/**
+ * Contraintes dures : une recette qui ne les respecte pas n'est ni suggérée ni proposée.
+ * relaxed : seules restent les règles qui fâchent vraiment (créneau, écartée, doublon) ; le reste devient une alerte douce.
+ */
 export function eligible(r: Recipe, c: SlotCtx, byId: Map<string, Recipe>, relaxed = false): boolean {
-  if (r.status === "excluded" || !r.slots.includes(c.slot) || r.id === c.excludeId) return false;
+  if (r.status === "excluded" || !r.slots.includes(c.slot)) return false;
   const used = c.tally.uses.get(r.id) ?? 0;
-  const side = c.slot === "breakfast" || c.slot === "dessert";
-  const maxUses = r.tags.includes("repeatable") ? LIMITS.repeatable : side ? LIMITS.sideRepeat : 1;
-  if (used >= maxUses) return false;
-  // Un petit-déjeuner ou un dessert peut revenir dans la semaine, mais pas deux jours de suite.
-  if (side && c.entries.some((e) => e.slot === c.slot && e.day === c.day - 1 && e.recipeId === r.id)) return false;
-  if (!isMain(c.slot) || relaxed) return true;
+  if (c.slot === "dessert") {
+    // Un dessert peut revenir dans la semaine, mais pas deux jours de suite (le fruit de saison, jusqu'à 3 fois).
+    if (used >= (r.tags.includes("repeatable") ? LIMITS.repeatable : LIMITS.dessertRepeat)) return false;
+    return !c.entries.some((e) => e.slot === "dessert" && e.day === c.day - 1 && e.recipeId === r.id);
+  }
+  if (used > 0) return false;
+  if (relaxed) return true;
   if (r.mainProtein === "red-meat" && c.tally.redMeat >= LIMITS.redMeat) return false;
   // Cuissons longues : au plus 2, et seulement le week-end.
   if (r.longCook && (c.tally.longCook >= LIMITS.longCook || !isWeekend(c.day))) return false;
   if (tracked(r.mainProtein)) {
-    for (const n of [previousMain(c.entries, c.day, c.slot), nextMain(c.entries, c.day, c.slot)]) {
+    for (const n of [previousMain(c.entries, c.day, c.slot as MealSlot), nextMain(c.entries, c.day, c.slot as MealSlot)]) {
       const p = n && byId.get(n.recipeId)?.mainProtein;
       if (p && (p === r.mainProtein || (isFish(p) && isFish(r.mainProtein)))) return false;
     }
@@ -105,7 +108,7 @@ export function eligible(r: Recipe, c: SlotCtx, byId: Map<string, Recipe>, relax
   return true;
 }
 
-/** Score d'une recette pour une case. Plus c'est haut, mieux c'est. */
+/** Score d'une recette pour un repas. Plus c'est haut, mieux c'est. */
 export function score(r: Recipe, c: SlotCtx, ctx: PlanContext, byId: Map<string, Recipe>): number {
   let s = 0;
   s += isInSeason(r, ctx.ingredients, c.month) ? 3 : -6;
@@ -116,43 +119,35 @@ export function score(r: Recipe, c: SlotCtx, ctx: PlanContext, byId: Map<string,
   if (ctx.previousRecipeIds?.includes(r.id)) s -= 1.5;
   const weekend = isWeekend(c.day);
 
-  if ((c.slot === "breakfast" || c.slot === "dessert") && !r.tags.includes("repeatable") && (c.tally.uses.get(r.id) ?? 0) > 0) s -= 2;
-
-  if (c.slot === "breakfast") {
-    if (!weekend && r.prepAhead) s += 2.5;
-    if (!weekend && totalMinutes(r) > 15 && !r.prepAhead) s -= 2;
-    if (weekend && !r.prepAhead) s += 1;
-  }
-
-  if (isMain(c.slot)) {
-    const dayIron = Math.max(0, ...c.entries.filter((e) => e.day === c.day).map((e) => byId.get(e.recipeId)?.ironScore ?? 0));
-    s += r.ironScore * (dayIron < 2 ? (c.slot === "dinner" ? 1.4 : 0.9) : 0.3);
-    if (isFish(r.mainProtein)) {
-      s += c.tally.fish < LIMITS.fish ? 2 : -8;
-      if (r.mainProtein === "oily-fish" && c.tally.oilyFish === 0) s += 1;
-    }
-    if (r.mainProtein === "legume") s += c.tally.legumes < LIMITS.legumes ? 2 : 0;
-    if (r.mainProtein === "red-meat") s += c.tally.redMeat === 0 ? 0.5 : -0.5;
-    if (r.longCook) s += weekend ? 1.5 : -4;
-    if (!weekend && !r.longCook) {
-      const t = totalMinutes(r);
-      if (c.slot === "lunch" && t <= 30) s += 1;
-      if (c.slot === "dinner" && t <= 40) s += 1;
-      if (t > 60 && !r.prepAhead) s -= 1.5;
-    }
-    if (c.slot === "dinner" && r.yieldsLeftovers && c.day <= 3 && c.tally.leftovers < LIMITS.leftovers) s += 0.8;
-  }
-
   if (c.slot === "dessert") {
     if (r.tags.includes("seasonal-fruit")) s += 1.5;
-    const attached = c.entries.find((e) => e.day === c.day && e.slot === ctx.household.dessertSlot);
+    if (!r.tags.includes("repeatable") && (c.tally.uses.get(r.id) ?? 0) > 0) s -= 2;
+    const attached = c.entries.find((e) => e.day === c.day && e.slot === c.dessertSlot);
     const main = attached && byId.get(attached.recipeId);
     if (main && main.ironScore >= 2 && r.tags.includes("dairy-heavy")) s -= 1.5;
+    return s;
   }
+
+  const dayIron = Math.max(0, ...c.entries.filter((e) => e.day === c.day).map((e) => byId.get(e.recipeId)?.ironScore ?? 0));
+  s += r.ironScore * (dayIron < 2 ? (c.slot === "dinner" ? 1.4 : 0.9) : 0.3);
+  if (isFish(r.mainProtein)) {
+    s += c.tally.fish < LIMITS.fish ? 2 : -8;
+    if (r.mainProtein === "oily-fish" && c.tally.oilyFish === 0) s += 1;
+  }
+  if (r.mainProtein === "legume") s += c.tally.legumes < LIMITS.legumes ? 2 : 0;
+  if (r.mainProtein === "red-meat") s += c.tally.redMeat === 0 ? 0.5 : -0.5;
+  if (r.longCook) s += weekend ? 1.5 : -4;
+  if (!weekend && !r.longCook) {
+    const t = totalMinutes(r);
+    if (c.slot === "lunch" && t <= 30) s += 1;
+    if (c.slot === "dinner" && t <= 40) s += 1;
+    if (t > 60 && !r.prepAhead) s -= 1.5;
+  }
+  if (c.slot === "dinner" && r.yieldsLeftovers && c.day <= 3 && c.tally.leftovers < LIMITS.leftovers) s += 0.8;
   return s;
 }
 
-/** Candidats triés pour une case, avec un léger hasard reproductible pour varier les semaines. */
+/** Candidats triés pour un repas, avec un léger hasard reproductible pour varier les semaines. */
 export function rankCandidates(c: SlotCtx, ctx: PlanContext, byId: Map<string, Recipe>, random: () => number, relaxed = false): Recipe[] {
   return ctx.recipes
     .filter((r) => eligible(r, c, byId, relaxed))
@@ -161,103 +156,99 @@ export function rankCandidates(c: SlotCtx, ctx: PlanContext, byId: Map<string, R
     .map((x) => x.r);
 }
 
+/** 6 choix : d'abord ceux qui cochent tout, complétés si besoin par des recettes à alerte douce (jamais un doublon). */
+function topChoices(c: SlotCtx, ctx: PlanContext, byId: Map<string, Recipe>, seed: number, first: string[] = []): string[] {
+  const out = [...first];
+  for (const relaxed of [false, true]) {
+    if (out.length >= CHOICES) break;
+    for (const r of rankCandidates(c, ctx, byId, rng(seed), relaxed)) {
+      if (out.length >= CHOICES) break;
+      if (!out.includes(r.id)) out.push(r.id);
+    }
+  }
+  return out.slice(0, CHOICES);
+}
+
 const entryId = (weekStart: string, day: number, slot: Slot) => `${weekStart}-${day}-${slot}`;
 
-/** Génère une semaine complète : 1 recette retenue + 6 alternatives par case. */
-export function generateWeek(ctx: PlanContext, weekStart: string, seed: number): WeekPlan {
+/**
+ * Génère (ou complète) une semaine. Les repas `locked` (déjà choisis) sont gardés tels quels ;
+ * les autres reçoivent une suggestion et 6 choix, en tenant compte de tout ce qui est verrouillé.
+ */
+export function generateWeek(ctx: PlanContext, weekStart: string, seed: number, locked: PlanEntry[] = []): WeekPlan {
   const byId = new Map(ctx.recipes.map((r) => [r.id, r]));
-  const random = rng(seed ^ hash(weekStart));
   const month = monthOfWeek(weekStart);
   const portions = householdPortions(ctx.household);
-  const entries: PlanEntry[] = [];
+  const entries: PlanEntry[] = [...locked];
+  const dessertSlot = ctx.household.dessertSlot;
+  const isLocked = (day: number, slot: Slot) => locked.some((e) => e.day === day && e.slot === slot);
 
   for (let day = 0; day < 7; day++) {
     for (const slot of SLOTS) {
+      if (isLocked(day, slot)) continue;
+      const id = entryId(weekStart, day, slot);
       const t = tally(entries, byId);
-      const c: SlotCtx = { day, slot, entries, tally: t, month };
-      const ranked = rankCandidates(c, ctx, byId, random);
+      const c: SlotCtx = { day, slot, entries, tally: t, month, dessertSlot };
       const prevDinner = slot === "lunch" ? entries.find((e) => e.day === day - 1 && e.slot === "dinner") : undefined;
       const leftoverOf = prevDinner && !isWeekend(day) && !prevDinner.isLeftover ? byId.get(prevDinner.recipeId) : undefined;
+      const seedFor = seed ^ hash(id);
 
       if (leftoverOf?.yieldsLeftovers && t.leftovers < LIMITS.leftovers) {
-        entries.push({
-          id: entryId(weekStart, day, slot),
-          day,
-          slot,
-          recipeId: leftoverOf.id,
-          servings: portions,
-          alternatives: ranked.slice(0, ALTERNATIVES).map((r) => r.id),
-          isLeftover: true,
-        });
+        const choices = topChoices(c, ctx, byId, seedFor, [leftoverOf.id]);
+        entries.push({ id, day, slot, recipeId: leftoverOf.id, servings: portions, choices, isLeftover: true, confirmed: false });
         continue;
       }
-      const [chosen, ...rest] = ranked;
-      if (!chosen) continue;
-      entries.push({
-        id: entryId(weekStart, day, slot),
-        day,
-        slot,
-        recipeId: chosen.id,
-        servings: portions,
-        alternatives: rest.slice(0, ALTERNATIVES).map((r) => r.id),
-        isLeftover: false,
-      });
+      const choices = topChoices(c, ctx, byId, seedFor);
+      if (!choices.length) continue;
+      entries.push({ id, day, slot, recipeId: choices[0], servings: portions, choices, isLeftover: false, confirmed: false });
     }
   }
-  return { id: `week-${weekStart}`, weekStart, status: "draft", seed, entries };
+  return { id: `week-${weekStart}`, weekStart, status: "draft", seed, entries: entries.sort(byOrder) };
 }
 
 /**
- * Alternatives à jour pour une case, recalculées contre la semaine telle qu'elle est maintenant
- * (après d'éventuels remplacements) : on garde l'ordre des alternatives d'origine encore valides,
- * puis on complète avec le meilleur classement actuel.
+ * Les 6 choix d'un repas, à jour avec ce qui est déjà décidé : les repas confirmés et ceux qui le précèdent.
+ * Les suggestions suivantes, pas encore confirmées, s'adapteront après le choix (voir chooseEntry).
  */
-export function alternativesFor(week: WeekPlan, entryId: string, ctx: PlanContext): Recipe[] {
+export function choicesFor(week: WeekPlan, entryId: string, ctx: PlanContext): string[] {
   const byId = new Map(ctx.recipes.map((r) => [r.id, r]));
   const entry = week.entries.find((e) => e.id === entryId);
   if (!entry) return [];
-  const others = week.entries.filter((e) => e.id !== entryId);
-  const c: SlotCtx = { day: entry.day, slot: entry.slot, entries: others, tally: tally(others, byId), month: monthOfWeek(week.weekStart), excludeId: entry.recipeId };
-  const ok = (r: Recipe | undefined): r is Recipe => !!r && eligible(r, c, byId);
-  const kept = entry.alternatives.map((id) => byId.get(id)).filter(ok);
-  const keptIds = new Set(kept.map((r) => r.id));
-  const fresh = rankCandidates(c, ctx, byId, rng(week.seed ^ hash(entryId))).filter((r) => !keptIds.has(r.id));
-  const strict = [...kept, ...fresh];
-  if (strict.length >= ALTERNATIVES) return strict.slice(0, ALTERNATIVES);
-  // Pas assez d'idées qui cochent tout : on complète avec des recettes qui déclencheront une alerte douce (jamais un doublon).
-  const ids = new Set(strict.map((r) => r.id));
-  const soft = rankCandidates(c, ctx, byId, rng(week.seed ^ hash(entryId)), true).filter((r) => !ids.has(r.id));
-  return [...strict, ...soft].slice(0, ALTERNATIVES);
+  const others = week.entries.filter((e) => e.id !== entryId && (e.confirmed || mealIndex(e) < mealIndex(entry)));
+  const c: SlotCtx = { day: entry.day, slot: entry.slot, entries: others, tally: tally(others, byId), month: monthOfWeek(week.weekStart), dessertSlot: ctx.household.dessertSlot };
+  const kept = entry.choices.filter((id) => {
+    if (entry.isLeftover && id === entry.recipeId) return true;
+    const r = byId.get(id);
+    return !!r && eligible(r, c, byId, true);
+  });
+  return topChoices(c, ctx, byId, week.seed ^ hash(entryId), kept);
 }
 
-/** Remplace la recette d'une case par une alternative ; l'ancienne prend sa place parmi les alternatives. */
-export function replaceEntry(week: WeekPlan, entryId: string, recipeId: string, byId: Map<string, Recipe>): WeekPlan {
+/** Choisit la recette d'un repas, puis réajuste les suggestions des repas pas encore confirmés. */
+export function chooseEntry(week: WeekPlan, entryId: string, recipeId: string, ctx: PlanContext): WeekPlan {
+  const byId = new Map(ctx.recipes.map((r) => [r.id, r]));
   const target = week.entries.find((e) => e.id === entryId);
   if (!target) return week;
-  const previous = target.recipeId;
-  const swapAlternatives = (alts: string[]) => {
-    const i = alts.indexOf(recipeId);
-    const next = [...alts];
-    if (i >= 0) next.splice(i, 1, ...(target.isLeftover ? [] : [previous]));
-    else if (!target.isLeftover) next.unshift(previous);
-    return [...new Set(next)].filter((a) => a !== recipeId).slice(0, ALTERNATIVES);
-  };
-  let entries = week.entries.map((e) => (e.id === entryId ? { ...e, recipeId, isLeftover: false, alternatives: swapAlternatives(e.alternatives) } : e));
+  const prevDinner = target.slot === "lunch" ? week.entries.find((e) => e.day === target.day - 1 && e.slot === "dinner") : undefined;
+  const isLeftover = !!prevDinner && prevDinner.recipeId === recipeId;
+  const choices = target.choices.includes(recipeId) ? target.choices : [...target.choices.slice(0, CHOICES - 1), recipeId];
+  let entries = week.entries.map((e) => (e.id === entryId ? { ...e, recipeId, isLeftover, confirmed: true, choices } : e));
 
-  // Le midi suivant était le reste de ce dîner : il suit le nouveau plat s'il en laisse, sinon il redevient un repas à part.
+  // Le midi suivant était le reste de ce dîner : il suit le nouveau plat s'il en laisse, sinon il redevient à choisir.
   if (target.slot === "dinner") {
     const next = entries.find((e) => e.day === target.day + 1 && e.slot === "lunch" && e.isLeftover);
-    if (next) {
-      const r = byId.get(recipeId);
-      const used = new Set(entries.map((e) => e.recipeId));
-      const fallback = next.alternatives.find((a) => !used.has(a));
-      entries = entries.map((e) =>
-        e.id !== next.id ? e : r?.yieldsLeftovers ? { ...e, recipeId } : fallback ? { ...e, recipeId: fallback, isLeftover: false, alternatives: e.alternatives.filter((a) => a !== fallback) } : e,
-      );
-    }
+    if (next) entries = entries.map((e) => (e.id !== next.id ? e : byId.get(recipeId)?.yieldsLeftovers ? { ...e, recipeId } : { ...e, isLeftover: false, confirmed: false }));
   }
-  return { ...week, entries };
+  // Les desserts restent stables pendant qu'on choisit les repas.
+  const locked = entries.filter((e) => e.confirmed || e.slot === "dessert");
+  return { ...generateWeek(ctx, week.weekStart, week.seed, locked), id: week.id, status: week.status, validatedAt: week.validatedAt };
 }
+
+/** Prochain repas (midi ou soir) à choisir, dans l'ordre de la semaine. */
+export const nextToChoose = (week: WeekPlan) => [...week.entries].sort(byOrder).find((e) => !e.confirmed && isMeal(e.slot));
+
+/** Les 14 repas à choisir (midi et soir), dans l'ordre. */
+export const mealsOf = (week: WeekPlan) => [...week.entries].filter((e) => isMeal(e.slot)).sort(byOrder);
 
 /** Jour de semaine d'un plan, en AAAA-MM-JJ. */
 export const dateOf = (week: Pick<WeekPlan, "weekStart">, day: number) => addDays(week.weekStart, day);

@@ -1,6 +1,7 @@
 import {
   AI_SAMPLES,
-  alternativesFor,
+  chooseEntry,
+  choicesFor,
   buildShoppingList,
   checkWeek,
   DEFAULT_THRESHOLDS,
@@ -11,7 +12,6 @@ import {
   addDays,
   PANTRY_BASICS,
   RECIPES,
-  replaceEntry,
   type Household,
   type Ingredient,
   type Recipe,
@@ -44,7 +44,8 @@ export type State = {
   installSeen?: boolean;
 };
 
-const KEY = "mijote-demo-v1";
+// v2 : plus de petit-déjeuner, 6 choix par repas.
+const KEY = "mijote-demo-v2";
 
 export const today = () => new Date();
 export { dayIndex } from "@mijote/shared";
@@ -67,7 +68,8 @@ function initial(): State {
     draftsSeen: [],
   };
   // La semaine en cours est déjà planifiée et validée : l'écran « Aujourd'hui » a du contenu dès l'ouverture.
-  const week = { ...generateWeek(planContext(base), thisWeek(), 7), status: "validated" as const, validatedAt: new Date().toISOString() };
+  const draft = generateWeek(planContext(base), thisWeek(), 7);
+  const week = { ...draft, status: "validated" as const, validatedAt: new Date().toISOString(), entries: draft.entries.map((e) => ({ ...e, confirmed: true })) };
   return withShopping({ ...base, weeks: { [week.weekStart]: week } }, week.weekStart);
 }
 
@@ -184,11 +186,15 @@ export function useWeek(weekStart: string) {
   return { week, warnings, byId };
 }
 
-/** Alternatives d'une case, recalculées contre la semaine actuelle (pas de doublon après des remplacements). */
-export function useAlternatives(weekStart: string, entryId: string) {
+/** Les 6 choix d'un repas, à jour avec ce qui est déjà décidé dans la semaine. */
+export function useChoices(weekStart: string, entryId: string | undefined) {
   const s = useStore();
   const week = s.weeks[weekStart];
-  return useMemo(() => (week ? alternativesFor(week, entryId, planContext(s)) : []), [week, entryId, s]);
+  const byId = recipeMap(s);
+  return useMemo(
+    () => (week && entryId ? choicesFor(week, entryId, planContext(s)).map((id) => byId.get(id)).filter((r): r is Recipe => !!r) : []),
+    [week, entryId, s, byId],
+  );
 }
 
 export function useShopping(weekStart: string) {
@@ -210,10 +216,11 @@ export const actions = {
     set({ ...state, weeks: { ...state.weeks, [weekStart]: week }, shopping });
   },
 
-  replace(weekStart: string, entryId: string, recipeId: string) {
+  /** Choisit la recette d'un repas ; les suggestions suivantes s'ajustent. */
+  choose(weekStart: string, entryId: string, recipeId: string) {
     const week = state.weeks[weekStart];
     if (!week) return;
-    const next = replaceEntry(week, entryId, recipeId, recipeMap(state));
+    const next = chooseEntry(week, entryId, recipeId, planContext(state));
     set(withShopping({ ...state, weeks: { ...state.weeks, [weekStart]: next } }, weekStart));
   },
 

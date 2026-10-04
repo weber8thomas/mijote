@@ -1,4 +1,4 @@
-import { ingredientLine, householdPortions, type Recipe } from "@mijote/shared";
+import { householdPortions, ingredientLine, type Recipe } from "@mijote/shared";
 import { Baby, BookOpen, MoonStar } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import { createContext, use, useCallback, useEffect, useRef, useState, type ReactNode } from "react";
@@ -8,18 +8,22 @@ import { go } from "@/lib/router";
 import { usePressHold } from "@/lib/use-press-hold";
 import { cn } from "@/lib/utils";
 
-// Aperçu flottant d'une recette (appui long). Relâcher ferme ; glisser jusqu'à « Ouvrir la fiche » puis relâcher l'ouvre.
+// Aperçu flottant d'une recette (appui long, façon « force touch »). Il naît de la carte pressée et s'agrandit
+// au centre. Relâcher ferme ; glisser jusqu'à « Ouvrir la fiche » puis relâcher l'ouvre.
 // Au clavier / lecteur d'écran : bouton « Aperçu », l'aperçu reste alors ouvert.
 
 type Mode = "hold" | "sticky";
-type Current = { recipe: Recipe; mode: Mode; layoutId?: string };
-type Ctx = { show: (recipe: Recipe, mode: Mode, layoutId?: string) => void; release: (point: { x: number; y: number }) => void; hide: () => void };
+type Current = { recipe: Recipe; mode: Mode; origin?: DOMRect };
+type Ctx = { show: (recipe: Recipe, mode: Mode, origin?: DOMRect) => void; release: (point: { x: number; y: number }) => void; hide: () => void };
 
 const PreviewContext = createContext<Ctx | null>(null);
 
 export const usePreview = () => use(PreviewContext)!;
 
 const overOpenButton = (p: { x: number; y: number }) => !!document.elementFromPoint(p.x, p.y)?.closest("[data-preview-open]");
+
+/** Ressort amorti, sans rebond : rapide au départ, doux à l'arrivée. */
+const SPRING = { type: "spring", stiffness: 420, damping: 38, mass: 0.85 } as const;
 
 export function PreviewProvider({ children }: { children: ReactNode }) {
   const [current, setCurrent] = useState<Current | null>(null);
@@ -30,7 +34,7 @@ export function PreviewProvider({ children }: { children: ReactNode }) {
   }, [current]);
 
   const hide = useCallback(() => setCurrent(null), []);
-  const show = useCallback((recipe: Recipe, mode: Mode, layoutId?: string) => setCurrent({ recipe, mode, layoutId }), []);
+  const show = useCallback((recipe: Recipe, mode: Mode, origin?: DOMRect) => setCurrent({ recipe, mode, origin }), []);
   const release = useCallback((p: { x: number; y: number }) => {
     const c = ref.current;
     if (!c || c.mode !== "hold") return;
@@ -39,16 +43,19 @@ export function PreviewProvider({ children }: { children: ReactNode }) {
     if (overOpenButton(p)) go(`/recettes/${c.recipe.slug}`);
   }, []);
 
-  // Pendant l'appui : suivre le doigt pour surligner le bouton « Ouvrir la fiche ».
+  // Pendant l'appui : suivre le doigt (surligner « Ouvrir la fiche ») et bloquer le défilement de la page.
   useEffect(() => {
     if (current?.mode !== "hold") return;
     const move = (e: PointerEvent) => setHover(overOpenButton({ x: e.clientX, y: e.clientY }));
     const up = (e: PointerEvent) => release({ x: e.clientX, y: e.clientY });
+    const noScroll = (e: TouchEvent) => e.preventDefault();
     window.addEventListener("pointermove", move);
     window.addEventListener("pointerup", up);
+    window.addEventListener("touchmove", noScroll, { passive: false });
     return () => {
       window.removeEventListener("pointermove", move);
       window.removeEventListener("pointerup", up);
+      window.removeEventListener("touchmove", noScroll);
     };
   }, [current?.mode, release]);
 
@@ -68,34 +75,36 @@ export function PreviewProvider({ children }: { children: ReactNode }) {
 }
 
 function PreviewCard({ current, hover, onClose }: { current: Current; hover: boolean; onClose: () => void }) {
-  const { recipe, mode, layoutId } = current;
+  const { recipe, mode, origin } = current;
   const s = useStore();
   const ingredients = ingredientsOf(s).byId;
   const factor = householdPortions(s.household) / recipe.servingsBase;
   const sticky = mode === "sticky";
+  // Départ : centré sur la carte pressée, à sa taille.
+  const from = origin
+    ? { x: origin.left + origin.width / 2 - window.innerWidth / 2, y: origin.top + origin.height / 2 - window.innerHeight / 2, scale: Math.min(0.9, Math.max(0.35, origin.width / 384)) }
+    : { x: 0, y: 24, scale: 0.92 };
+
   return (
-    <motion.div
-      className="no-callout fixed inset-0 z-[60] grid place-items-center p-4"
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      transition={{ duration: 0.15 }}
-      onClick={sticky ? onClose : undefined}
-      role="dialog"
-      aria-modal="true"
-      aria-label={`Aperçu : ${recipe.title}`}
-    >
-      <div className="absolute inset-0 bg-[#2f2a24]/40 backdrop-blur-sm" aria-hidden />
+    <div className="no-callout fixed inset-0 z-[60] grid touch-none place-items-center p-4" role="dialog" aria-modal="true" aria-label={`Aperçu : ${recipe.title}`}>
+      <motion.div
+        className="absolute inset-0 bg-[#2f2a24]/50"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0, transition: { duration: 0.16 } }}
+        transition={{ duration: 0.2, ease: "easeOut" }}
+        onClick={sticky ? onClose : undefined}
+        aria-hidden
+      />
       <motion.article
-        layoutId={layoutId}
         className="paper relative w-full max-w-sm overflow-hidden rounded-[1.75rem] shadow-float"
-        initial={layoutId ? undefined : { scale: 0.9, y: 12 }}
-        animate={{ scale: 1, y: 0 }}
-        exit={{ scale: 0.94, opacity: 0 }}
-        transition={{ type: "spring", stiffness: 420, damping: 34 }}
-        onClick={(e) => e.stopPropagation()}
+        style={{ willChange: "transform, opacity" }}
+        initial={{ opacity: 0, ...from }}
+        animate={{ opacity: 1, x: 0, y: 0, scale: 1 }}
+        exit={{ opacity: 0, scale: 0.94, y: 8, transition: { duration: 0.16, ease: "easeIn" } }}
+        transition={{ ...SPRING, opacity: { duration: 0.12 } }}
       >
-        <RecipeVisual recipe={recipe} className="h-36" />
+        <RecipeVisual recipe={recipe} className="h-40" />
         <div className="space-y-3 p-5">
           <div>
             <h2 className="text-xl leading-snug font-semibold">{recipe.title}</h2>
@@ -136,8 +145,8 @@ function PreviewCard({ current, hover, onClose }: { current: Current; hover: boo
               go(`/recettes/${recipe.slug}`);
             }}
             className={cn(
-              "flex h-12 w-full items-center justify-center gap-2 rounded-full font-semibold transition-all",
-              hover ? "scale-[1.03] bg-primary-hover text-primary-foreground" : "bg-primary text-primary-foreground",
+              "flex h-12 w-full items-center justify-center gap-2 rounded-full bg-primary font-semibold text-primary-foreground transition-transform duration-150",
+              hover && "scale-[1.04] bg-primary-hover",
             )}
           >
             <BookOpen className="size-4" aria-hidden /> Ouvrir la fiche
@@ -145,25 +154,27 @@ function PreviewCard({ current, hover, onClose }: { current: Current; hover: boo
           {!sticky && <p className="text-center text-xs text-muted-foreground">Relâche pour fermer · glisse sur le bouton pour ouvrir</p>}
         </div>
       </motion.article>
-    </motion.div>
+    </div>
   );
 }
 
 /** Rend un élément « appuyable » : tap = onTap, appui long = aperçu. */
-export function usePressable(recipe: Recipe | undefined, onTap: () => void, layoutId?: string) {
+export function usePressable(recipe: Recipe | undefined, onTap: () => void) {
   const preview = usePreview();
   const press = usePressHold(
-    () => recipe && preview.show(recipe, "hold", layoutId),
+    (origin) => recipe && preview.show(recipe, "hold", origin),
     (p) => preview.release(p),
   );
   return {
     holding: press.holding,
+    /** Classes de la carte : elle s'enfonce pendant l'appui, puis se relâche quand l'aperçu apparaît. */
+    pressClass: cn("transition-transform", press.pressing ? "scale-[0.95] duration-[450ms] ease-out" : "duration-200 ease-out active:scale-[0.97]"),
     props: {
       ...press.handlers,
       onClick: () => {
         if (!press.consumed()) onTap();
       },
     },
-    openSticky: () => recipe && preview.show(recipe, "sticky"),
+    openSticky: (e?: { currentTarget: Element }) => recipe && preview.show(recipe, "sticky", e?.currentTarget.closest(".group")?.getBoundingClientRect()),
   };
 }

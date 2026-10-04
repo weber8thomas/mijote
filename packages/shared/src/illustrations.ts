@@ -32,5 +32,13 @@ export const ILLUSTRATION_KEYS = [
   "poisson",
   "oeuf",
   "avoine",
+  "viande",
+  "poulet",
+  "haricot",
+  "tofu",
+  "pates",
+  "riz",
+  "cereales",
+  "pain",
 ] as const;
 export type IllustrationKey = (typeof ILLUSTRATION_KEYS)[number];

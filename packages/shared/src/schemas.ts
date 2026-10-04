@@ -2,9 +2,13 @@ import { z } from "zod";
 
 // Contrats partagés front / back / contenu. Toute donnée qui entre dans Mijoté passe par ces schémas.
 
-export const SLOTS = ["breakfast", "lunch", "dinner", "dessert"] as const;
+/** Créneaux planifiés : midi, soir et un dessert par jour (pas de petit-déjeuner). */
+export const SLOTS = ["lunch", "dinner", "dessert"] as const;
 export const Slot = z.enum(SLOTS);
 export type Slot = z.infer<typeof Slot>;
+/** Les repas qu'on choisit un à un. */
+export const MEAL_SLOTS = ["lunch", "dinner"] as const;
+export type MealSlot = (typeof MEAL_SLOTS)[number];
 
 export const Channel = z.enum(["market", "supermarket"]);
 export type Channel = z.infer<typeof Channel>;
@@ -205,9 +209,12 @@ export const PlanEntry = z.object({
   slot: Slot,
   recipeId: z.string(),
   servings: z.number().positive(),
-  alternatives: z.array(z.string()).max(6),
+  /** Les 6 choix proposés (le premier est la suggestion du planificateur) ; recipeId en fait partie. */
+  choices: z.array(z.string()).max(6),
   /** Reste du dîner de la veille. */
   isLeftover: z.boolean().default(false),
+  /** Choisi par le foyer (sinon : simple suggestion, qui peut encore s'ajuster). */
+  confirmed: z.boolean().default(false),
 });
 export type PlanEntry = z.infer<typeof PlanEntry>;
 

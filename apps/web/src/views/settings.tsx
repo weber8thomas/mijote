@@ -3,7 +3,7 @@ import { ChevronLeft, ChevronRight, Download, KeyRound, Minus, Plus, RotateCcw, 
 import { useMemo, useRef, useState, type ReactNode } from "react";
 import { toast } from "sonner";
 import { LogoMark } from "@/components/brand";
-import { Illustration } from "@/components/illustrations";
+import { Art } from "@/components/art";
 import { Disclaimer, PageHeader, Segmented } from "@/components/kit";
 import { Shell } from "@/components/shell";
 import { Sheet } from "@/components/sheet";
@@ -73,7 +73,7 @@ export function SettingsView() {
           <Row label="€€€ au-dessus de" hint="par portion adulte">
             <EuroInput value={h.priceThresholds.high} onChange={(high) => actions.updateHousehold({ priceThresholds: { ...h.priceThresholds, high } })} />
           </Row>
-          <LinkRow onClick={() => setPrices(true)} icon={<Illustration name="carotte" className="size-7" />}>
+          <LinkRow onClick={() => setPrices(true)} icon={<Art name="carotte" className="size-7" />}>
             Prix des ingrédients
           </LinkRow>
         </Group>

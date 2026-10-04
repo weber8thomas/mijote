@@ -3,8 +3,8 @@ import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { Check, Download, MoonStar, Sparkles } from "lucide-react";
 import { Badge, RecipeRow } from "@/components/cards";
-import { Illustration } from "@/components/illustrations";
-import { Disclaimer, EmptyState, IronLeaves, PageHeader } from "@/components/kit";
+import { Art } from "@/components/art";
+import { Disclaimer, EmptyState, IronGauge, PageHeader } from "@/components/kit";
 import { Shell } from "@/components/shell";
 import { Button } from "@/components/ui/button";
 import { actions, dayIndex, nextWeek, thisWeek, today, useStore, useWeek } from "@/data/store";
@@ -48,7 +48,7 @@ export function TodayView() {
 
       {day >= 4 && !nextReady && (
         <div className="paper mb-5 flex items-center gap-4 rounded-3xl p-4 shadow-card ring-1 ring-border">
-          <Illustration name="courge" className="size-16 shrink-0" />
+          <Art name="courge" className="size-16 shrink-0" />
           <div className="min-w-0 flex-1">
             <p className="font-heading text-lg font-semibold">La semaine prochaine t'attend</p>
             <p className="text-sm text-muted-foreground">5 minutes pour tout prévoir.</p>
@@ -77,7 +77,6 @@ export function TodayView() {
                 <RecipeRow
                   key={e.id}
                   recipe={r}
-                  layoutId={`today-${e.id}`}
                   eyebrow={SLOT_LABELS_LONG[e.slot]}
                   onTap={() => go(`/recettes/${r.slug}`)}
                   badges={e.isLeftover ? <Badge tone="sage">Reste d'hier soir</Badge> : undefined}
@@ -123,7 +122,7 @@ export function TodayView() {
             <section className="paper rounded-3xl p-5 shadow-card ring-1 ring-border">
               <div className="flex items-center justify-between">
                 <h2 className="text-lg font-semibold">Fer du jour</h2>
-                <IronLeaves level={iron} className="[&_svg]:size-6" />
+                <IronGauge level={iron} className="scale-125" />
               </div>
               <p className="mt-1 text-sm text-muted-foreground">{IRON_TEXT[iron]}</p>
             </section>
@@ -133,7 +132,7 @@ export function TodayView() {
               <ul className="mt-3 grid grid-cols-4 gap-2">
                 {produce.map((p) => (
                   <li key={p.id} className="flex flex-col items-center text-center text-[0.7rem] leading-tight font-semibold text-muted-foreground">
-                    <Illustration name={illustrationFor(p.id)} className="size-12" />
+                    <Art name={illustrationFor(p.id)} className="size-12" />
                     {p.name.replace(/ \(.*\)/, "")}
                   </li>
                 ))}

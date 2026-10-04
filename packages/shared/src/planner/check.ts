@@ -1,5 +1,5 @@
 import { DAYS, PROTEIN_LABELS, SLOT_LABELS } from "../labels";
-import type { PlanEntry, Recipe, WeekPlan } from "../schemas";
+import type { MealSlot, PlanEntry, Recipe, WeekPlan } from "../schemas";
 import { LIMITS, previousMain, tally } from "./generate";
 
 // Alertes douces : elles informent, elles ne bloquent jamais.
@@ -27,12 +27,12 @@ export function checkWeek(week: WeekPlan, byId: Map<string, Recipe>, dessertSlot
   for (const e of week.entries) {
     if (e.isLeftover) continue;
     const r = byId.get(e.recipeId)!;
-    if (seen.has(r.id) && !r.tags.includes("repeatable") && e.slot !== "breakfast" && e.slot !== "dessert") out.push({ id: `dup-${e.id}`, message: `« ${r.title} » apparaît deux fois.`, entryIds: [seen.get(r.id)!, e.id] });
+    if (seen.has(r.id) && e.slot !== "dessert") out.push({ id: `dup-${e.id}`, message: `« ${r.title} » apparaît deux fois.`, entryIds: [seen.get(r.id)!, e.id] });
     seen.set(r.id, e.id);
   }
 
   for (const e of mains) {
-    const prev = previousMain(week.entries, e.day, e.slot);
+    const prev = previousMain(week.entries, e.day, e.slot as MealSlot);
     if (!prev || e.isLeftover) continue;
     const a = byId.get(prev.recipeId)!.mainProtein;
     const b = byId.get(e.recipeId)!.mainProtein;

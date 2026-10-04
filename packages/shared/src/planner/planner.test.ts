@@ -5,14 +5,15 @@ import { DEFAULT_THRESHOLDS } from "../pricing";
 import type { Household, Recipe } from "../schemas";
 import { buildShoppingList, totals } from "../shopping";
 import { checkWeek, dayIron, prepTasksFor } from "./check";
-import { ALTERNATIVES, alternativesFor, generateWeek, LIMITS, replaceEntry, tally } from "./generate";
+import { CHOICES, chooseEntry, choicesFor, generateWeek, LIMITS, mealsOf, nextToChoose, tally } from "./generate";
+import { plateOf } from "../plate";
 
 const household: Household = { id: "h", name: "Test", adults: 2, babies: 1, dessertSlot: "dinner", priceThresholds: DEFAULT_THRESHOLDS };
 const ingredients = ingredientMap();
 const ctx = { recipes: RECIPES, ingredients, household };
 const byId = new Map(RECIPES.map((r) => [r.id, r]));
 const WEEKS = ["2026-10-05", "2026-10-12", "2026-11-02", "2026-12-07", "2027-01-11", "2027-02-01"];
-const mains = (w: ReturnType<typeof generateWeek>) => w.entries.filter((e) => (e.slot === "lunch" || e.slot === "dinner") && !e.isLeftover);
+const mains = (w: ReturnType<typeof generateWeek>) => mealsOf(w).filter((e) => !e.isLeftover);
 
 describe("planificateur", () => {
   it("est déterministe pour une même graine", () => {
@@ -28,11 +29,14 @@ describe("planificateur", () => {
         const week = generateWeek(ctx, weekStart, seed);
         const t = tally(week.entries, byId);
 
-        it("remplit les 28 cases avec 6 alternatives", () => {
-          expect(week.entries).toHaveLength(28);
+        it("propose 14 repas + 7 desserts, chacun avec 6 choix dont la suggestion", () => {
+          expect(week.entries).toHaveLength(21);
+          expect(mealsOf(week)).toHaveLength(14);
           for (const e of week.entries) {
-            expect(e.alternatives.length).toBe(ALTERNATIVES);
-            expect(e.alternatives).not.toContain(e.recipeId);
+            expect(e.choices).toHaveLength(CHOICES);
+            expect(e.choices[0]).toBe(e.recipeId);
+            expect(new Set(e.choices).size).toBe(CHOICES);
+            expect(e.confirmed).toBe(false);
             if (!e.isLeftover) expect(byId.get(e.recipeId)!.slots).toContain(e.slot);
           }
         });
@@ -46,7 +50,7 @@ describe("planificateur", () => {
         });
 
         it("ne répète pas une recette, ni une protéine deux repas de suite", () => {
-          const ids = week.entries.filter((e) => !e.isLeftover && e.slot !== "breakfast" && e.slot !== "dessert" && !byId.get(e.recipeId)!.tags.includes("repeatable")).map((e) => e.recipeId);
+          const ids = mains(week).map((e) => e.recipeId);
           expect(new Set(ids).size).toBe(ids.length);
           const warnings = checkWeek(week, byId);
           expect(warnings.filter((w) => w.id.startsWith("seq-") || w.id.startsWith("dup-"))).toEqual([]);
@@ -54,11 +58,6 @@ describe("planificateur", () => {
 
         it("place les cuissons longues le week-end", () => {
           for (const e of mains(week)) if (byId.get(e.recipeId)!.longCook) expect(e.day).toBeGreaterThanOrEqual(5);
-        });
-
-        it("privilégie les petits-déjeuners préparés la veille en semaine", () => {
-          const weekday = week.entries.filter((e) => e.slot === "breakfast" && e.day < 5);
-          expect(weekday.filter((e) => byId.get(e.recipeId)!.prepAhead).length).toBeGreaterThanOrEqual(4);
         });
 
         it("transforme un reste de dîner en midi du lendemain", () => {
@@ -82,44 +81,60 @@ describe("planificateur", () => {
   });
 });
 
-describe("remplacement", () => {
-  it("échange la recette et l'alternative choisie", () => {
-    const week = generateWeek(ctx, "2026-10-05", 5);
-    const e = week.entries.find((x) => x.slot === "dinner" && !x.isLeftover)!;
-    const pick = e.alternatives[2];
-    const next = replaceEntry(week, e.id, pick, byId);
-    const ne = next.entries.find((x) => x.id === e.id)!;
-    expect(ne.recipeId).toBe(pick);
-    expect(ne.alternatives).toContain(e.recipeId);
-    expect(ne.alternatives).not.toContain(pick);
-    expect(ne.alternatives).toHaveLength(ALTERNATIVES);
-  });
-
-  it("les alternatives recalculées n'introduisent pas de doublon", () => {
+describe("choix repas par repas", () => {
+  it("parcourt les 14 repas dans l'ordre, sans doublon ni protéine répétée", () => {
     let week = generateWeek(ctx, "2026-10-05", 9);
-    // Remplace chaque dîner de semaine par sa première alternative à jour.
-    for (const day of [0, 1, 2, 3, 4]) {
-      const e = week.entries.find((x) => x.day === day && x.slot === "dinner")!;
-      const alts = alternativesFor(week, e.id, ctx);
-      expect(alts).toHaveLength(ALTERNATIVES);
-      week = replaceEntry(week, e.id, alts[0].id, byId);
+    let n = 0;
+    // On choisit toujours le 3e choix : la semaine doit rester cohérente.
+    for (let e = nextToChoose(week); e; e = nextToChoose(week)) {
+      const choices = choicesFor(week, e.id, ctx);
+      expect(choices).toHaveLength(CHOICES);
+      week = chooseEntry(week, e.id, choices[2], ctx);
+      expect(week.entries.find((x) => x.id === e!.id)!.recipeId).toBe(choices[2]);
+      n++;
     }
-    expect(checkWeek(week, byId).filter((w) => w.id.startsWith("dup-"))).toEqual([]);
+    expect(n).toBe(14);
+    expect(week.entries).toHaveLength(21);
+    expect(mealsOf(week).every((e) => e.confirmed)).toBe(true);
+    const dup = checkWeek(week, byId).filter((w) => w.id.startsWith("dup-"));
+    expect(dup).toEqual([]);
   });
 
-  it("le midi « reste » suit le dîner remplacé", () => {
+  it("les suggestions suivantes s'adaptent au choix", () => {
+    const week = generateWeek(ctx, "2026-10-05", 4);
+    const first = mealsOf(week)[0];
+    const pick = first.choices[1];
+    const next = chooseEntry(week, first.id, pick, ctx);
+    const later = mealsOf(next).filter((e) => !e.confirmed);
+    expect(later.map((e) => e.recipeId)).not.toContain(pick);
+    expect(later.every((e) => e.choices.length === CHOICES)).toBe(true);
+  });
+
+  it("le midi « reste » suit le dîner choisi", () => {
     for (const seed of [1, 2, 3, 4, 5, 6, 7, 8]) {
       const week = generateWeek(ctx, "2026-10-05", seed);
       const left = week.entries.find((x) => x.isLeftover);
       if (!left) continue;
       const dinner = week.entries.find((x) => x.day === left.day - 1 && x.slot === "dinner")!;
-      const plain = dinner.alternatives.find((id) => !byId.get(id)!.yieldsLeftovers)!;
-      const next = replaceEntry(week, dinner.id, plain, byId);
+      const plain = dinner.choices.find((id) => !byId.get(id)!.yieldsLeftovers)!;
+      const next = chooseEntry(week, dinner.id, plain, ctx);
       const nl = next.entries.find((x) => x.id === left.id)!;
       expect(nl.isLeftover).toBe(false);
       expect(nl.recipeId).not.toBe(plain);
       return;
     }
+  });
+});
+
+describe("assiette", () => {
+  it("montre protéine, légume et féculent quand la recette les réunit", () => {
+    for (const r of RECIPES.filter((x) => x.slots.includes("dinner"))) {
+      const plate = plateOf(r, ingredients);
+      expect(plate.length).toBeGreaterThan(0);
+      expect(plate.length).toBeLessThanOrEqual(3);
+    }
+    const mixed = RECIPES.filter((r) => r.slots.includes("dinner") && plateOf(r, ingredients).length === 3);
+    expect(mixed.length).toBeGreaterThan(5);
   });
 });
 
@@ -167,8 +182,8 @@ describe("contenu", () => {
   });
 
   it("propose des tâches de veille", () => {
-    const week = generateWeek(ctx, "2026-10-05", 1);
-    const tasks = [0, 1, 2, 3, 4].flatMap((d) => prepTasksFor(week, d, byId));
-    expect(tasks.length).toBeGreaterThan(3);
+    const weeks = [1, 2, 3, 4, 5].map((seed) => generateWeek(ctx, "2026-10-05", seed));
+    const tasks = weeks.flatMap((week) => [0, 1, 2, 3, 4, 5, 6].flatMap((d) => prepTasksFor(week, d, byId)));
+    expect(tasks.length).toBeGreaterThan(0);
   });
 });

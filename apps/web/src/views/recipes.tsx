@@ -17,7 +17,6 @@ import { cn } from "@/lib/utils";
 type Filter = Slot | "season" | "favorite" | "quick" | "prepAhead" | "longCook" | "iron";
 
 const FILTERS: { id: Filter; label: string }[] = [
-  { id: "breakfast", label: SLOT_LABELS.breakfast },
   { id: "lunch", label: SLOT_LABELS.lunch },
   { id: "dinner", label: SLOT_LABELS.dinner },
   { id: "dessert", label: SLOT_LABELS.dessert },
@@ -67,7 +66,7 @@ export function RecipesView() {
     });
 
   const list = useMemo(() => {
-    const slotFilters = [...filters].filter((f): f is Slot => ["breakfast", "lunch", "dinner", "dessert"].includes(f));
+    const slotFilters = [...filters].filter((f): f is Slot => ["lunch", "dinner", "dessert"].includes(f));
     const nq = normalize(q.trim());
     return all
       .filter((r) => (tab === "excluded" ? r.status === "excluded" : r.status !== "excluded"))

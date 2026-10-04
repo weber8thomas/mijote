@@ -2,7 +2,7 @@ import { CHANNEL_LABELS, DAYS, formatEuros, formatQty, groupByAisle, prepTasksFo
 import { ChevronLeft, Printer } from "lucide-react";
 import { useEffect } from "react";
 import { Logo } from "@/components/brand";
-import { Illustration } from "@/components/illustrations";
+import { Art } from "@/components/art";
 import { EmptyState } from "@/components/kit";
 import { Button } from "@/components/ui/button";
 import { ingredientsOf, useShopping, useStore, useWeek } from "@/data/store";
@@ -52,8 +52,8 @@ export function FridgePrint({ weekStart }: { weekStart: string }) {
   const s = useStore();
   const { week, byId } = useWeek(weekStart);
   if (!week) return <NoWeek fallback="/semaine" />;
-  // Ordre du tableau : Petit-déj / Midi / Dessert / Soir (ou dessert après le soir).
-  const rows: Slot[] = s.household.dessertSlot === "lunch" ? ["breakfast", "lunch", "dessert", "dinner"] : slotOrder("dinner");
+  // Ordre du tableau : Déjeuner / Dîner / Dessert (le dessert suit le repas auquel il est rattaché).
+  const rows: Slot[] = slotOrder(s.household.dessertSlot);
   const at = (day: number, slot: Slot) => week.entries.find((e) => e.day === day && e.slot === slot);
   // Tâches de veille : à faire le soir du jour J pour le lendemain.
   const prep = (day: number) => (day < 6 ? prepTasksFor(week, day + 1, byId) : []);
@@ -63,7 +63,7 @@ export function FridgePrint({ weekStart }: { weekStart: string }) {
       <div className="relative">
         <div className="pointer-events-none absolute -top-2 right-0 flex gap-1 opacity-[0.16] grayscale" aria-hidden>
           {["courge", "poireau", "pomme", "champignon", "poire"].map((k) => (
-            <Illustration key={k} name={k} className="size-14" />
+            <Art key={k} name={k} className="size-14" />
           ))}
         </div>
         <div className="mb-3 flex items-end gap-4">
@@ -89,7 +89,7 @@ export function FridgePrint({ weekStart }: { weekStart: string }) {
                   const e = at(day, slot);
                   const r = e && byId.get(e.recipeId);
                   return (
-                    <td key={day} className="h-[24mm] border-b border-[#bbb] px-1.5 py-3 align-top">
+                    <td key={day} className="h-[34mm] border-b border-[#bbb] px-1.5 py-3 align-top">
                       {r ? (
                         <>
                           {r.title}

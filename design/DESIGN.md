@@ -34,6 +34,10 @@ Rayon de base 1 rem ; cartes 1,5–2 rem ; puces et boutons en pilule. Ombre `--
 ## Illustrations
 32 produits en SVG (`apps/web/src/components/illustrations`), lavis superposés + filtres partagés (`<WatercolorDefs/>` monté une fois) : `wc-wash` (bords organiques, pigment qui s'accumule), `wc-soft`, `wc-ink` (trait tremblé), `wc-grain`. Chaque recette choisit son produit vedette (`illustration`) ; fond de lavis assorti (`tintOf`). < 2 Ko par illustration.
 
+## Pictos
+- **Fer** : pastille « Fe » prune + jauge de 3 barres (`IronGauge`).
+- **Assiette** : la vignette d'un plat superpose protéine, légume et féculent (2 ou 3 illustrations), le dessert garde son fruit.
+
 ## Logo
 Une cocotte terracotta dont la vapeur s'élève en tige et devient une feuille sauge. `public/logo.svg`, favicon, icônes PWA 192/512/maskable et apple-touch générées par `npm run icons -w @mijote/web`.
 
@@ -41,4 +45,4 @@ Une cocotte terracotta dont la vapeur s'élève en tige et devient une feuille s
 Tutoiement, phrases courtes, verbes d'action. « Touche un repas pour le changer. » Pas de jargon nutritionnel : « Une bonne source de fer aujourd'hui. »
 
 ## Impression
-Tableau frigo A4 paysage (7 colonnes × Petit-déj / Midi / Soir / Dessert / Ce soir pour demain), liste A4 portrait en deux colonnes. Noir et blanc lisible, aucune navigation imprimée.
+Tableau frigo A4 paysage (7 colonnes × Déjeuner / Dîner / Dessert / Ce soir pour demain), liste A4 portrait en deux colonnes. Noir et blanc lisible, aucune navigation imprimée.

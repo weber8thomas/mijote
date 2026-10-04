@@ -6,8 +6,10 @@ Planificateur de repas familial de saison, partagé avec un bébé de 11-12 mois
 
 ## Organisation
 - `packages/shared` — schémas Zod, règles bébé + linter, saisons, unités, prix, planificateur déterministe (`planner/`), liste de courses, contenu chargé (`content.ts`). Testé par Vitest.
-- `content/` — seed : `ingredients.json`, `recipes/{breakfast,lunch,dinner,dessert}.json`, `pantry-basics.json`, `ai-samples.json`.
+- `content/` — seed : `ingredients.json`, `recipes/{lunch,dinner,dessert}.json`, `pantry-basics.json`, `ai-samples.json`. Pas de petit-déjeuner dans l'appli.
 - `apps/web` — Vite + React 19 + Tailwind 4 + Radix/shadcn + Motion. Routeur par ancre (`src/lib/router.ts`, repris de zubio).
+- Illustrations : composants SVG dans `apps/web/src/components/illustrations`, exportés en fichiers autonomes (`npm run art -w @mijote/web`, lancé par dev/build) et affichés en `<img>` (`components/art.tsx`) pour des animations fluides. L'« assiette » d'une recette (protéine + légume + féculent) vient de `plateOf` (`packages/shared/src/plate.ts`).
+- Semaine : 14 repas choisis un à un parmi 6 (`choicesFor`, `chooseEntry` dans `planner/generate.ts`), + 1 dessert par jour.
 - `scripts/` — `lint-bebe.ts`, `e2e.ts` (parcours Playwright), `shots.ts` (captures dans `design/screens`).
 - `design/DESIGN.md` — identité, jetons, règles.
 

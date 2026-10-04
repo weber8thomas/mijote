@@ -1,5 +1,4 @@
 import { MotionConfig } from "motion/react";
-import { WatercolorDefs } from "@/components/illustrations";
 import { PreviewProvider } from "@/components/preview";
 import { Toaster } from "@/components/ui/sonner";
 import { useRoute } from "@/lib/router";
@@ -11,14 +10,14 @@ import { RecipesView } from "@/views/recipes";
 import { InstallView, SettingsView } from "@/views/settings";
 import { ShoppingView } from "@/views/shopping";
 import { TodayView } from "@/views/today";
-import { WeekView } from "@/views/week";
+import { ChooseView, WeekView } from "@/views/week";
 
 function Routes() {
   const [section, a, b] = useRoute();
   const [week] = useSelectedWeek();
   switch (section) {
     case "semaine":
-      return a === "imprimer" ? <FridgePrint weekStart={b ?? week} /> : <WeekView />;
+      return a === "imprimer" ? <FridgePrint weekStart={b ?? week} /> : a === "choix" ? <ChooseView /> : <WeekView />;
     case "courses":
       return a === "imprimer" ? <ShoppingPrint weekStart={b ?? week} /> : <ShoppingView />;
     case "recettes":
@@ -35,7 +34,6 @@ function Routes() {
 export default function App() {
   return (
     <MotionConfig reducedMotion="user">
-      <WatercolorDefs />
       <PreviewProvider>
         <Routes />
       </PreviewProvider>
