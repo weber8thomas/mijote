@@ -12,12 +12,13 @@ import {
   type ProductInfo,
   type StorageLocation,
 } from "@mijote/shared";
-import { ArrowRightLeft, Baby, Check, ChevronRight, ExternalLink, Plus, ScanBarcode, ShoppingBasket, Trash2, WifiOff } from "lucide-react";
+import { ArrowRightLeft, Baby, Camera, Check, ChevronRight, ExternalLink, Plus, ScanBarcode, ShoppingBasket, Trash2, WifiOff } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import { DropdownMenu } from "radix-ui";
-import { lazy, Suspense, useEffect, useMemo, useState, type FormEvent, type ReactNode } from "react";
+import { lazy, Suspense, useEffect, useMemo, useRef, useState, type FormEvent, type ReactNode } from "react";
 import { toast } from "sonner";
 import { Art } from "@/components/art";
+import { FridgePhotoSheet } from "@/components/fridge-photo";
 import { Box, Chip, EmptyState, PageHeader, RecipeVisual, Segmented } from "@/components/kit";
 import { Shell } from "@/components/shell";
 import { Sheet } from "@/components/sheet";
@@ -112,11 +113,22 @@ export function PantryView({ scan: scanFirst = false }: { scan?: boolean } = {})
     setScanning(true);
   };
 
+  // Photo du frigo, lue par Claude (seulement si une clé est enregistrée sur cet appareil).
+  const hasAi = !!s.integrations?.ai?.apiKey;
+  const [fridgePhoto, setFridgePhoto] = useState<File | null>(null);
+  const photoInput = useRef<HTMLInputElement>(null);
+  const photoButton = hasAi && (
+    <Button variant="outline" size="icon-lg" className="size-12 shrink-0 border-border-strong" onClick={() => photoInput.current?.click()} aria-label="Photo du frigo (Claude)">
+      <Camera className="size-5" />
+    </Button>
+  );
+
   const bottomBar = (
     <div className="paper mx-auto flex max-w-3xl items-center gap-2 rounded-full p-2 shadow-float ring-1 ring-border lg:hidden">
       <Button variant="outline" size="lg" className="h-12 shrink-0 border-border-strong px-5" onClick={() => setAdding(true)}>
         <Plus aria-hidden /> Ajouter
       </Button>
+      {photoButton}
       <Button size="lg" className="h-12 min-w-0 flex-1" onClick={openScanner}>
         <ScanBarcode aria-hidden /> Scanner un produit
       </Button>
@@ -125,6 +137,19 @@ export function PantryView({ scan: scanFirst = false }: { scan?: boolean } = {})
 
   return (
     <Shell tab="shopping" bottomBar={bottomBar}>
+      <input
+        ref={photoInput}
+        type="file"
+        accept="image/*"
+        capture="environment"
+        className="hidden"
+        onChange={(e) => {
+          const file = e.target.files?.[0];
+          e.target.value = "";
+          if (file) setFridgePhoto(file);
+        }}
+      />
+      <FridgePhotoSheet photo={fridgePhoto} onClose={() => setFridgePhoto(null)} onAdded={added} />
       <PageHeader
         title="Placard & frigo"
         subtitle="Ce qu'il y a à la maison"
@@ -135,6 +160,7 @@ export function PantryView({ scan: scanFirst = false }: { scan?: boolean } = {})
               <Button variant="outline" size="lg" className="h-12 border-border-strong" onClick={() => setAdding(true)}>
                 <Plus aria-hidden /> Ajouter
               </Button>
+              {photoButton}
               <Button size="lg" className="h-12" onClick={openScanner}>
                 <ScanBarcode aria-hidden /> Scanner un produit
               </Button>

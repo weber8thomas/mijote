@@ -109,7 +109,8 @@ await step("changer un repas depuis la semaine (sheet 2 × 3)", async () => {
   await tile.click();
   const sheet = page.getByRole("dialog");
   await sheet.getByText("6 idées").waitFor();
-  await sheet.locator(".grid > div > button:first-child").nth(4).click();
+  // Une idée autre que la recette déjà choisie (celle qui porte la coche).
+  await sheet.locator(".grid > div > button:first-child").filter({ hasNot: page.locator("svg.lucide-check") }).nth(3).click();
   await sheet.waitFor({ state: "detached" });
   await page.waitForTimeout(400);
   if (before === (await tile.getAttribute("aria-label"))) throw new Error("la recette n'a pas changé");
@@ -328,6 +329,9 @@ await step("Claude (API simulée) : relier, idées de dîners, garder", async ()
     const req = route.request();
     if (req.method() === "OPTIONS") return route.fulfill({ status: 204, headers: cors });
     body = JSON.parse(req.postData() ?? "{}");
+    // Photo du frigo : inventaire ; sinon, des recettes.
+    const fridge = JSON.stringify(body.system ?? "").includes("inventaire");
+    const answer = fridge ? { items: [{ name: "yaourt nature", ingredientId: null, location: "frigo", qty: 4, unit: "piece" }, { name: "carotte", ingredientId: "carotte", location: "frigo", qty: null, unit: null }] } : { recipes: [draft] };
     await route.fulfill({
       status: 200,
       headers: { ...cors, "Content-Type": "application/json" },
@@ -336,7 +340,7 @@ await step("Claude (API simulée) : relier, idées de dîners, garder", async ()
         type: "message",
         role: "assistant",
         model: body.model,
-        content: [{ type: "text", text: JSON.stringify({ recipes: [draft] }) }],
+        content: [{ type: "text", text: JSON.stringify(answer) }],
         stop_reason: "end_turn",
         stop_sequence: null,
         usage: { input_tokens: 10, output_tokens: 10 },
@@ -357,6 +361,16 @@ await step("Claude (API simulée) : relier, idées de dîners, garder", async ()
   await page.getByText(/ajoutée à tes recettes/).waitFor();
   if (body.model !== "claude-opus-5-5") throw new Error(`modèle : ${body.model}`);
   if (body.fallbacks !== "default" || !body.output_config?.format) throw new Error("requête sans repli ou sans format structuré");
+});
+
+await step("photo du frigo (Claude simulé) → placard", async () => {
+  await page.goto(`${base}#/placard`);
+  // Une image PNG de 1 × 1 pixel suffit : la réponse est simulée.
+  const png = Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg==", "base64");
+  await page.locator("input[type=file][capture]").setInputFiles({ name: "frigo.png", mimeType: "image/png", buffer: png });
+  await page.getByText("yaourt nature").waitFor();
+  await page.getByRole("button", { name: /Ranger 2 produits/ }).click();
+  await page.getByText("2 produits rangés").waitFor();
 });
 
 await step("aucune erreur JavaScript", async () => {
