@@ -159,15 +159,15 @@ function PreviewCard({ current, closing, onClose, onClosed }: { current: Current
 
   return (
     <div
-      className={cn("no-callout fixed inset-0 z-[60] flex items-end justify-center p-3 sm:items-center sm:p-6", armed && "invisible pointer-events-none")}
+      className={cn("no-callout fixed inset-0 z-[60] flex items-center justify-center px-4 pt-[max(1rem,env(safe-area-inset-top))] pb-[max(1rem,env(safe-area-inset-bottom))] sm:p-6", armed && "invisible pointer-events-none")}
       role="dialog"
       aria-modal="true"
       aria-hidden={armed || undefined}
       aria-label={`Aperçu : ${recipe.title}`}
     >
       <div ref={backdrop} className="absolute inset-0 touch-none bg-[#2f2a24]/55" onClick={closeFromBackdrop} aria-hidden />
-      <div ref={sheet} className="relative w-full max-w-md">
-        <article ref={card} className="flex max-h-[86dvh] w-full flex-col overflow-hidden rounded-[1.75rem] bg-card shadow-float">
+      <div ref={sheet} className="relative w-full max-w-sm">
+        <article ref={card} className="flex max-h-[min(78dvh,44rem)] w-full flex-col overflow-hidden rounded-[1.75rem] bg-card shadow-float">
           <PreviewBody recipe={recipe} onChoose={onChoose} onClose={onClose} handle={handle} />
         </article>
       </div>
@@ -188,10 +188,10 @@ const PreviewBody = memo(function PreviewBody({ recipe, onChoose, onClose, handl
           {/* Poignée : l'illustration et le titre se glissent vers le bas pour fermer. */}
           <div className="shrink-0 cursor-grab touch-none active:cursor-grabbing" {...handle}>
             <div className="relative">
-              <RecipeVisual recipe={recipe} className="h-40" />
+              <RecipeVisual recipe={recipe} className="h-32" />
               <span className="absolute top-2 left-1/2 h-1.5 w-11 -translate-x-1/2 rounded-full bg-[#2f2a24]/20" aria-hidden />
             </div>
-            <div className="px-5 pt-4">
+            <div className="px-5 pt-3.5">
               <h2 className="text-xl leading-snug font-semibold">{recipe.title}</h2>
               <RecipeMeta recipe={recipe} className="mt-1.5" />
             </div>
@@ -231,7 +231,7 @@ const PreviewBody = memo(function PreviewBody({ recipe, onChoose, onClose, handl
             )}
           </div>
 
-          <div className="pb-safe flex shrink-0 gap-2 border-t border-border px-4 pt-3 pb-4">
+          <div className="flex shrink-0 gap-2 border-t border-border p-3">
             {onChoose && (
               <button
                 type="button"
@@ -239,7 +239,7 @@ const PreviewBody = memo(function PreviewBody({ recipe, onChoose, onClose, handl
                   onClose();
                   onChoose();
                 }}
-                className="flex h-12 flex-1 items-center justify-center gap-2 rounded-full bg-primary font-semibold text-primary-foreground active:scale-[0.98]"
+                className="flex h-11 flex-1 items-center justify-center gap-2 rounded-full bg-primary text-[0.95rem] font-semibold text-primary-foreground active:scale-[0.98]"
               >
                 <Check className="size-4" aria-hidden /> Choisir ce repas
               </button>
@@ -251,8 +251,8 @@ const PreviewBody = memo(function PreviewBody({ recipe, onChoose, onClose, handl
                 go(`/recettes/${recipe.slug}`);
               }}
               className={cn(
-                "flex h-12 flex-1 items-center justify-center gap-2 rounded-full font-semibold active:scale-[0.98]",
-                onChoose ? "border-[1.5px] border-border-strong bg-card" : "bg-primary text-primary-foreground",
+                "flex h-11 flex-1 items-center justify-center gap-2 rounded-full text-[0.95rem] font-semibold active:scale-[0.98]",
+                onChoose ? "border-[1.5px] border-border-strong bg-card" : "bg-primary-soft text-primary-ink",
               )}
             >
               <BookOpen className="size-4" aria-hidden /> Voir la fiche
