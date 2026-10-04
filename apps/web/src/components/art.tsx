@@ -1,5 +1,4 @@
-import { ILLUSTRATION_KEYS, plateOf, type Recipe } from "@mijote/shared";
-import { ingredientsOf, useStore } from "@/data/store";
+import { ILLUSTRATION_KEYS, ingredientMap, plateOf, type Recipe } from "@mijote/shared";
 import { cn } from "@/lib/utils";
 
 // Illustrations servies en images (public/illustrations, générées par scripts/illustrations.ts) :
@@ -26,10 +25,19 @@ const LAYOUTS: Record<number, { w: string; left: string; top: string; z: number 
   ],
 };
 
+/** Composition calculée une fois par recette (les ingrédients d'une recette ne changent pas). */
+// Les prix modifiés par le foyer n'y changent rien : la liste d'ingrédients de base suffit, sans abonnement au store.
+const INGREDIENTS = ingredientMap();
+const plates = new WeakMap<Recipe, string[]>();
+const plateFor = (recipe: Recipe) => {
+  let keys = plates.get(recipe);
+  if (!keys) plates.set(recipe, (keys = plateOf(recipe, INGREDIENTS)));
+  return keys;
+};
+
 /** Assiette aquarelle : protéine + légume + féculent de la recette (ou son produit vedette pour un dessert). */
 export function Plate({ recipe, className }: { recipe: Recipe; className?: string }) {
-  const s = useStore();
-  const keys = plateOf(recipe, ingredientsOf(s).byId);
+  const keys = plateFor(recipe);
   const layout = LAYOUTS[keys.length];
   return (
     <span className={cn("relative block aspect-square", className)} aria-hidden>

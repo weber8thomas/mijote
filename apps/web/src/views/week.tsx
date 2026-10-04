@@ -18,18 +18,22 @@ import {
 } from "@mijote/shared";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
-import { AlertTriangle, ArrowLeft, CheckCircle2, ChevronDown, ChevronLeft, Flame, MoonStar, Printer, RefreshCw, ShoppingBasket, Sparkles, Undo2 } from "lucide-react";
+import { AlertTriangle, CalendarPlus, CheckCircle2, ChevronDown, ChevronLeft, Flame, MoonStar, Printer, RefreshCw, RotateCcw, Search, ShoppingBasket, Sparkles, Undo2, X } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { Badge, RecipeCard, RecipeTile } from "@/components/cards";
 import { EmptyState, IronGauge, PageHeader, Segmented } from "@/components/kit";
 import { Shell } from "@/components/shell";
+import { SearchDialog } from "@/components/search";
 import { Sheet } from "@/components/sheet";
 import { Button } from "@/components/ui/button";
-import { actions, dayIndex, getState, ingredientsOf, nextWeek, thisWeek, today, useChoices, useStore, useWeek } from "@/data/store";
-import { back, go } from "@/lib/router";
-import { useSelectedWeek } from "@/lib/ui";
+import { actions, dayIndex, getState, ingredientsOf, thisWeek, today, useChoices, usePickable, useStore, useWeek } from "@/data/store";
+import { go, replace } from "@/lib/router";
+import { downloadOrShareIcs, icsFilename, weekToIcs } from "@/lib/ics";
+import { setSelectedWeek, useSelectedWeek } from "@/lib/ui";
+import { MonthView } from "@/views/month";
+import { WeekPicker, weeksFromNow } from "@/components/week-picker";
 import { cn } from "@/lib/utils";
 
 export const weekRange = (weekStart: string) => {
@@ -46,19 +50,9 @@ export const slotOrder = (dessertSlot: "lunch" | "dinner"): Slot[] => (dessertSl
 
 const mealTitle = (e: Pick<PlanEntry, "day" | "slot">) => `${DAYS[e.day]} · ${SLOT_LABELS_LONG[e.slot]}`;
 
+/** Sélecteur de semaine (flèches + calendrier), partagé avec l'écran Courses. */
 export function WeekSwitch() {
-  const [week, setWeek] = useSelectedWeek();
-  return (
-    <Segmented
-      value={week === thisWeek() ? "this" : "next"}
-      onChange={(v) => setWeek(v === "this" ? thisWeek() : nextWeek())}
-      options={[
-        { value: "this", label: "Cette semaine" },
-        { value: "next", label: "Semaine prochaine" },
-      ]}
-      className="w-full sm:w-auto"
-    />
-  );
+  return <WeekPicker className="w-full sm:w-auto" />;
 }
 
 /** Choix d'une recette, avec annulation si un choix précédent est remplacé. */
@@ -89,6 +83,8 @@ export function WeekView() {
   const [open, setOpen] = useState<string | null>(null);
   const [confirming, setConfirming] = useState(false);
   const [showWarnings, setShowWarnings] = useState(false);
+  const [mode, setMode] = useState<"week" | "month">("week");
+  const past = weeksFromNow(weekStart) < 0;
   const entry = week?.entries.find((e) => e.id === open);
   const meals = week ? mealsOf(week) : [];
   const chosen = meals.filter((e) => e.confirmed).length;
@@ -132,35 +128,80 @@ export function WeekView() {
   );
 
   return (
-    <Shell tab="week" bottomBar={bottomBar}>
+    <Shell tab="week" bottomBar={mode === "week" ? bottomBar : undefined}>
       <PageHeader
         title="Semaine"
         subtitle={weekRange(weekStart)}
         actions={
           week && (
-            <Button variant="ghost" size="icon-lg" onClick={() => go(`/semaine/imprimer/${weekStart}`)} aria-label="Imprimer le tableau frigo">
-              <Printer className="size-5" />
-            </Button>
+            <>
+              <Button
+                variant="ghost"
+                size="icon-lg"
+                aria-label="Ajouter les repas à mon agenda"
+                onClick={async () => {
+                  const how = await downloadOrShareIcs(icsFilename(weekStart), weekToIcs(week, byId, { onlyConfirmed: week.status === "draft" }));
+                  if (how === "downloaded") toast.success("Fichier agenda téléchargé", { description: "Ouvre-le pour ajouter les repas et les rappels de la veille à ton agenda." });
+                }}
+              >
+                <CalendarPlus className="size-5" />
+              </Button>
+              <Button variant="ghost" size="icon-lg" onClick={() => go(`/semaine/imprimer/${weekStart}`)} aria-label="Imprimer le tableau frigo">
+                <Printer className="size-5" />
+              </Button>
+            </>
           )
         }
       />
       <div className="mb-4 flex flex-wrap items-center gap-3">
         <WeekSwitch />
-        {week && (
+        <Segmented
+          value={mode}
+          onChange={setMode}
+          options={[
+            { value: "week", label: "Semaine" },
+            { value: "month", label: "Mois" },
+          ]}
+        />
+        {mode === "week" && week && (
           <span className={cn("rounded-full px-3 py-1 text-xs font-bold", week.status === "validated" ? "bg-primary-soft text-primary-ink" : "bg-ochre-soft text-ochre-ink")}>
             {week.status === "validated" ? "Validée" : `${chosen}/${meals.length} repas choisis`}
           </span>
         )}
+        {mode === "week" && week?.status === "validated" && (
+          <Button
+            variant="outline"
+            className="h-10"
+            onClick={() => {
+              actions.reopen(weekStart);
+              go(`/semaine/choix/${meals[0].id}`);
+              toast("Semaine rouverte", { description: "Change les repas que tu veux, puis valide à nouveau : les articles déjà cochés restent cochés." });
+            }}
+          >
+            <RotateCcw aria-hidden /> Modifier les repas
+          </Button>
+        )}
       </div>
 
-      {!week ? (
+      {mode === "month" && (
+        <MonthView
+          onPickDay={(ws) => {
+            setSelectedWeek(ws);
+            setMode("week");
+          }}
+        />
+      )}
+
+      {mode === "month" ? null : !week ? (
         <EmptyState
           illustration="courge"
-          title="La semaine n'est pas encore prête"
+          title={past ? "Semaine passée, rien de prévu" : "La semaine n'est pas encore prête"}
           action={
-            <Button size="lg" className="h-14 w-full text-base" onClick={prepare}>
-              <Sparkles aria-hidden /> Préparer la semaine
-            </Button>
+            past ? undefined : (
+              <Button size="lg" className="h-14 w-full text-base" onClick={prepare}>
+                <Sparkles aria-hidden /> Préparer la semaine
+              </Button>
+            )
           }
         >
           Pour chaque déjeuner et dîner, Mijoté te propose 6 idées de saison, équilibrées et adaptées à bébé. Tu choisis, repas par repas.
@@ -207,7 +248,7 @@ export function WeekView() {
           <WeekGrid week={week} byId={byId} order={slotOrder(s.household.dessertSlot)} onOpen={setOpen} warnedIds={new Set(warnings.flatMap((w) => w.entryIds))} />
           <div className="mt-5 flex flex-wrap items-center justify-center gap-x-4 gap-y-2 text-xs text-muted-foreground">
             <span>Touche un repas pour voir ses 6 choix · appui long pour un aperçu</span>
-            {week.status === "draft" && (
+            {week.status === "draft" && chosen === 0 && (
               <button type="button" onClick={() => actions.generate(weekStart)} className="inline-flex h-10 items-center gap-1 font-semibold underline-offset-4 hover:underline">
                 <RefreshCw className="size-3.5" aria-hidden /> Tout reproposer
               </button>
@@ -303,7 +344,7 @@ function WeekGrid({ week, byId, order, onOpen, warnedIds }: { week: WeekPlan; by
                 {name} <span className="font-sans text-sm font-semibold text-muted-foreground">{dayLabel(week.weekStart, day)}</span>
                 {day === todayIdx && <span className="ml-2 rounded-full bg-primary-soft px-2 py-0.5 font-sans text-xs text-primary-ink">aujourd'hui</span>}
               </h2>
-              <IronGauge level={dayIron(week, day, byId)} />
+              <IronGauge level={dayIron(week, day, byId)} size={26} />
             </div>
             <div className="grid grid-cols-3 gap-2">
               {order.map((slot) => (
@@ -323,7 +364,7 @@ function WeekGrid({ week, byId, order, onOpen, warnedIds }: { week: WeekPlan; by
               <p className="font-heading text-lg font-semibold">
                 {d} <span className="font-sans text-sm text-muted-foreground">{dayLabel(week.weekStart, day)}</span>
               </p>
-              <IronGauge level={dayIron(week, day, byId)} className="justify-center" />
+              <IronGauge level={dayIron(week, day, byId)} className="mx-auto mt-0.5" />
             </div>
           ))}
           {order.map((slot) => (
@@ -353,6 +394,7 @@ function ChoiceGrid({ weekStart, entry, picked, onChosen, fill }: { weekStart: s
             key={r.id}
             recipe={r}
             onTap={() => onChosen(r)}
+            onChoose={() => onChosen(r)}
             selected={r.id === selected}
             compact={fill}
             className={fill ? "min-h-0" : undefined}
@@ -380,31 +422,83 @@ function ChoiceGrid({ weekStart, entry, picked, onChosen, fill }: { weekStart: s
 }
 
 function ChoiceSheet({ week, entry, onClose }: { week: WeekPlan; entry: PlanEntry; onClose: () => void }) {
+  const [searching, setSearching] = useState(false);
+  const pickable = usePickable(week.weekStart, entry.id);
+  const pick = (r: Recipe) => {
+    chooseWithUndo(week.weekStart, entry, r);
+    onClose();
+  };
   return (
-    <Sheet open onOpenChange={(o) => !o && onClose()} title={mealTitle(entry)} description="6 idées · touche pour choisir, appui long pour un aperçu">
-      <ChoiceGrid
-        weekStart={week.weekStart}
-        entry={entry}
-        onChosen={(r) => {
-          chooseWithUndo(week.weekStart, entry, r);
-          onClose();
-        }}
+    <>
+      <Sheet
+        open={!searching}
+        onOpenChange={(o) => !o && onClose()}
+        title={mealTitle(entry)}
+        description="6 idées · touche pour choisir, appui long pour un aperçu"
+        footer={
+          <div className="flex gap-2">
+            <Button variant="outline" className="h-12 flex-1" onClick={() => setSearching(true)}>
+              <Search aria-hidden /> Autre recette…
+            </Button>
+            {entry.confirmed && entry.slot !== "dessert" && week.status === "draft" && (
+              <Button
+                variant="ghost"
+                className="h-12"
+                onClick={() => {
+                  actions.unchoose(week.weekStart, entry.id);
+                  onClose();
+                }}
+              >
+                <RotateCcw aria-hidden /> À choisir
+              </Button>
+            )}
+          </div>
+        }
+      >
+        <ChoiceGrid weekStart={week.weekStart} entry={entry} onChosen={pick} />
+      </Sheet>
+      <SearchDialog
+        open={searching}
+        onOpenChange={(o) => (o ? setSearching(true) : onClose())}
+        pick={{ slot: entry.slot, title: mealTitle(entry), onPick: pick, hidden: pickable.hidden, warns: (r) => pickable.warns.has(r.id) }}
       />
-    </Sheet>
+    </>
   );
 }
 
 // ——— Choix guidé, repas par repas ———
+// Chaque repas a sa route (#/semaine/choix/<id>) : le geste retour du téléphone revient au repas précédent.
 
-export function ChooseView() {
+/** Annule un choix : retour à la recette précédente, ou « à choisir » si le repas ne l'était pas encore. */
+function undoChoice(weekStart: string, before: PlanEntry) {
+  if (before.confirmed) actions.choose(weekStart, before.id, before.recipeId);
+  else actions.unchoose(weekStart, before.id);
+}
+
+export function ChooseView({ entryId }: { entryId?: string }) {
   const [weekStart] = useSelectedWeek();
   const { week } = useWeek(weekStart);
   const meals = week ? mealsOf(week) : [];
-  const [currentId, setCurrentId] = useState<string | undefined>(() => (week ? (nextToChoose(week) ?? meals[0])?.id : undefined));
-  const [direction, setDirection] = useState(1);
-  const [picked, setPicked] = useState<string | null>(null);
-  const index = Math.max(0, meals.findIndex((e) => e.id === currentId));
+  const [pickedFor, setPickedFor] = useState<{ entry: string; recipe: string } | null>(null);
+  const [searching, setSearching] = useState(false);
+  const found = meals.findIndex((e) => e.id === entryId);
+  const fallback = week ? (nextToChoose(week) ?? meals[0]) : undefined;
+  const index = found >= 0 ? found : fallback ? meals.indexOf(fallback) : 0;
   const entry = meals[index];
+  // Sens de l'animation : vers la droite quand on avance dans la semaine.
+  const [nav, setNav] = useState({ index, direction: 1 });
+  if (nav.index !== index) {
+    setNav({ index, direction: index >= nav.index ? 1 : -1 });
+    // Revenir sur un repas repart d'un écran neuf (le choix « en cours » de la visite précédente est oublié).
+    setPickedFor(null);
+  }
+  const direction = nav.direction;
+  const picked = pickedFor && pickedFor.entry === entry?.id ? pickedFor.recipe : null;
+  // Sans repas dans l'adresse : on y met celui à choisir, sans créer d'étape d'historique.
+  useEffect(() => {
+    if (entry && found < 0) replace(`/semaine/choix/${entry.id}`);
+  }, [entry, found]);
+  const pickable = usePickable(weekStart, entry?.id);
 
   if (!week || !entry)
     return (
@@ -413,35 +507,41 @@ export function ChooseView() {
       </div>
     );
 
-  const goTo = (id: string | undefined, dir: number) => {
-    setDirection(dir);
-    setPicked(null);
-    setCurrentId(id);
-  };
+  const open = (id: string) => go(`/semaine/choix/${id}`);
 
   const onChosen = (r: Recipe) => {
     if (picked) return;
-    setPicked(r.id);
+    const before = entry;
+    setPickedFor({ entry: entry.id, recipe: r.id });
     actions.choose(weekStart, entry.id, r.id);
+    toast(`${mealTitle(entry)} : ${r.title}`, {
+      action: {
+        label: "Annuler",
+        onClick: () => {
+          undoChoice(weekStart, before);
+          open(before.id);
+        },
+      },
+      icon: <Undo2 className="size-4" />,
+    });
     // Laisse voir la coche un instant, puis passe au repas suivant pas encore choisi.
     window.setTimeout(() => {
       const fresh = mealsOf(getState().weeks[weekStart]);
       const after = fresh.find((e, i) => i > index && !e.confirmed) ?? fresh.find((e) => !e.confirmed);
-      if (after) goTo(after.id, 1);
+      if (after) open(after.id);
       else {
         toast.success("Tous les repas sont choisis", { description: "Jette un œil à la semaine, puis valide." });
-        go("/semaine");
+        replace("/semaine");
       }
     }, 280);
   };
-
 
   return (
     <div className="flex h-dvh flex-col overflow-hidden">
       <header className="pt-safe shrink-0 bg-background/90">
         <div className="mx-auto flex max-w-3xl items-center gap-2 px-3 pt-2">
-          <button type="button" onClick={() => back("/semaine")} className="grid size-11 shrink-0 place-items-center rounded-full hover:bg-muted" aria-label="Retour à la semaine">
-            <ArrowLeft className="size-5" />
+          <button type="button" onClick={() => replace("/semaine")} className="grid size-11 shrink-0 place-items-center rounded-full hover:bg-muted" aria-label="Retour à la semaine">
+            <X className="size-5" />
           </button>
           <div className="min-w-0 flex-1">
             <p className="text-xs font-bold tracking-wide text-muted-foreground uppercase">
@@ -452,9 +552,18 @@ export function ChooseView() {
             </h1>
           </div>
         </div>
-        <div className="mx-auto flex max-w-3xl gap-1 px-4 pt-2 pb-2.5" aria-hidden>
+        <div className="mx-auto flex max-w-3xl gap-1 px-4 pt-2 pb-2.5">
           {meals.map((e, i) => (
-            <span key={e.id} className={cn("h-1.5 flex-1 rounded-full transition-colors duration-300", i === index ? "bg-primary" : e.confirmed ? "bg-primary/45" : "bg-paper-deep")} />
+            <button
+              key={e.id}
+              type="button"
+              onClick={() => open(e.id)}
+              className="flex h-6 flex-1 items-center"
+              aria-label={`${mealTitle(e)}${e.confirmed ? " (choisi)" : ""}`}
+              aria-current={i === index ? "step" : undefined}
+            >
+              <span className={cn("h-1.5 w-full rounded-full transition-colors duration-300", i === index ? "bg-primary" : e.confirmed ? "bg-primary/45" : "bg-paper-deep")} />
+            </button>
           ))}
         </div>
       </header>
@@ -483,21 +592,36 @@ export function ChooseView() {
       </main>
 
       <footer className="pb-safe shrink-0 border-t border-border bg-card/95">
-        <div className="mx-auto flex max-w-3xl items-center gap-2 px-3 py-2">
-          <Button variant="ghost" className="h-12" disabled={index === 0} onClick={() => goTo(meals[index - 1]?.id, -1)}>
-            <ChevronLeft aria-hidden /> Précédent
+        <div className="mx-auto flex max-w-3xl items-center gap-1.5 px-2 py-2">
+          <Button variant="ghost" size="icon-lg" className="size-12" disabled={index === 0} onClick={() => open(meals[index - 1].id)} aria-label="Repas précédent">
+            <ChevronLeft className="size-5" />
           </Button>
-          <div className="flex-1" />
-          {entry.confirmed && index < meals.length - 1 && (
-            <Button variant="outline" className="h-12" onClick={() => goTo(meals[index + 1].id, 1)}>
-              Suivant
+          <Button variant="outline" className="h-12 flex-1" onClick={() => setSearching(true)}>
+            <Search aria-hidden /> Autre recette…
+          </Button>
+          {entry.confirmed ? (
+            <Button
+              variant="ghost"
+              className="h-12"
+              onClick={() => {
+                actions.unchoose(weekStart, entry.id);
+                toast(`${mealTitle(entry)} : à choisir`);
+              }}
+            >
+              <RotateCcw aria-hidden /> À choisir
             </Button>
-          )}
-          <Button className="h-12" onClick={() => go("/semaine")}>
-            Voir la semaine
+          ) : null}
+          <Button className="h-12" onClick={() => replace("/semaine")}>
+            Semaine
           </Button>
         </div>
       </footer>
+
+      <SearchDialog
+        open={searching}
+        onOpenChange={setSearching}
+        pick={{ slot: entry.slot, title: mealTitle(entry), onPick: onChosen, hidden: pickable.hidden, warns: (r) => pickable.warns.has(r.id) }}
+      />
     </div>
   );
 }

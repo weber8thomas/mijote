@@ -1,17 +1,18 @@
-import { addDays, dayIron, INGREDIENTS, MONTHS, prepTasksFor, seasonalProduce, SLOT_LABELS_LONG, toISODate } from "@mijote/shared";
+import { addDays, dayIron, illustrationOf, INGREDIENTS, MONTHS, prepTasksFor, seasonalProduce, SLOT_LABELS, SLOT_LABELS_LONG, toISODate } from "@mijote/shared";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
-import { Check, Download, MoonStar, Sparkles } from "lucide-react";
+import { ChevronRight, Download, MoonStar, Sparkles } from "lucide-react";
+import { useState } from "react";
 import { Badge, RecipeRow } from "@/components/cards";
-import { Art } from "@/components/art";
-import { Disclaimer, EmptyState, IronGauge, PageHeader } from "@/components/kit";
+import { Art, Plate } from "@/components/art";
+import { PrepSheet } from "@/components/prep-sheet";
+import { Disclaimer, EmptyState, IronGauge, PageHeader, tintOf } from "@/components/kit";
 import { Shell } from "@/components/shell";
 import { Button } from "@/components/ui/button";
 import { actions, dayIndex, nextWeek, thisWeek, today, useStore, useWeek } from "@/data/store";
 import { isIOS, isStandalone } from "@/lib/install";
 import { go } from "@/lib/router";
 import { setSelectedWeek } from "@/lib/ui";
-import { cn } from "@/lib/utils";
 import { slotOrder } from "@/views/week";
 
 const IRON_TEXT = ["Pas de vraie source de fer aujourd'hui.", "Un peu de fer aujourd'hui.", "Une bonne source de fer aujourd'hui.", "Journée riche en fer."];
@@ -26,6 +27,14 @@ export function TodayView() {
   const tomorrowDay = (day + 1) % 7;
   const tasks = tomorrow.week ? prepTasksFor(tomorrow.week, tomorrowDay, tomorrow.byId) : [];
   const taskKey = (id: string) => `${addDays(toISODate(now), 1)}:${id}`;
+  // Une ligne par plat à préparer (ses étapes sont dans la feuille de détail).
+  const groups = [...new Set(tasks.map((t) => t.entryId))].map((entryId) => {
+    const entry = tomorrow.week!.entries.find((e) => e.id === entryId)!;
+    const recipe = tomorrow.byId.get(entry.recipeId)!;
+    return { entry, recipe, count: recipe.prepAheadSteps.length };
+  });
+  const [prepOpen, setPrepOpen] = useState<string | null>(null);
+  const prepGroup = groups.find((g) => g.entry.id === prepOpen);
   const entries = week ? slotOrder(s.household.dessertSlot).map((slot) => week.entries.find((e) => e.day === day && e.slot === slot)).filter((e) => !!e) : [];
   const iron = week ? dayIron(week, day, byId) : 0;
   const month = now.getMonth() + 1;
@@ -91,26 +100,45 @@ export function TodayView() {
                 <MoonStar className="size-5" aria-hidden /> Ce soir, pour demain
               </h2>
               {tasks.length === 0 ? (
-                <p className="mt-2 text-sm text-plum-ink/90">{tomorrow.week ? "Rien à préparer ce soir. Profite !" : "La semaine prochaine n'est pas encore planifiée."}</p>
+                tomorrow.week ? (
+                  <p className="mt-2 text-sm text-plum-ink/90">Rien à préparer ce soir. Profite !</p>
+                ) : (
+                  <div className="mt-2 space-y-3">
+                    <p className="text-sm text-plum-ink/90">Demain commence une nouvelle semaine, pas encore planifiée.</p>
+                    <Button
+                      className="h-11"
+                      onClick={() => {
+                        setSelectedWeek(nextWeek());
+                        actions.generate(nextWeek());
+                        go("/semaine/choix");
+                      }}
+                    >
+                      <Sparkles aria-hidden /> Préparer la semaine
+                    </Button>
+                  </div>
+                )
               ) : (
                 <ul className="mt-3 space-y-2">
-                  {tasks.map((t) => {
-                    const done = !!s.prepDone[taskKey(t.id)];
+                  {groups.map(({ entry, recipe, count }) => {
+                    const done = recipe.prepAheadSteps.filter((_, i) => s.prepDone[taskKey(`${entry.id}:${i}`)]).length;
                     return (
-                      <li key={t.id}>
+                      <li key={entry.id}>
                         <button
                           type="button"
-                          onClick={() => actions.togglePrep(taskKey(t.id))}
-                          aria-pressed={done}
-                          className="flex min-h-12 w-full items-start gap-3 rounded-2xl bg-card/80 px-3 py-2.5 text-left text-sm"
+                          onClick={() => setPrepOpen(entry.id)}
+                          className="flex min-h-16 w-full items-center gap-3 rounded-2xl bg-card/85 p-2 pr-3 text-left"
                         >
-                          <span className={cn("mt-0.5 grid size-6 shrink-0 place-items-center rounded-full border-2", done ? "border-plum bg-plum text-white" : "border-plum/40")}>
-                            {done && <Check className="size-3.5" strokeWidth={3} />}
+                          <span className="grid size-14 shrink-0 place-items-center overflow-hidden rounded-xl" style={{ backgroundColor: tintOf(recipe.illustration) }}>
+                            <Plate recipe={recipe} className="h-[90%]" />
                           </span>
-                          <span className={cn("flex-1", done && "text-muted-foreground line-through")}>
-                            {t.text}
-                            <span className="block text-xs text-muted-foreground">{tomorrow.byId.get(t.recipeId)?.title}</span>
+                          <span className="min-w-0 flex-1">
+                            <span className="block text-xs font-bold tracking-[0.1em] text-plum-ink uppercase">Demain {SLOT_LABELS[entry.slot].toLowerCase()}</span>
+                            <span className="line-clamp-2 text-sm font-semibold">{recipe.prepAheadSteps[0]}</span>
+                            <span className="text-xs text-muted-foreground">
+                              {recipe.title} · {done}/{count} fait{done > 1 ? "s" : ""}
+                            </span>
                           </span>
+                          <ChevronRight className="size-4 shrink-0 text-plum-ink" aria-hidden />
                         </button>
                       </li>
                     );
@@ -122,7 +150,7 @@ export function TodayView() {
             <section className="paper rounded-3xl p-5 shadow-card ring-1 ring-border">
               <div className="flex items-center justify-between">
                 <h2 className="text-lg font-semibold">Fer du jour</h2>
-                <IronGauge level={iron} className="scale-125" />
+                <IronGauge level={iron} size={34} />
               </div>
               <p className="mt-1 text-sm text-muted-foreground">{IRON_TEXT[iron]}</p>
             </section>
@@ -143,22 +171,10 @@ export function TodayView() {
       )}
 
       <Disclaimer className="mt-8" />
+      {prepGroup && <PrepSheet recipe={prepGroup.recipe} entry={prepGroup.entry} doneKey={(i) => taskKey(`${prepGroup.entry.id}:${i}`)} onClose={() => setPrepOpen(null)} />}
     </Shell>
   );
 }
 
-/** Illustration la plus proche d'un ingrédient. */
-const ILLU: Record<string, string> = {
-  "courge-butternut": "courge",
-  potimarron: "potiron",
-  "chou-vert": "chou",
-  "chou-rouge": "chou",
-  "celeri-rave": "celeri",
-  prune: "raisin",
-  "fruits-rouges-surgeles": "raisin",
-  endive: "poireau",
-  mache: "epinard",
-  fenouil: "celeri",
-  courgette: "poivron",
-};
-const illustrationFor = (id: string) => ILLU[id] ?? id;
+/** Illustration exacte d'un ingrédient (repli : brin de feuillage). */
+const illustrationFor = (id: string) => illustrationOf(id) ?? "sprig";

@@ -54,3 +54,8 @@ export function back(fallback: string) {
 export function go(path: string) {
   window.location.hash = path;
 }
+
+/** Comme go(), sans ajouter d'étape à l'historique (le retour ne revient pas ici). */
+export function replace(path: string) {
+  window.location.replace(`#${path.replace(/^#/, "")}`);
+}

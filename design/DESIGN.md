@@ -23,9 +23,9 @@ Univers **botanique illustré** : fruits et légumes à l'aquarelle, papier crè
 
 Pas de thème sombre en v1, mais tout passe par les jetons.
 
-## Typographie
-- **Fraunces Variable** (titres, chiffres de la grille) — serif chaleureuse, axe optique.
-- **Nunito Variable** (texte, interface) — ronde, très lisible petit.
+## Typographie (identité v2, choisie dans Claude Design : direction « Carnet » + éléments « Potager »)
+- **Young Serif** (titres, mot-symbole « mijoté ») — serif douce de carnet de cuisine, une seule graisse : jamais de faux gras (`font-synthesis-weight: none`).
+- **Outfit Variable** (texte, interface, cartes) — géométrique et ronde, titres de cartes en 600, petites capitales espacées (0,1 em) pour les créneaux.
 - Auto-hébergées via Fontsource.
 
 ## Formes
@@ -35,11 +35,11 @@ Rayon de base 1 rem ; cartes 1,5–2 rem ; puces et boutons en pilule. Ombre `--
 32 produits en SVG (`apps/web/src/components/illustrations`), lavis superposés + filtres partagés (`<WatercolorDefs/>` monté une fois) : `wc-wash` (bords organiques, pigment qui s'accumule), `wc-soft`, `wc-ink` (trait tremblé), `wc-grain`. Chaque recette choisit son produit vedette (`illustration`) ; fond de lavis assorti (`tintOf`). < 2 Ko par illustration.
 
 ## Pictos
-- **Fer** : pastille « Fe » prune + jauge de 3 barres (`IronGauge`).
+- **Fer** : anneau en trois arcs prune autour de « Fe » (`IronGauge`), comme un objectif du jour à compléter.
 - **Assiette** : la vignette d'un plat superpose protéine, légume et féculent (2 ou 3 illustrations), le dessert garde son fruit.
 
 ## Logo
-Une cocotte terracotta dont la vapeur s'élève en tige et devient une feuille sauge. `public/logo.svg`, favicon, icônes PWA 192/512/maskable et apple-touch générées par `npm run icons -w @mijote/web`.
+Direction « Carnet » : une cocotte dessinée à l'encre (couvercle terracotta) sur un lavis rond terracotta pâle ; la vapeur monte en tige et devient une feuille sauge. Mot-symbole « mijoté » en minuscules, Young Serif, l'accent du é en terracotta. Versions : couleur, monochrome (`LogoMark mono`), favicon (cocotte crème sur carré terracotta). Planche : https://claude.ai/artifact/LHRP6HfmYnyKZckmmshNpH `public/logo.svg`, favicon, icônes PWA 192/512/maskable et apple-touch générées par `npm run icons -w @mijote/web`.
 
 ## Ton
 Tutoiement, phrases courtes, verbes d'action. « Touche un repas pour le changer. » Pas de jargon nutritionnel : « Une bonne source de fer aujourd'hui. »

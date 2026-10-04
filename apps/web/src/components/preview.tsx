@@ -1,180 +1,192 @@
 import { householdPortions, ingredientLine, type Recipe } from "@mijote/shared";
-import { Baby, BookOpen, MoonStar } from "lucide-react";
-import { AnimatePresence, motion } from "motion/react";
-import { createContext, use, useCallback, useEffect, useRef, useState, type ReactNode } from "react";
+import { Baby, BookOpen, Check, MoonStar } from "lucide-react";
+import { AnimatePresence, motion, useDragControls, useReducedMotion } from "motion/react";
+import { createContext, use, useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
+import { createPortal } from "react-dom";
 import { RecipeMeta, RecipeVisual } from "@/components/kit";
 import { ingredientsOf, useStore } from "@/data/store";
 import { go } from "@/lib/router";
 import { usePressHold } from "@/lib/use-press-hold";
 import { cn } from "@/lib/utils";
 
-// Aperçu flottant d'une recette (appui long, façon « force touch »). Il naît de la carte pressée et s'agrandit
-// au centre. Relâcher ferme ; glisser jusqu'à « Ouvrir la fiche » puis relâcher l'ouvre.
-// Au clavier / lecteur d'écran : bouton « Aperçu », l'aperçu reste alors ouvert.
+// Aperçu d'une recette, façon menu contextuel d'iPhone : appui long sur une carte → la carte s'enfonce,
+// l'aperçu naît de la carte et RESTE ouvert au relâchement. On le ferme en touchant à côté, en le glissant
+// vers le bas ou avec Échap. Actions : « Choisir ce repas » (quand on est en train de choisir) et « Voir la fiche ».
 
-type Mode = "hold" | "sticky";
-type Current = { recipe: Recipe; mode: Mode; origin?: DOMRect };
-type Ctx = { show: (recipe: Recipe, mode: Mode, origin?: DOMRect) => void; release: (point: { x: number; y: number }) => void; hide: () => void };
+type Options = { origin?: DOMRect; onChoose?: () => void };
+type Current = Options & { recipe: Recipe; openedAt: number };
+type Ctx = { show: (recipe: Recipe, options?: Options) => void; hide: () => void };
 
 const PreviewContext = createContext<Ctx | null>(null);
-
 export const usePreview = () => use(PreviewContext)!;
-
-const overOpenButton = (p: { x: number; y: number }) => !!document.elementFromPoint(p.x, p.y)?.closest("[data-preview-open]");
-
-/** Ressort amorti, sans rebond : rapide au départ, doux à l'arrivée. */
-const SPRING = { type: "spring", stiffness: 420, damping: 38, mass: 0.85 } as const;
 
 export function PreviewProvider({ children }: { children: ReactNode }) {
   const [current, setCurrent] = useState<Current | null>(null);
-  const [hover, setHover] = useState(false);
-  const ref = useRef(current);
-  useEffect(() => {
-    ref.current = current;
-  }, [current]);
-
   const hide = useCallback(() => setCurrent(null), []);
-  const show = useCallback((recipe: Recipe, mode: Mode, origin?: DOMRect) => setCurrent({ recipe, mode, origin }), []);
-  const release = useCallback((p: { x: number; y: number }) => {
-    const c = ref.current;
-    if (!c || c.mode !== "hold") return;
-    setCurrent(null);
-    setHover(false);
-    if (overOpenButton(p)) go(`/recettes/${c.recipe.slug}`);
-  }, []);
-
-  // Pendant l'appui : suivre le doigt (surligner « Ouvrir la fiche ») et bloquer le défilement de la page.
-  useEffect(() => {
-    if (current?.mode !== "hold") return;
-    const move = (e: PointerEvent) => setHover(overOpenButton({ x: e.clientX, y: e.clientY }));
-    const up = (e: PointerEvent) => release({ x: e.clientX, y: e.clientY });
-    const noScroll = (e: TouchEvent) => e.preventDefault();
-    window.addEventListener("pointermove", move);
-    window.addEventListener("pointerup", up);
-    window.addEventListener("touchmove", noScroll, { passive: false });
-    return () => {
-      window.removeEventListener("pointermove", move);
-      window.removeEventListener("pointerup", up);
-      window.removeEventListener("touchmove", noScroll);
-    };
-  }, [current?.mode, release]);
+  const show = useCallback((recipe: Recipe, options: Options = {}) => setCurrent({ recipe, ...options, openedAt: performance.now() }), []);
+  // Valeur stable : ouvrir l'aperçu ne re-rend pas toutes les cartes de la page.
+  const value = useMemo(() => ({ show, hide }), [show, hide]);
 
   useEffect(() => {
     if (!current) return;
     const esc = (e: KeyboardEvent) => e.key === "Escape" && hide();
+    const { overflow } = document.body.style;
+    document.body.style.overflow = "hidden";
     window.addEventListener("keydown", esc);
-    return () => window.removeEventListener("keydown", esc);
+    return () => {
+      window.removeEventListener("keydown", esc);
+      document.body.style.overflow = overflow;
+    };
   }, [current, hide]);
 
   return (
-    <PreviewContext value={{ show, release, hide }}>
+    <PreviewContext value={value}>
       {children}
-      <AnimatePresence>{current && <PreviewCard key={current.recipe.id} current={current} hover={hover} onClose={hide} />}</AnimatePresence>
+      {createPortal(<AnimatePresence>{current && <PreviewCard key={current.openedAt} current={current} onClose={hide} />}</AnimatePresence>, document.body)}
     </PreviewContext>
   );
 }
 
-function PreviewCard({ current, hover, onClose }: { current: Current; hover: boolean; onClose: () => void }) {
-  const { recipe, mode, origin } = current;
+function PreviewCard({ current, onClose }: { current: Current; onClose: () => void }) {
+  const { recipe, origin, onChoose, openedAt } = current;
   const s = useStore();
   const ingredients = ingredientsOf(s).byId;
   const factor = householdPortions(s.household) / recipe.servingsBase;
-  const sticky = mode === "sticky";
-  // Départ : centré sur la carte pressée, à sa taille.
-  const from = origin
-    ? { x: origin.left + origin.width / 2 - window.innerWidth / 2, y: origin.top + origin.height / 2 - window.innerHeight / 2, scale: Math.min(0.9, Math.max(0.35, origin.width / 384)) }
-    : { x: 0, y: 24, scale: 0.92 };
+  const reduced = useReducedMotion();
+  const drag = useDragControls();
+
+  // Départ : à la place et à la taille de la carte pressée.
+  const from =
+    origin && !reduced
+      ? { x: origin.left + origin.width / 2 - window.innerWidth / 2, y: origin.top + origin.height / 2 - window.innerHeight / 2, scale: Math.min(0.85, Math.max(0.4, origin.width / 384)), opacity: 0.6 }
+      : { opacity: 0, scale: 0.97, y: 12 };
+
+  // Le doigt qui se lève juste après l'ouverture ne doit pas refermer l'aperçu.
+  const closeFromBackdrop = () => {
+    if (performance.now() - openedAt > 350) onClose();
+  };
+
+  const lines = recipe.ingredients.filter((ri) => !ri.adultOnly);
 
   return (
-    <div className="no-callout fixed inset-0 z-[60] grid touch-none place-items-center p-4" role="dialog" aria-modal="true" aria-label={`Aperçu : ${recipe.title}`}>
+    <div className="no-callout fixed inset-0 z-[60] flex items-end justify-center p-3 sm:items-center sm:p-6" role="dialog" aria-modal="true" aria-label={`Aperçu : ${recipe.title}`}>
       <motion.div
-        className="absolute inset-0 bg-[#2f2a24]/50"
+        className="absolute inset-0 touch-none bg-[#2f2a24]/55"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        exit={{ opacity: 0, transition: { duration: 0.16 } }}
+        exit={{ opacity: 0 }}
         transition={{ duration: 0.2, ease: "easeOut" }}
-        onClick={sticky ? onClose : undefined}
+        onClick={closeFromBackdrop}
         aria-hidden
       />
       <motion.article
-        className="paper relative w-full max-w-sm overflow-hidden rounded-[1.75rem] shadow-float"
+        className="paper relative flex max-h-[86dvh] w-full max-w-md flex-col overflow-hidden rounded-[1.75rem] shadow-float"
         style={{ willChange: "transform, opacity" }}
-        initial={{ opacity: 0, ...from }}
+        initial={from}
         animate={{ opacity: 1, x: 0, y: 0, scale: 1 }}
-        exit={{ opacity: 0, scale: 0.94, y: 8, transition: { duration: 0.16, ease: "easeIn" } }}
-        transition={{ ...SPRING, opacity: { duration: 0.12 } }}
+        exit={{ opacity: 0, scale: 0.96, y: 16, transition: { duration: 0.18, ease: [0.4, 0, 1, 1] } }}
+        transition={{ type: "spring", stiffness: 360, damping: 34, mass: 0.9, opacity: { duration: 0.14 } }}
+        drag="y"
+        dragControls={drag}
+        dragListener={false}
+        dragConstraints={{ top: 0, bottom: 0 }}
+        dragElastic={{ top: 0.05, bottom: 0.8 }}
+        onDragEnd={(_, info) => {
+          if (info.offset.y > 100 || info.velocity.y > 700) onClose();
+        }}
       >
-        <RecipeVisual recipe={recipe} className="h-40" />
-        <div className="space-y-3 p-5">
-          <div>
+        {/* Poignée : l'illustration et le titre se glissent vers le bas pour fermer. */}
+        <div className="shrink-0 cursor-grab touch-none active:cursor-grabbing" onPointerDown={(e) => drag.start(e)}>
+          <div className="relative">
+            <RecipeVisual recipe={recipe} className="h-40" />
+            <span className="absolute top-2 left-1/2 h-1.5 w-11 -translate-x-1/2 rounded-full bg-[#2f2a24]/20" aria-hidden />
+          </div>
+          <div className="px-5 pt-4">
             <h2 className="text-xl leading-snug font-semibold">{recipe.title}</h2>
             <RecipeMeta recipe={recipe} className="mt-1.5" />
           </div>
-          <ul className="grid grid-cols-2 gap-x-3 gap-y-0.5 text-sm">
-            {recipe.ingredients
-              .filter((ri) => !ri.adultOnly)
-              .slice(0, 8)
-              .map((ri) => {
-                const ing = ingredients.get(ri.ingredientId);
-                if (!ing) return null;
-                const line = ingredientLine(ri.babyPortionOnly ? ri.qty : ri.qty * factor, ri.unit, ing);
-                return (
-                  <li key={ri.ingredientId} className="truncate">
-                    <span className="font-semibold tabular-nums">{line.qty}</span> {line.name}
-                  </li>
-                );
-              })}
+        </div>
+
+        <div className="min-h-0 flex-1 space-y-4 overflow-y-auto overscroll-contain px-5 pt-3 pb-4">
+          {recipe.description && <p className="text-sm text-muted-foreground">{recipe.description}</p>}
+          <ul className="grid grid-cols-2 gap-x-3 gap-y-1 text-sm">
+            {lines.map((ri) => {
+              const ing = ingredients.get(ri.ingredientId);
+              if (!ing) return null;
+              const line = ingredientLine(ri.babyPortionOnly ? ri.qty : ri.qty * factor, ri.unit, ing);
+              return (
+                <li key={`${ri.ingredientId}-${ri.note ?? ""}`} className="truncate">
+                  <span className="font-semibold tabular-nums">{line.qty}</span> {line.name}
+                </li>
+              );
+            })}
           </ul>
-          <p className="flex gap-2 rounded-2xl bg-primary-soft/70 px-3 py-2 text-sm text-primary-ink">
+          <p className="flex gap-2 rounded-2xl bg-primary-soft/70 px-3 py-2.5 text-sm text-primary-ink">
             <Baby className="mt-0.5 size-4 shrink-0" aria-hidden />
             <span>
-              <strong>Pour bébé :</strong> {recipe.babyAdaptation.when}, {recipe.babyAdaptation.texture.toLowerCase()}.
+              <strong>Pour bébé :</strong> {recipe.babyAdaptation.when}. {recipe.babyAdaptation.texture}. {recipe.babyAdaptation.amount}.
             </span>
           </p>
           {recipe.prepAhead && (
-            <p className="flex gap-2 text-sm text-plum-ink">
-              <MoonStar className="mt-0.5 size-4 shrink-0" aria-hidden />
-              La veille : {recipe.prepAheadSteps[0]}
-            </p>
+            <div className="rounded-2xl bg-plum-soft/70 px-3 py-2.5 text-sm text-plum-ink">
+              <p className="mb-1 flex items-center gap-2 font-bold">
+                <MoonStar className="size-4" aria-hidden /> La veille
+              </p>
+              <ul className="space-y-0.5">
+                {recipe.prepAheadSteps.map((t) => (
+                  <li key={t}>• {t}</li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </div>
+
+        <div className="pb-safe flex shrink-0 gap-2 border-t border-border px-4 pt-3 pb-4">
+          {onChoose && (
+            <button
+              type="button"
+              onClick={() => {
+                onClose();
+                onChoose();
+              }}
+              className="flex h-12 flex-1 items-center justify-center gap-2 rounded-full bg-primary font-semibold text-primary-foreground active:scale-[0.98]"
+            >
+              <Check className="size-4" aria-hidden /> Choisir ce repas
+            </button>
           )}
           <button
             type="button"
-            data-preview-open
             onClick={() => {
               onClose();
               go(`/recettes/${recipe.slug}`);
             }}
             className={cn(
-              "flex h-12 w-full items-center justify-center gap-2 rounded-full bg-primary font-semibold text-primary-foreground transition-transform duration-150",
-              hover && "scale-[1.04] bg-primary-hover",
+              "flex h-12 flex-1 items-center justify-center gap-2 rounded-full font-semibold active:scale-[0.98]",
+              onChoose ? "border-[1.5px] border-border-strong bg-card" : "bg-primary text-primary-foreground",
             )}
           >
-            <BookOpen className="size-4" aria-hidden /> Ouvrir la fiche
+            <BookOpen className="size-4" aria-hidden /> Voir la fiche
           </button>
-          {!sticky && <p className="text-center text-xs text-muted-foreground">Relâche pour fermer · glisse sur le bouton pour ouvrir</p>}
         </div>
       </motion.article>
     </div>
   );
 }
 
-/** Rend un élément « appuyable » : tap = onTap, appui long = aperçu. */
-export function usePressable(recipe: Recipe | undefined, onTap: () => void) {
+/** Rend une carte « appuyable » : tap = onTap, appui long = aperçu (qui peut proposer de choisir la recette). */
+export function usePressable(recipe: Recipe | undefined, onTap: () => void, onChoose?: () => void) {
   const preview = usePreview();
-  const press = usePressHold(
-    (origin) => recipe && preview.show(recipe, "hold", origin),
-    (p) => preview.release(p),
-  );
+  const press = usePressHold((origin) => recipe && preview.show(recipe, { origin, onChoose }));
   return {
     holding: press.holding,
-    /** Classes de la carte : elle s'enfonce pendant l'appui, puis se relâche quand l'aperçu apparaît. */
-    pressClass: cn("transition-transform", press.pressing ? "scale-[0.95] duration-[450ms] ease-out" : "duration-200 ease-out active:scale-[0.97]"),
+    /** La carte s'enfonce pendant l'appui, puis se relâche quand l'aperçu apparaît. */
+    pressClass: cn("transition-transform will-change-transform", press.pressing ? "scale-[0.94] duration-[350ms] ease-out" : "duration-200 ease-out"),
     props: {
       ...press.handlers,
       onClick: () => {
         if (!press.consumed()) onTap();
       },
     },
-    openSticky: (e?: { currentTarget: Element }) => recipe && preview.show(recipe, "sticky", e?.currentTarget.closest(".group")?.getBoundingClientRect()),
+    openSticky: (e?: { currentTarget: Element }) => recipe && preview.show(recipe, { origin: e?.currentTarget.closest(".group")?.getBoundingClientRect(), onChoose }),
   };
 }

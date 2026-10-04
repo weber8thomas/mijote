@@ -1,9 +1,8 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
-@import "@fontsource-variable/fraunces";
-@import "@fontsource-variable/fraunces/wght-italic.css";
-@import "@fontsource-variable/nunito";
+@import "@fontsource/young-serif";
+@import "@fontsource-variable/outfit";
 
 /* Identité « botanique illustré » : voir design/DESIGN.md. Contrastes vérifiés WCAG AA. */
 :root {
@@ -49,8 +48,8 @@
 }
 
 @theme inline {
-  --font-sans: "Nunito Variable", ui-sans-serif, system-ui, sans-serif;
-  --font-heading: "Fraunces Variable", ui-serif, Georgia, serif;
+  --font-sans: "Outfit Variable", ui-sans-serif, system-ui, sans-serif;
+  --font-heading: "Young Serif", ui-serif, Georgia, serif;
 
   --color-background: var(--background);
   --color-paper-deep: var(--paper-deep);
@@ -113,8 +112,14 @@
   h2,
   h3 {
     @apply font-heading;
-    font-optical-sizing: auto;
     letter-spacing: -0.01em;
+  }
+  /* Young Serif n'a qu'une graisse : jamais de faux gras. */
+  h1,
+  h2,
+  h3,
+  .font-heading {
+    font-synthesis-weight: none;
   }
   button,
   [role="button"] {

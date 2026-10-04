@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
-// Appui long tactile : 450 ms, annulé si le doigt bouge de plus de 10 px. Le tap simple reste un clic normal.
+// Appui long tactile : 350 ms, annulé si le doigt bouge de plus de 10 px. Le tap simple reste un clic normal.
 
-const HOLD_MS = 450;
+const HOLD_MS = 350;
 const MOVE_TOLERANCE = 10;
 
 /** onRelease reçoit le point de relâche : glisser jusqu'à un bouton de l'aperçu puis relâcher l'active (« peek and pop »). */

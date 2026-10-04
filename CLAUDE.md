@@ -9,7 +9,8 @@ Planificateur de repas familial de saison, partagé avec un bébé de 11-12 mois
 - `content/` — seed : `ingredients.json`, `recipes/{lunch,dinner,dessert}.json`, `pantry-basics.json`, `ai-samples.json`. Pas de petit-déjeuner dans l'appli.
 - `apps/web` — Vite + React 19 + Tailwind 4 + Radix/shadcn + Motion. Routeur par ancre (`src/lib/router.ts`, repris de zubio).
 - Illustrations : composants SVG dans `apps/web/src/components/illustrations`, exportés en fichiers autonomes (`npm run art -w @mijote/web`, lancé par dev/build) et affichés en `<img>` (`components/art.tsx`) pour des animations fluides. L'« assiette » d'une recette (protéine + légume + féculent) vient de `plateOf` (`packages/shared/src/plate.ts`).
-- Semaine : 14 repas choisis un à un parmi 6 (`choicesFor`, `chooseEntry` dans `planner/generate.ts`), + 1 dessert par jour.
+- Semaine : 14 repas choisis un à un parmi 6 (`choicesFor`, `chooseEntry`, `unchooseEntry`, `pickableFor` dans `planner/generate.ts`), + 1 dessert par jour. Une route par repas (`#/semaine/choix/<id>`) pour que le geste retour fonctionne. N'importe quelle semaine (`components/week-picker.tsx`), vue du mois (`views/month.tsx`), export agenda (`lib/ics.ts`).
+- Appui long (`components/preview.tsx`) : l'aperçu reste ouvert au relâchement (façon menu contextuel iOS). Recherche globale : `components/search.tsx` (loupe, `/` ou Ctrl/Cmd+K).
 - `scripts/` — `lint-bebe.ts`, `e2e.ts` (parcours Playwright), `shots.ts` (captures dans `design/screens`).
 - `design/DESIGN.md` — identité, jetons, règles.
 

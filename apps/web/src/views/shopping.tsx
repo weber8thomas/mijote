@@ -1,5 +1,5 @@
 import { CHANNEL_LABELS, formatEuros, formatQty, groupByAisle, PANTRY_BASICS, shoppingText, totals, type Channel, type Ingredient, type ShoppingItem } from "@mijote/shared";
-import { Check, Home, Package, Printer, Share2, Undo2 } from "lucide-react";
+import { Check, Home, Package, Printer, Search, Share2, Undo2 } from "lucide-react";
 import { motion, useMotionValue, useTransform } from "motion/react";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -9,6 +9,7 @@ import { Sheet } from "@/components/sheet";
 import { Button } from "@/components/ui/button";
 import { actions, ingredientsOf, useShopping, useStore, useWeek } from "@/data/store";
 import { go } from "@/lib/router";
+import { normalize } from "@/lib/text";
 import { useSelectedWeek } from "@/lib/ui";
 import { cn } from "@/lib/utils";
 import { weekRange, WeekSwitch } from "@/views/week";
@@ -22,7 +23,10 @@ export function ShoppingView() {
   const [channel, setChannel] = useState<Channel>("market");
   const [pantryOpen, setPantryOpen] = useState(false);
   const t = totals(items);
-  const visible = items.filter((i) => i.channel === channel && !i.haveAlready);
+  const [q, setQ] = useState("");
+  const nq = normalize(q.trim());
+  const matches = (i: ShoppingItem) => !nq || normalize(ingredients.get(i.ingredientId)?.name ?? "").includes(nq);
+  const visible = items.filter((i) => i.channel === channel && !i.haveAlready && matches(i));
   const have = items.filter((i) => i.channel === channel && i.haveAlready);
   const done = visible.filter((i) => i.checked).length;
 
@@ -102,7 +106,19 @@ export function ShoppingView() {
             </div>
           </div>
 
-          {visible.length === 0 && have.length === 0 && <p className="py-10 text-center text-muted-foreground">Rien à acheter ici cette semaine.</p>}
+          <div className="relative mb-4">
+            <Search className="pointer-events-none absolute top-1/2 left-4 size-4.5 -translate-y-1/2 text-muted-foreground" aria-hidden />
+            <input
+              type="search"
+              value={q}
+              onChange={(e) => setQ(e.target.value)}
+              placeholder="Filtrer la liste…"
+              aria-label="Filtrer la liste de courses"
+              className="h-12 w-full rounded-full border border-border-strong bg-card pr-4 pl-11 text-base outline-none placeholder:text-muted-foreground focus-visible:ring-[3px] focus-visible:ring-ring/40"
+            />
+          </div>
+
+          {visible.length === 0 && have.length === 0 && <p className="py-10 text-center text-muted-foreground">{nq ? `Aucun article ne correspond à « ${q} ».` : "Rien à acheter ici cette semaine."}</p>}
 
           <div className="space-y-5">
             {groupByAisle(visible).map((g) => (

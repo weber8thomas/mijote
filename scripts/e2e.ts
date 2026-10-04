@@ -37,7 +37,9 @@ await step("l'accueil s'ouvre sur la semaine en cours", async () => {
 
 await step("préparer la semaine prochaine → choix repas par repas", async () => {
   await page.goto(`${base}#/semaine`);
-  await page.getByRole("tab", { name: "Semaine prochaine" }).click();
+  // Le week-end, la semaine prochaine est déjà sélectionnée ; sinon, on avance d'une semaine.
+  if (!(await page.getByText("semaine prochaine", { exact: true }).isVisible().catch(() => false))) await page.getByRole("button", { name: "Semaine suivante" }).click();
+  await page.getByText("semaine prochaine", { exact: true }).waitFor();
   await page.getByRole("button", { name: "Préparer la semaine" }).click();
   await page.getByText("Repas 1/14", { exact: false }).waitFor();
   const cards = await page.locator("main .grid > div > button:first-child").count();
@@ -45,22 +47,40 @@ await step("préparer la semaine prochaine → choix repas par repas", async () 
   await shot(page, "1-choix");
 });
 
-await step("aperçu par appui long sur un choix, relâcher ferme", async () => {
+await step("appui long : l'aperçu reste ouvert, « Choisir ce repas »", async () => {
   const card = page.locator("main .grid > div > button:first-child").nth(3);
   const box = (await card.boundingBox())!;
   await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
   await page.mouse.down();
-  await page.waitForTimeout(800);
-  await page.getByRole("dialog", { name: /Aperçu/ }).waitFor();
-  await shot(page, "2-apercu");
+  await page.waitForTimeout(600);
   await page.mouse.up();
-  await page.getByRole("dialog", { name: /Aperçu/ }).waitFor({ state: "detached" });
-  await page.waitForTimeout(200);
+  const preview = page.getByRole("dialog", { name: /Aperçu/ });
+  await page.waitForTimeout(400);
+  if (!(await preview.isVisible())) throw new Error("l'aperçu s'est fermé au relâchement");
+  await shot(page, "2-apercu");
+  await preview.getByRole("button", { name: "Choisir ce repas" }).click();
+  await page.getByText("Repas 2/14", { exact: false }).waitFor();
 });
 
-await step("choisir les 14 repas", async () => {
-  for (let i = 0; i < 14; i++) {
-    await page.getByText(`Repas ${i + 1}/14`, { exact: false }).waitFor();
+await step("geste retour → repas précédent, puis « À choisir »", async () => {
+  await page.goBack();
+  await page.getByText("Repas 1/14", { exact: false }).waitFor();
+  await page.getByRole("button", { name: "À choisir" }).click();
+  await page.getByText("à choisir", { exact: false }).first().waitFor();
+});
+
+await step("« Autre recette… » : chercher et choisir hors des 6 idées", async () => {
+  await page.getByRole("button", { name: "Autre recette…" }).click();
+  const dialog = page.getByRole("dialog");
+  await dialog.getByPlaceholder(/Chercher pour/).fill("lentilles");
+  await dialog.locator("[cmdk-item]").first().click();
+  await page.getByText("Repas 2/14", { exact: false }).waitFor();
+});
+
+await step("choisir les autres repas", async () => {
+  for (let i = 1; i < 14; i++) {
+    const label = page.getByText(/Repas \d+\/14/).first();
+    if (!(await label.isVisible().catch(() => false))) break;
     await page.locator("main .grid > div > button:first-child").nth(i % 6).click();
     await page.waitForTimeout(450);
   }
@@ -91,11 +111,56 @@ await step("valider la semaine", async () => {
   await page.getByText("Validée", { exact: true }).first().waitFor();
 });
 
+await step("semaine validée → « Modifier les repas » puis revalider", async () => {
+  await page.getByRole("button", { name: "Modifier les repas" }).click();
+  await page.getByText("Repas 1/14", { exact: false }).waitFor();
+  await page.getByRole("button", { name: "Semaine", exact: true }).click();
+  await page.getByRole("button", { name: "Valider" }).first().click();
+  await page.getByRole("dialog").getByRole("button", { name: "Valider" }).click();
+  await page.getByText("Validée", { exact: true }).first().waitFor();
+});
+
+await step("export agenda (.ics)", async () => {
+  const [download] = await Promise.all([page.waitForEvent("download"), page.getByRole("button", { name: "Ajouter les repas à mon agenda" }).click()]);
+  const path = await download.path();
+  const text = (await import("node:fs")).readFileSync(path!, "utf8");
+  if (!text.startsWith("BEGIN:VCALENDAR") || (text.match(/BEGIN:VEVENT/g) ?? []).length < 14) throw new Error("fichier .ics incomplet");
+});
+
+await step("vue du mois puis retour à une semaine", async () => {
+  await page.getByRole("tab", { name: "Mois" }).click();
+  const day = page.locator("button[aria-label*='déjeuner']").first();
+  await day.waitFor();
+  await shot(page, "8-mois");
+  await day.click();
+  await page.getByRole("tab", { name: "Semaine", selected: true }).waitFor();
+});
+
+await step("calendrier : choisir une autre semaine", async () => {
+  await page.getByRole("button", { name: "Choisir une semaine dans le calendrier" }).click();
+  await page.getByRole("dialog").waitFor();
+  await shot(page, "9-calendrier");
+  await page.getByRole("dialog").getByRole("button", { name: "Aujourd'hui", exact: true }).click();
+  await page.getByText("cette semaine", { exact: true }).waitFor();
+});
+
+await step("recherche globale (loupe) → fiche recette", async () => {
+  await page.getByRole("button", { name: /Rechercher une recette/ }).first().click();
+  const dialog = page.getByRole("dialog");
+  await dialog.getByPlaceholder("Recette, ingrédient…").fill("courge");
+  await dialog.locator("[cmdk-item]").first().waitFor();
+  await shot(page, "7-recherche");
+  await dialog.locator("[cmdk-group]").last().locator("[cmdk-item]").first().click();
+  await page.getByText("Pour bébé").first().waitFor();
+});
+
 const second = await ctx.newPage();
 await step("liste de courses, cochée en direct dans un 2e onglet", async () => {
   await page.goto(`${base}#/courses`);
   await page.getByRole("tab", { name: /Marché/ }).waitFor();
   await second.goto(`${base}#/courses`);
+  // Les deux onglets sur la même semaine (le premier a été ramené à « cette semaine » par le calendrier).
+  if (await second.getByText("semaine prochaine", { exact: true }).isVisible().catch(() => false)) await second.getByRole("button", { name: "Semaine précédente" }).click();
   await second.getByRole("tab", { name: /Marché/ }).waitFor();
   const first = page.locator("ul li button[aria-pressed]").first();
   const name = (await first.innerText()).split("\n")[0];
@@ -104,6 +169,15 @@ await step("liste de courses, cochée en direct dans un 2e onglet", async () => 
   await second.locator("ul li button[aria-pressed='true']").first().waitFor({ timeout: 3000 });
   await shot(page, "4-courses");
   console.log(`  coché : ${name}`);
+});
+
+await step("filtrer la liste de courses", async () => {
+  const filter = page.getByLabel("Filtrer la liste de courses");
+  const before = await page.locator("ul li button[aria-pressed]").count();
+  await filter.fill("zzz");
+  if ((await page.locator("ul li button[aria-pressed]").count()) !== 0) throw new Error("le filtre ne filtre pas");
+  await filter.fill("");
+  if ((await page.locator("ul li button[aria-pressed]").count()) !== before) throw new Error("liste incomplète après filtre");
 });
 
 await step("« J'ai déjà » sort l'article de la liste", async () => {

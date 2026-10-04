@@ -1,0 +1,229 @@
+import { illustrationOf, SLOT_LABELS, type Ingredient, type Recipe, type Slot } from "@mijote/shared";
+import { Command } from "cmdk";
+import { AlertTriangle, ArrowLeft, Search, X } from "lucide-react";
+import { motion } from "motion/react";
+import { Dialog as DialogPrimitive } from "radix-ui";
+import { useMemo, useState, useSyncExternalStore } from "react";
+import { Art, Plate } from "@/components/art";
+import { RecipeMeta } from "@/components/kit";
+import { ingredientsOf, useRecipes, useStore } from "@/data/store";
+import { go } from "@/lib/router";
+import { normalize } from "@/lib/text";
+import { cn } from "@/lib/utils";
+
+// Recherche plein écran (recettes et ingrédients), ouverte depuis la loupe de l'en-tête,
+// ou depuis le choix d'un repas (« Autre recette… ») : elle est alors limitée au créneau et choisit la recette.
+
+export type PickMode = {
+  slot: Slot;
+  title: string;
+  onPick: (r: Recipe) => void;
+  /** Recette qui déclencherait une alerte d'équilibre (affichée, mais signalée). */
+  warns?: (r: Recipe) => boolean;
+  /** Recettes à masquer (déjà au menu). */
+  hidden?: Set<string>;
+};
+
+// Ouverture de la recherche globale depuis n'importe où (loupe, raccourci clavier).
+let globalOpen = false;
+const listeners = new Set<() => void>();
+const setGlobal = (v: boolean) => {
+  globalOpen = v;
+  listeners.forEach((l) => l());
+};
+export const openSearch = () => setGlobal(true);
+const useGlobalOpen = () =>
+  useSyncExternalStore(
+    (l) => (listeners.add(l), () => listeners.delete(l)),
+    () => globalOpen,
+  );
+
+if (typeof window !== "undefined") {
+  window.addEventListener("keydown", (e) => {
+    const typing = (e.target as HTMLElement | null)?.closest("input, textarea, [contenteditable]");
+    if ((e.key === "k" && (e.metaKey || e.ctrlKey)) || (e.key === "/" && !typing)) {
+      e.preventDefault();
+      setGlobal(true);
+    }
+  });
+}
+
+/** Recherche globale, montée une fois à la racine. */
+export function GlobalSearch() {
+  const open = useGlobalOpen();
+  return <SearchDialog open={open} onOpenChange={setGlobal} />;
+}
+
+export function SearchDialog({ open, onOpenChange, pick }: { open: boolean; onOpenChange: (o: boolean) => void; pick?: PickMode }) {
+  return (
+    <DialogPrimitive.Root open={open} onOpenChange={onOpenChange}>
+      <DialogPrimitive.Portal>
+        <DialogPrimitive.Overlay className="fixed inset-0 z-50 bg-[#2f2a24]/40 duration-200 data-open:animate-in data-open:fade-in-0 data-closed:animate-out data-closed:fade-out-0" />
+        <DialogPrimitive.Content
+          className="paper fixed inset-0 z-50 flex flex-col outline-none duration-200 data-open:animate-in data-open:fade-in-0 data-open:slide-in-from-bottom-4 data-closed:animate-out data-closed:fade-out-0 sm:inset-x-auto sm:top-[8vh] sm:bottom-auto sm:left-1/2 sm:h-[80vh] sm:w-[min(40rem,calc(100vw-2rem))] sm:-translate-x-1/2 sm:rounded-[1.75rem] sm:shadow-float"
+          aria-describedby={undefined}
+        >
+          <DialogPrimitive.Title className="sr-only">{pick ? pick.title : "Rechercher"}</DialogPrimitive.Title>
+          {open && <SearchBody pick={pick} onClose={() => onOpenChange(false)} />}
+        </DialogPrimitive.Content>
+      </DialogPrimitive.Portal>
+    </DialogPrimitive.Root>
+  );
+}
+
+function SearchBody({ pick, onClose }: { pick?: PickMode; onClose: () => void }) {
+  const s = useStore();
+  const { all } = useRecipes();
+  const ingredients = ingredientsOf(s);
+  const [q, setQ] = useState("");
+  const nq = normalize(q.trim());
+
+  const haystack = useMemo(
+    () => new Map(all.map((r) => [r.id, { title: normalize(r.title), rest: normalize(`${r.description ?? ""} ${r.ingredients.map((i) => ingredients.byId.get(i.ingredientId)?.name).join(" ")}`) }])),
+    [all, ingredients],
+  );
+
+  const recipes = useMemo(() => {
+    const pool = all.filter((r) => r.status !== "excluded" && (!pick || (r.slots.includes(pick.slot) && !pick.hidden?.has(r.id))));
+    if (!nq) return pool.sort((a, b) => Number(b.status === "favorite") - Number(a.status === "favorite") || a.title.localeCompare(b.title));
+    return pool
+      .map((r) => {
+        const h = haystack.get(r.id)!;
+        const words = nq.split(/\s+/);
+        if (!words.every((w) => h.title.includes(w) || h.rest.includes(w))) return null;
+        return { r, rank: (h.title.startsWith(nq) ? 0 : h.title.includes(nq) ? 1 : 2) + (r.status === "favorite" ? -0.5 : 0) };
+      })
+      .filter((x): x is { r: Recipe; rank: number } => !!x)
+      .sort((a, b) => a.rank - b.rank || a.r.title.localeCompare(b.r.title))
+      .map((x) => x.r);
+  }, [all, nq, pick, haystack]);
+
+  const matchingIngredients = useMemo(() => {
+    if (pick || nq.length < 2) return [];
+    const used = new Set(all.flatMap((r) => r.ingredients.map((i) => i.ingredientId)));
+    return ingredients.list.filter((i) => used.has(i.id) && normalize(i.name).includes(nq)).slice(0, 6);
+  }, [pick, nq, all, ingredients]);
+
+  const choose = (r: Recipe) => {
+    onClose();
+    if (pick) pick.onPick(r);
+    else go(`/recettes/${r.slug}`);
+  };
+
+  return (
+    <Command shouldFilter={false} loop className="flex min-h-0 flex-1 flex-col" label={pick ? pick.title : "Rechercher une recette ou un ingrédient"}>
+      <div className="pt-safe shrink-0 border-b border-border">
+        <div className="flex items-center gap-1 px-2 py-2">
+          <button type="button" onClick={onClose} className="grid size-11 shrink-0 place-items-center rounded-full hover:bg-muted" aria-label="Fermer la recherche">
+            <ArrowLeft className="size-5" />
+          </button>
+          <div className="relative flex-1">
+            <Search className="pointer-events-none absolute top-1/2 left-3 size-5 -translate-y-1/2 text-muted-foreground" aria-hidden />
+            <Command.Input
+              autoFocus
+              value={q}
+              onValueChange={setQ}
+              placeholder={pick ? `Chercher pour : ${pick.title.toLowerCase()}` : "Recette, ingrédient…"}
+              className="h-12 w-full rounded-full bg-paper-deep/70 pr-11 pl-11 text-base outline-none placeholder:text-muted-foreground focus-visible:ring-[3px] focus-visible:ring-ring/40"
+            />
+            {q && (
+              <button type="button" onClick={() => setQ("")} className="absolute top-1/2 right-1 grid size-10 -translate-y-1/2 place-items-center rounded-full text-muted-foreground" aria-label="Effacer">
+                <X className="size-4" />
+              </button>
+            )}
+          </div>
+        </div>
+        {pick && <p className="px-5 pb-2 text-xs text-muted-foreground">{pick.title} · touche une recette pour la choisir</p>}
+      </div>
+
+      <Command.List className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-2 pb-6">
+        <Command.Empty className="px-4 py-10 text-center text-muted-foreground">Rien trouvé pour « {q} ».</Command.Empty>
+
+        {matchingIngredients.length > 0 && (
+          <Command.Group heading="Ingrédients" className="[&_[cmdk-group-heading]]:px-3 [&_[cmdk-group-heading]]:pt-3 [&_[cmdk-group-heading]]:pb-1 [&_[cmdk-group-heading]]:text-xs [&_[cmdk-group-heading]]:font-bold [&_[cmdk-group-heading]]:tracking-wide [&_[cmdk-group-heading]]:text-muted-foreground [&_[cmdk-group-heading]]:uppercase">
+            {matchingIngredients.map((i) => (
+              <IngredientItem
+                key={i.id}
+                ingredient={i}
+                count={all.filter((r) => r.status !== "excluded" && r.ingredients.some((x) => x.ingredientId === i.id)).length}
+                onSelect={() => {
+                  onClose();
+                  go(`/recettes/ingredient/${i.id}`);
+                }}
+              />
+            ))}
+          </Command.Group>
+        )}
+
+        <Command.Group
+          heading={nq ? `Recettes · ${recipes.length}` : pick ? "Toutes les recettes possibles" : "Toutes les recettes"}
+          className="[&_[cmdk-group-heading]]:px-3 [&_[cmdk-group-heading]]:pt-3 [&_[cmdk-group-heading]]:pb-1 [&_[cmdk-group-heading]]:text-xs [&_[cmdk-group-heading]]:font-bold [&_[cmdk-group-heading]]:tracking-wide [&_[cmdk-group-heading]]:text-muted-foreground [&_[cmdk-group-heading]]:uppercase"
+        >
+          {recipes.map((r) => (
+            <Command.Item
+              key={r.id}
+              value={r.id}
+              onSelect={() => choose(r)}
+              className="flex min-h-16 cursor-pointer items-center gap-3 rounded-2xl px-2 py-1.5 data-[selected=true]:bg-muted"
+            >
+              <span className="grid size-14 shrink-0 place-items-center overflow-hidden rounded-xl bg-paper-deep">
+                <Plate recipe={r} className="h-[88%]" />
+              </span>
+              <span className="min-w-0 flex-1">
+                <span className="line-clamp-2 leading-snug font-bold">{r.title}</span>
+                <span className="mt-0.5 flex items-center gap-2">
+                  {!pick && <span className="text-xs text-muted-foreground">{r.slots.map((x) => SLOT_LABELS[x]).join(" · ")}</span>}
+                  <RecipeMeta recipe={r} compact dense />
+                </span>
+              </span>
+              {pick?.warns?.(r) && (
+                <span className="flex shrink-0 items-center gap-1 rounded-full bg-ochre-soft px-2 py-1 text-[0.68rem] font-bold text-ochre-ink" title="Déséquilibre la semaine (alerte douce)">
+                  <AlertTriangle className="size-3" aria-hidden /> équilibre
+                </span>
+              )}
+            </Command.Item>
+          ))}
+        </Command.Group>
+      </Command.List>
+    </Command>
+  );
+}
+
+function IngredientItem({ ingredient, count, onSelect }: { ingredient: Ingredient; count: number; onSelect: () => void }) {
+  return (
+    <Command.Item value={`ing-${ingredient.id}`} onSelect={onSelect} className="flex min-h-14 cursor-pointer items-center gap-3 rounded-2xl px-2 py-1.5 data-[selected=true]:bg-muted">
+      <span className="grid size-11 shrink-0 place-items-center rounded-xl bg-primary-soft/60">
+        <Art name={ingredientArt(ingredient.id)} className="size-9" />
+      </span>
+      <span className="min-w-0 flex-1">
+        <span className="block font-semibold first-letter:uppercase">{ingredient.name}</span>
+        <span className="text-xs text-muted-foreground">
+          {count} recette{count > 1 ? "s" : ""}
+        </span>
+      </span>
+    </Command.Item>
+  );
+}
+
+/** Illustration d'un ingrédient (repli : brin de feuillage). */
+export const ingredientArt = (id: string) => illustrationOf(id) ?? "sprig";
+
+/** Bouton loupe de l'en-tête. */
+export function SearchButton({ className, label = false }: { className?: string; label?: boolean }) {
+  return (
+    <motion.button
+      type="button"
+      whileTap={{ scale: 0.94 }}
+      onClick={openSearch}
+      className={cn("flex items-center gap-3 rounded-full", label ? "h-12 px-4 font-semibold text-muted-foreground hover:bg-card/60 hover:text-foreground" : "grid size-11 place-items-center hover:bg-muted", className)}
+      aria-label="Rechercher une recette ou un ingrédient"
+    >
+      <Search className="size-5" aria-hidden />
+      {label && (
+        <>
+          Rechercher <kbd className="ml-auto rounded-md border border-border-strong px-1.5 text-xs font-semibold">/</kbd>
+        </>
+      )}
+    </motion.button>
+  );
+}

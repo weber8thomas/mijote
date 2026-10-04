@@ -1,6 +1,7 @@
 import { BookOpen, CalendarDays, Settings, ShoppingBasket, Sun } from "lucide-react";
 import type { ReactNode } from "react";
-import { Logo, LogoMark } from "@/components/brand";
+import { Logo } from "@/components/brand";
+import { SearchButton } from "@/components/search";
 import { useStore } from "@/data/store";
 import { go } from "@/lib/router";
 import { cn } from "@/lib/utils";
@@ -41,6 +42,7 @@ export function Shell({ tab, children, bottomBar }: { tab?: Tab; children: React
             </a>
           ))}
         </nav>
+        <SearchButton label className="mt-3" />
         <a href="#/reglages" className="mt-auto flex h-12 items-center gap-3 rounded-2xl px-4 font-semibold text-muted-foreground hover:bg-card/60 hover:text-foreground">
           <Settings className="size-5" aria-hidden /> Réglages
         </a>
@@ -50,9 +52,10 @@ export function Shell({ tab, children, bottomBar }: { tab?: Tab; children: React
       <header className="no-print pt-safe sticky top-0 z-30 border-b border-transparent bg-background/85 backdrop-blur-md lg:hidden">
         <div className="mx-auto flex h-14 max-w-3xl items-center justify-between px-4">
           <button type="button" onClick={() => go("/")} className="-ml-1 flex items-center gap-2" aria-label="Mijoté, accueil">
-            <LogoMark className="size-8" />
-            <span className="font-heading text-xl font-semibold">Mijoté</span>
+            <Logo size="sm" />
           </button>
+          <div className="flex items-center gap-1">
+          <SearchButton />
           <a
             href="#/reglages"
             className="grid size-11 place-items-center rounded-full bg-primary-soft font-heading text-base font-semibold text-primary-ink ring-2 ring-card"
@@ -60,6 +63,7 @@ export function Shell({ tab, children, bottomBar }: { tab?: Tab; children: React
           >
             {s.household.adults + s.household.babies}
           </a>
+          </div>
         </div>
       </header>
 

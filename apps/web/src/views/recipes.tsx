@@ -12,6 +12,7 @@ import { Sheet } from "@/components/sheet";
 import { Button } from "@/components/ui/button";
 import { actions, ingredientsOf, today, useRecipes, useStore } from "@/data/store";
 import { go } from "@/lib/router";
+import { normalize } from "@/lib/text";
 import { cn } from "@/lib/utils";
 
 type Filter = Slot | "season" | "favorite" | "quick" | "prepAhead" | "longCook" | "iron";
@@ -28,13 +29,8 @@ const FILTERS: { id: Filter; label: string }[] = [
   { id: "iron", label: "Riche en fer" },
 ];
 
-const normalize = (t: string) =>
-  t
-    .normalize("NFD")
-    .replace(/\p{Diacritic}/gu, "")
-    .toLowerCase();
-
-export function RecipesView() {
+/** ingredient : n'afficher que les recettes qui le contiennent (lien depuis la recherche). */
+export function RecipesView({ ingredient }: { ingredient?: string } = {}) {
   const s = useStore();
   const { all } = useRecipes();
   const ingredients = ingredientsOf(s).byId;
@@ -77,9 +73,10 @@ export function RecipesView() {
       .filter((r) => !filters.has("prepAhead") || r.prepAhead)
       .filter((r) => !filters.has("longCook") || r.longCook)
       .filter((r) => !filters.has("iron") || r.ironScore >= 2)
+      .filter((r) => !ingredient || r.ingredients.some((i) => i.ingredientId === ingredient))
       .filter((r) => !nq || normalize(`${r.title} ${r.description ?? ""} ${r.ingredients.map((i) => ingredients.get(i.ingredientId)?.name).join(" ")}`).includes(nq))
       .sort((a, b) => Number(b.status === "favorite") - Number(a.status === "favorite") || a.title.localeCompare(b.title));
-  }, [all, tab, filters, q, ingredients, month]);
+  }, [all, tab, filters, q, ingredients, month, ingredient]);
 
   return (
     <Shell tab="recipes">
@@ -117,6 +114,14 @@ export function RecipesView() {
           </Chip>
         ))}
       </div>
+
+      {ingredient && (
+        <button type="button" onClick={() => go("/recettes")} className="mb-3 inline-flex h-10 items-center gap-2 rounded-full bg-primary px-4 text-sm font-semibold text-primary-foreground">
+          <span className="first-letter:uppercase">Avec : {ingredients.get(ingredient)?.name ?? ingredient}</span>
+          <X className="size-4" aria-hidden />
+          <span className="sr-only">Retirer ce filtre</span>
+        </button>
+      )}
 
       <Segmented
         value={tab}

@@ -2,6 +2,8 @@ import {
   AI_SAMPLES,
   chooseEntry,
   choicesFor,
+  pickableFor,
+  unchooseEntry,
   buildShoppingList,
   checkWeek,
   DEFAULT_THRESHOLDS,
@@ -197,6 +199,13 @@ export function useChoices(weekStart: string, entryId: string | undefined) {
   );
 }
 
+/** Recettes à masquer / à signaler quand on cherche une autre recette pour un repas. */
+export function usePickable(weekStart: string, entryId: string | undefined) {
+  const s = useStore();
+  const week = s.weeks[weekStart];
+  return useMemo(() => (week && entryId ? pickableFor(week, entryId, planContext(s)) : { hidden: new Set<string>(), warns: new Set<string>() }), [week, entryId, s]);
+}
+
 export function useShopping(weekStart: string) {
   const s = useStore();
   return s.shopping[weekStart] ?? [];
@@ -222,6 +231,20 @@ export const actions = {
     if (!week) return;
     const next = chooseEntry(week, entryId, recipeId, planContext(state));
     set(withShopping({ ...state, weeks: { ...state.weeks, [weekStart]: next } }, weekStart));
+  },
+
+  /** Remet un repas « à choisir ». */
+  unchoose(weekStart: string, entryId: string) {
+    const week = state.weeks[weekStart];
+    if (!week) return;
+    set(withShopping({ ...state, weeks: { ...state.weeks, [weekStart]: unchooseEntry(week, entryId, planContext(state)) } }, weekStart));
+  },
+
+  /** Rouvre une semaine validée : elle repasse en brouillon, la liste et ses coches sont gardées pour la prochaine validation. */
+  reopen(weekStart: string) {
+    const week = state.weeks[weekStart];
+    if (!week) return;
+    set({ ...state, weeks: { ...state.weeks, [weekStart]: { ...week, status: "draft", validatedAt: undefined } } });
   },
 
   validate(weekStart: string) {

@@ -224,6 +224,26 @@ export function choicesFor(week: WeekPlan, entryId: string, ctx: PlanContext): s
   return topChoices(c, ctx, byId, week.seed ^ hash(entryId), kept);
 }
 
+/**
+ * Pour chercher une autre recette que les 6 choix : celles à masquer (déjà au menu cette semaine)
+ * et celles qui déclencheraient une alerte d'équilibre (proposées quand même, signalées).
+ */
+export function pickableFor(week: WeekPlan, entryId: string, ctx: PlanContext): { hidden: Set<string>; warns: Set<string> } {
+  const byId = new Map(ctx.recipes.map((r) => [r.id, r]));
+  const entry = week.entries.find((e) => e.id === entryId);
+  const hidden = new Set<string>();
+  const warns = new Set<string>();
+  if (!entry) return { hidden, warns };
+  const others = week.entries.filter((e) => e.id !== entryId);
+  const c: SlotCtx = { day: entry.day, slot: entry.slot, entries: others, tally: tally(others, byId), month: monthOfWeek(week.weekStart), dessertSlot: ctx.household.dessertSlot };
+  for (const r of ctx.recipes) {
+    if (!r.slots.includes(entry.slot)) continue;
+    if (!eligible(r, c, byId, true)) hidden.add(r.id);
+    else if (!eligible(r, c, byId)) warns.add(r.id);
+  }
+  return { hidden, warns };
+}
+
 /** Choisit la recette d'un repas, puis réajuste les suggestions des repas pas encore confirmés. */
 export function chooseEntry(week: WeekPlan, entryId: string, recipeId: string, ctx: PlanContext): WeekPlan {
   const byId = new Map(ctx.recipes.map((r) => [r.id, r]));
@@ -241,6 +261,14 @@ export function chooseEntry(week: WeekPlan, entryId: string, recipeId: string, c
   }
   // Les desserts restent stables pendant qu'on choisit les repas.
   const locked = entries.filter((e) => e.confirmed || e.slot === "dessert");
+  return { ...generateWeek(ctx, week.weekStart, week.seed, locked), id: week.id, status: week.status, validatedAt: week.validatedAt };
+}
+
+/** Remet un repas « à choisir » : il redevient une suggestion, qui s'ajuste avec les autres repas non confirmés. */
+export function unchooseEntry(week: WeekPlan, entryId: string, ctx: PlanContext): WeekPlan {
+  const target = week.entries.find((e) => e.id === entryId);
+  if (!target || !target.confirmed || !isMeal(target.slot)) return week;
+  const locked = week.entries.filter((e) => e.id !== entryId && (e.confirmed || e.slot === "dessert"));
   return { ...generateWeek(ctx, week.weekStart, week.seed, locked), id: week.id, status: week.status, validatedAt: week.validatedAt };
 }
 

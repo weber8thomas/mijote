@@ -55,17 +55,21 @@ export function RecipeVisual({ recipe, className, size = "md" }: { recipe: Recip
   );
 }
 
-/** Jauge de fer : « Fe » + 3 barres (0 à 3). */
-export function IronGauge({ level, className }: { level: number; className?: string }) {
+/** Picto fer : un anneau en trois arcs autour de « Fe », comme un objectif du jour à compléter (0 à 3). */
+export function IronGauge({ level, className, size = 22 }: { level: number; className?: string; size?: number }) {
+  const arc = 26.3;
+  const gap = 3;
+  const filled = Math.max(0, Math.min(3, level));
+  const dash = filled === 1 ? `${arc} 100` : filled === 2 ? `${arc} ${gap} ${arc} 100` : `${arc} ${gap}`;
   return (
-    <span className={cn("inline-flex items-center gap-1", className)} role="img" aria-label={`Fer : ${level} sur 3`} title={`Fer : ${level}/3`}>
-      <span className="grid h-[1.15rem] min-w-[1.4rem] place-items-center rounded-md bg-[#5a4a5e] px-1 text-[0.62rem] leading-none font-extrabold tracking-tight text-white">Fe</span>
-      <span className="flex items-end gap-[2px]" aria-hidden>
-        {[1, 2, 3].map((i) => (
-          <span key={i} className={cn("w-[3px] rounded-full", i <= level ? "bg-[#5a4a5e]" : "bg-[#5a4a5e]/20")} style={{ height: `${5 + i * 3}px` }} />
-        ))}
-      </span>
-    </span>
+    <svg width={size} height={size} viewBox="0 0 36 36" className={cn("shrink-0", className)} role="img" aria-label={`Fer : ${filled} sur 3`}>
+      <title>{`Fer : ${filled}/3`}</title>
+      <circle cx="18" cy="18" r="14" fill="none" stroke="rgb(90 74 94 / 0.18)" strokeWidth="4" strokeDasharray={`${arc} ${gap}`} transform="rotate(-90 18 18)" />
+      {filled > 0 && <circle cx="18" cy="18" r="14" fill="none" stroke="#5a4a5e" strokeWidth="4" strokeDasharray={dash} strokeLinecap="butt" transform="rotate(-90 18 18)" />}
+      <text x="18" y="22" textAnchor="middle" fontFamily="Outfit Variable, sans-serif" fontWeight="700" fontSize="11" fill="#5a4a5e">
+        Fe
+      </text>
+    </svg>
   );
 }
 
@@ -166,7 +170,7 @@ export function PageHeader({ title, subtitle, actions, className }: { title: Rea
   return (
     <header className={cn("flex items-end justify-between gap-3 pt-2 pb-4", className)}>
       <div className="min-w-0">
-        {subtitle && <p className="text-sm font-semibold text-muted-foreground first-letter:uppercase">{subtitle}</p>}
+        {subtitle && <p className="text-base font-medium text-muted-foreground first-letter:uppercase">{subtitle}</p>}
         <h1 className="text-3xl leading-tight font-semibold md:text-4xl">{title}</h1>
       </div>
       {actions && <div className="flex shrink-0 items-center gap-1">{actions}</div>}

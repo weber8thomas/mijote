@@ -9,6 +9,9 @@ import { Betterave, Brocoli, Carotte, Celeri, Champignon, Chou, ChouFleur, Courg
 import { Citron, Clementine, Coing, Figue, Kiwi, Poire, Pomme, Raisin } from "./fruits";
 import { Avoine, Chataigne, Lentilles, Oeuf, PoisChiche, Poisson } from "./pantry";
 import { Cereales, Haricot, Pain, Pates, Poulet, Riz, Tofu, Viande } from "./staples";
+import { ChouRouge, Courgette, Endive, Fenouil, Mache, PetitsPois, Potimarron } from "./garden";
+import { Ail, Echalote, Gingembre, Herbes } from "./aromatics";
+import { Banane, FruitsRouges, Orange, Quetsche } from "./orchard";
 
 export { WatercolorDefs } from "./defs";
 export { PaperLeaf, Sprig } from "./decor";
@@ -55,6 +58,21 @@ export const ILLUSTRATIONS: Record<IllustrationKey, ComponentType<IllustrationPr
   riz: Riz,
   cereales: Cereales,
   pain: Pain,
+  "chou-rouge": ChouRouge,
+  potimarron: Potimarron,
+  courgette: Courgette,
+  endive: Endive,
+  fenouil: Fenouil,
+  mache: Mache,
+  "petits-pois": PetitsPois,
+  ail: Ail,
+  echalote: Echalote,
+  gingembre: Gingembre,
+  herbes: Herbes,
+  quetsche: Quetsche,
+  "fruits-rouges": FruitsRouges,
+  banane: Banane,
+  orange: Orange,
 };
 
 const isKey = (name: string): name is IllustrationKey => Object.hasOwn(ILLUSTRATIONS, name);

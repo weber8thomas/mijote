@@ -5,7 +5,7 @@ import { DEFAULT_THRESHOLDS } from "../pricing";
 import type { Household, Recipe } from "../schemas";
 import { buildShoppingList, totals } from "../shopping";
 import { checkWeek, dayIron, prepTasksFor } from "./check";
-import { CHOICES, chooseEntry, choicesFor, generateWeek, LIMITS, mealsOf, nextToChoose, tally } from "./generate";
+import { CHOICES, chooseEntry, choicesFor, generateWeek, LIMITS, mealsOf, nextToChoose, pickableFor, tally, unchooseEntry } from "./generate";
 import { plateOf } from "../plate";
 
 const household: Household = { id: "h", name: "Test", adults: 2, babies: 1, dessertSlot: "dinner", priceThresholds: DEFAULT_THRESHOLDS };
@@ -108,6 +108,29 @@ describe("choix repas par repas", () => {
     const later = mealsOf(next).filter((e) => !e.confirmed);
     expect(later.map((e) => e.recipeId)).not.toContain(pick);
     expect(later.every((e) => e.choices.length === CHOICES)).toBe(true);
+  });
+
+  it("la recherche d'une autre recette masque celles déjà au menu", () => {
+    const week = generateWeek(ctx, "2026-10-05", 2);
+    const [first, second] = mealsOf(week);
+    const { hidden, warns } = pickableFor(week, first.id, ctx);
+    expect(hidden.has(second.recipeId)).toBe(true);
+    expect(hidden.has(first.recipeId)).toBe(false);
+    for (const id of warns) expect(hidden.has(id)).toBe(false);
+  });
+
+  it("un repas choisi peut être remis à choisir", () => {
+    const week = generateWeek(ctx, "2026-10-05", 6);
+    const [first, second] = mealsOf(week);
+    const chosen = chooseEntry(chooseEntry(week, first.id, first.choices[3], ctx), second.id, second.choices[1], ctx);
+    const back = unchooseEntry(chosen, first.id, ctx);
+    const e1 = back.entries.find((e) => e.id === first.id)!;
+    const e2 = back.entries.find((e) => e.id === second.id)!;
+    expect(e1.confirmed).toBe(false);
+    expect(e2.confirmed).toBe(true);
+    expect(e2.recipeId).toBe(second.choices[1]);
+    expect(nextToChoose(back)?.id).toBe(first.id);
+    expect(back.entries).toHaveLength(21);
   });
 
   it("le midi « reste » suit le dîner choisi", () => {

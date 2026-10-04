@@ -1,5 +1,6 @@
 import { MotionConfig } from "motion/react";
 import { PreviewProvider } from "@/components/preview";
+import { GlobalSearch } from "@/components/search";
 import { Toaster } from "@/components/ui/sonner";
 import { useRoute } from "@/lib/router";
 import { useSelectedWeek } from "@/lib/ui";
@@ -17,11 +18,11 @@ function Routes() {
   const [week] = useSelectedWeek();
   switch (section) {
     case "semaine":
-      return a === "imprimer" ? <FridgePrint weekStart={b ?? week} /> : a === "choix" ? <ChooseView /> : <WeekView />;
+      return a === "imprimer" ? <FridgePrint weekStart={b ?? week} /> : a === "choix" ? <ChooseView entryId={b} /> : <WeekView />;
     case "courses":
       return a === "imprimer" ? <ShoppingPrint weekStart={b ?? week} /> : <ShoppingView />;
     case "recettes":
-      return a === "nouvelle" ? <NewRecipeView /> : a ? <RecipeView slug={a} /> : <RecipesView />;
+      return a === "nouvelle" ? <NewRecipeView /> : a === "ingredient" ? <RecipesView ingredient={b} /> : a ? <RecipeView slug={a} /> : <RecipesView />;
     case "reglages":
       return <SettingsView />;
     case "installer":
@@ -37,6 +38,7 @@ export default function App() {
       <PreviewProvider>
         <Routes />
       </PreviewProvider>
+      <GlobalSearch />
       <Toaster position="top-center" />
     </MotionConfig>
   );
