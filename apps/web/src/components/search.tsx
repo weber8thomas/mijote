@@ -1,12 +1,14 @@
-import { illustrationOf, SLOT_LABELS, type Ingredient, type Recipe, type Slot } from "@mijote/shared";
+import { illustrationOf, INGREDIENTS, MONTHS, rankByInventory, seasonalProduce, SLOT_LABELS, type Ingredient, type Recipe, type Slot } from "@mijote/shared";
 import { Command } from "cmdk";
-import { AlertTriangle, ArrowLeft, Search, X } from "lucide-react";
+import { AlertTriangle, ArrowLeft, Loader2, Refrigerator, Search, Sparkles, X } from "lucide-react";
 import { motion } from "motion/react";
 import { Dialog as DialogPrimitive } from "radix-ui";
 import { useMemo, useState, useSyncExternalStore } from "react";
 import { Art, Plate } from "@/components/art";
-import { RecipeMeta } from "@/components/kit";
-import { ingredientsOf, useRecipes, useStore } from "@/data/store";
+import { Chip, RecipeMeta } from "@/components/kit";
+import { runAi } from "@/components/new-recipe-sheet";
+import { actions, getState, ingredientsOf, recipesOf, today, useRecipes, useStore } from "@/data/store";
+import { ideas } from "@/lib/claude";
 import { go } from "@/lib/router";
 import { normalize } from "@/lib/text";
 import { cn } from "@/lib/utils";
@@ -77,6 +79,34 @@ function SearchBody({ pick, onClose }: { pick?: PickMode; onClose: () => void })
   const ingredients = ingredientsOf(s);
   const [q, setQ] = useState("");
   const nq = normalize(q.trim());
+  // Choix d'un repas : filtre « Avec ce que j'ai » et idées de Claude pour ce repas.
+  const [homeOnly, setHomeOnly] = useState(false);
+  const [ai, setAi] = useState<{ loading: boolean; recipes: Recipe[]; error?: string } | null>(null);
+  const hasAi = !!s.integrations?.ai?.apiKey;
+  const atHome = useMemo(() => {
+    if (!pick) return new Map<string, number>();
+    const ids = new Set((s.inventory ?? []).flatMap((i) => (i.ingredientId ? [i.ingredientId] : [])));
+    return new Map(rankByInventory(all, ids, ingredients.byId).map((m, i) => [m.recipe.id, i]));
+  }, [pick, s.inventory, all, ingredients]);
+  const askClaude = () => {
+    if (!pick) return;
+    setAi({ loading: true, recipes: [] });
+    const all = recipesOf(getState()).all;
+    const month = today().getMonth() + 1;
+    runAi((cfg) =>
+      ideas(cfg, ingredientsOf(getState()).list, {
+        month: MONTHS[month - 1],
+        slot: pick.slot,
+        count: 3,
+        seasonal: seasonalProduce(INGREDIENTS, month).map((i) => i.name),
+        favorites: all.filter((r) => r.status === "favorite").map((r) => r.title),
+        excluded: all.filter((r) => r.status === "excluded").map((r) => r.title),
+      }),
+    ).then(
+      (recipes) => setAi({ loading: false, recipes }),
+      (e: unknown) => setAi({ loading: false, recipes: [], error: e instanceof Error ? e.message : String(e) }),
+    );
+  };
 
   const haystack = useMemo(
     () => new Map(all.map((r) => [r.id, { title: normalize(r.title), rest: normalize(`${r.description ?? ""} ${r.ingredients.map((i) => ingredients.byId.get(i.ingredientId)?.name).join(" ")}`) }])),
@@ -84,7 +114,8 @@ function SearchBody({ pick, onClose }: { pick?: PickMode; onClose: () => void })
   );
 
   const recipes = useMemo(() => {
-    const pool = all.filter((r) => r.status !== "excluded" && (!pick || (r.slots.includes(pick.slot) && !pick.hidden?.has(r.id))));
+    const pool = all.filter((r) => r.status !== "excluded" && (!pick || (r.slots.includes(pick.slot) && !pick.hidden?.has(r.id))) && (!homeOnly || atHome.has(r.id)));
+    if (homeOnly && !nq) return pool.sort((a, b) => atHome.get(a.id)! - atHome.get(b.id)!);
     if (!nq) return pool.sort((a, b) => Number(b.status === "favorite") - Number(a.status === "favorite") || a.title.localeCompare(b.title));
     return pool
       .map((r) => {
@@ -96,7 +127,7 @@ function SearchBody({ pick, onClose }: { pick?: PickMode; onClose: () => void })
       .filter((x): x is { r: Recipe; rank: number } => !!x)
       .sort((a, b) => a.rank - b.rank || a.r.title.localeCompare(b.r.title))
       .map((x) => x.r);
-  }, [all, nq, pick, haystack]);
+  }, [all, nq, pick, haystack, homeOnly, atHome]);
 
   const matchingIngredients = useMemo(() => {
     if (pick || nq.length < 2) return [];
@@ -106,6 +137,11 @@ function SearchBody({ pick, onClose }: { pick?: PickMode; onClose: () => void })
 
   const choose = (r: Recipe) => {
     onClose();
+    // Idée de Claude choisie : elle rejoint les recettes du foyer.
+    if (r.source === "ai" && !recipesOf(getState()).byId.has(r.id)) {
+      actions.addRecipe(r);
+      actions.removeAiDraft(r.id);
+    }
     if (pick) pick.onPick(r);
     else go(`/recettes/${r.slug}`);
   };
@@ -133,7 +169,18 @@ function SearchBody({ pick, onClose }: { pick?: PickMode; onClose: () => void })
             )}
           </div>
         </div>
-        {pick && <p className="px-5 pb-2 text-xs text-muted-foreground">{pick.title} · touche une recette pour la choisir</p>}
+        {pick && (
+          <div className="flex flex-wrap items-center gap-2 px-4 pb-2.5">
+            <Chip active={homeOnly} onClick={() => setHomeOnly((v) => !v)}>
+              <Refrigerator className="size-4" aria-hidden /> Avec ce que j'ai
+            </Chip>
+            {hasAi && (
+              <Chip active={!!ai} onClick={askClaude}>
+                <Sparkles className="size-4" aria-hidden /> Idées de Claude
+              </Chip>
+            )}
+          </div>
+        )}
       </div>
 
       <Command.List className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-2 pb-6">
@@ -155,8 +202,32 @@ function SearchBody({ pick, onClose }: { pick?: PickMode; onClose: () => void })
           </Command.Group>
         )}
 
+        {ai && (
+          <Command.Group heading="Proposées par Claude" className="[&_[cmdk-group-heading]]:px-3 [&_[cmdk-group-heading]]:pt-3 [&_[cmdk-group-heading]]:pb-1 [&_[cmdk-group-heading]]:text-xs [&_[cmdk-group-heading]]:font-bold [&_[cmdk-group-heading]]:tracking-wide [&_[cmdk-group-heading]]:text-muted-foreground [&_[cmdk-group-heading]]:uppercase">
+            {ai.loading && (
+              <Command.Loading>
+                <p className="flex items-center gap-2 px-3 py-4 text-sm text-muted-foreground">
+                  <Loader2 className="size-4 animate-spin" aria-hidden /> Claude cherche 3 idées pour ce repas…
+                </p>
+              </Command.Loading>
+            )}
+            {ai.error && <p className="mx-2 rounded-2xl bg-ochre-soft/80 px-3 py-2.5 text-sm text-ochre-ink">{ai.error}</p>}
+            {ai.recipes.map((r) => (
+              <Command.Item key={r.id} value={r.id} onSelect={() => choose(r)} className="flex min-h-16 cursor-pointer items-center gap-3 rounded-2xl px-2 py-1.5 data-[selected=true]:bg-muted">
+                <span className="grid size-14 shrink-0 place-items-center overflow-hidden rounded-xl bg-primary-soft/60">
+                  <Plate recipe={r} className="h-[88%]" />
+                </span>
+                <span className="min-w-0 flex-1">
+                  <span className="line-clamp-2 leading-snug font-bold">{r.title}</span>
+                  <RecipeMeta recipe={r} compact dense className="mt-0.5" />
+                </span>
+              </Command.Item>
+            ))}
+          </Command.Group>
+        )}
+
         <Command.Group
-          heading={nq ? `Recettes · ${recipes.length}` : pick ? "Toutes les recettes possibles" : "Toutes les recettes"}
+          heading={nq ? `Recettes · ${recipes.length}` : homeOnly ? `Avec ce que j'ai · ${recipes.length}` : pick ? "Toutes les recettes possibles" : "Toutes les recettes"}
           className="[&_[cmdk-group-heading]]:px-3 [&_[cmdk-group-heading]]:pt-3 [&_[cmdk-group-heading]]:pb-1 [&_[cmdk-group-heading]]:text-xs [&_[cmdk-group-heading]]:font-bold [&_[cmdk-group-heading]]:tracking-wide [&_[cmdk-group-heading]]:text-muted-foreground [&_[cmdk-group-heading]]:uppercase"
         >
           {recipes.map((r) => (

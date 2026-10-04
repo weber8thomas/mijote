@@ -363,6 +363,21 @@ await step("Claude (API simulée) : relier, idées de dîners, garder", async ()
   if (body.fallbacks !== "default" || !body.output_config?.format) throw new Error("requête sans repli ou sans format structuré");
 });
 
+await step("« Autre recette… » : avec ce que j'ai, puis une idée de Claude", async () => {
+  await page.goto(`${base}#/semaine`);
+  const tile = page.getByRole("region", { name: "Jeudi" }).locator("button[aria-label^='Soir']");
+  await tile.evaluate("(el) => el.scrollIntoView({ block: 'center' })");
+  await tile.click();
+  await page.getByRole("button", { name: "Autre recette…" }).click();
+  const dialog = page.getByRole("dialog");
+  await dialog.getByRole("button", { name: "Avec ce que j'ai" }).click();
+  await dialog.getByText(/^Avec ce que j'ai · \d+/).waitFor();
+  await dialog.getByRole("button", { name: "Idées de Claude" }).click();
+  await dialog.locator("[cmdk-group]", { hasText: "Proposées par Claude" }).locator("[cmdk-item]").first().click();
+  await dialog.waitFor({ state: "detached" });
+  await page.waitForFunction("[...document.querySelectorAll('button[aria-label]')].some((b) => b.getAttribute('aria-label').includes('(Claude)'))");
+});
+
 await step("photo du frigo (Claude simulé) → placard", async () => {
   await page.goto(`${base}#/placard`);
   // Une image PNG de 1 × 1 pixel suffit : la réponse est simulée.

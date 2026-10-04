@@ -1,4 +1,4 @@
-import { AI_SAMPLES, isInSeason, SLOT_LABELS, type Recipe, type Slot } from "@mijote/shared";
+import { AI_SAMPLES, isInSeason, rankByInventory, SLOT_LABELS, type Recipe, type Slot } from "@mijote/shared";
 import { Command as CommandPrimitive } from "cmdk";
 import { Ban, Heart, Inbox, MoreHorizontal, RotateCcw, Search, Sparkles, Trash2, X } from "lucide-react";
 import { motion } from "motion/react";
@@ -16,12 +16,13 @@ import { go } from "@/lib/router";
 import { normalize } from "@/lib/text";
 import { cn } from "@/lib/utils";
 
-type Filter = Slot | "season" | "favorite" | "quick" | "longCook" | "iron";
+type Filter = Slot | "home" | "season" | "favorite" | "quick" | "longCook" | "iron";
 
 const FILTERS: { id: Filter; label: string }[] = [
   { id: "lunch", label: SLOT_LABELS.lunch },
   { id: "dinner", label: SLOT_LABELS.dinner },
   { id: "dessert", label: SLOT_LABELS.dessert },
+  { id: "home", label: "Avec ce que j'ai" },
   { id: "season", label: "De saison" },
   { id: "favorite", label: "Favoris" },
   { id: "quick", label: "Rapide" },
@@ -72,6 +73,12 @@ export function RecipesView({ ingredient }: { ingredient?: string } = {}) {
       return next;
     });
 
+  // Rang de chaque recette selon l'inventaire du placard et du frigo.
+  const atHome = useMemo(() => {
+    const ids = new Set((s.inventory ?? []).flatMap((i) => (i.ingredientId ? [i.ingredientId] : [])));
+    return new Map(rankByInventory(all, ids, ingredients).map((m, i) => [m.recipe.id, i]));
+  }, [s.inventory, all, ingredients]);
+
   const list = useMemo(() => {
     const slotFilters = [...filters].filter((f): f is Slot => ["lunch", "dinner", "dessert"].includes(f));
     const nq = normalize(q.trim());
@@ -85,8 +92,11 @@ export function RecipesView({ ingredient }: { ingredient?: string } = {}) {
       .filter((r) => !filters.has("iron") || r.ironScore >= 2)
       .filter((r) => !ingredient || r.ingredients.some((i) => i.ingredientId === ingredient))
       .filter((r) => !nq || normalize(`${r.title} ${r.description ?? ""} ${r.ingredients.map((i) => ingredients.get(i.ingredientId)?.name).join(" ")}`).includes(nq))
-      .sort((a, b) => Number(b.status === "favorite") - Number(a.status === "favorite") || a.title.localeCompare(b.title));
-  }, [all, tab, filters, q, ingredients, month, ingredient]);
+      .sort((a, b) => Number(b.status === "favorite") - Number(a.status === "favorite") || a.title.localeCompare(b.title))
+      // « Avec ce que j'ai » : seulement les recettes qui utilisent ce qui est à la maison, les plus complètes d'abord.
+      .flatMap((r) => (filters.has("home") ? (atHome.has(r.id) ? [r] : []) : [r]))
+      .sort((a, b) => (filters.has("home") ? atHome.get(a.id)! - atHome.get(b.id)! : 0));
+  }, [all, tab, filters, q, ingredients, month, ingredient, atHome]);
 
   return (
     <Shell tab="recipes">
@@ -145,7 +155,11 @@ export function RecipesView({ ingredient }: { ingredient?: string } = {}) {
 
       {list.length === 0 ? (
         <EmptyState illustration={tab === "excluded" ? "oignon" : "champignon"} title={tab === "excluded" ? "Aucune recette écartée" : "Aucune recette ne correspond"}>
-          {tab === "excluded" ? "Les recettes écartées ne sont plus jamais proposées. Tu peux les restaurer ici." : "Essaie d'enlever un filtre."}
+          {tab === "excluded"
+            ? "Les recettes écartées ne sont plus jamais proposées. Tu peux les restaurer ici."
+            : filters.has("home") && !atHome.size
+              ? "Dis à Mijoté ce que tu as dans Placard & frigo (onglet Courses)."
+              : "Essaie d'enlever un filtre."}
         </EmptyState>
       ) : (
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
