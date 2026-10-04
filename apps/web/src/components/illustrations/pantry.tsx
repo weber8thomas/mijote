@@ -80,6 +80,23 @@ const drumstick = (t: string) => (
   </G>
 );
 
+/** Tranche de rôti posée à plat, vue de trois quarts. */
+const ROAST = "M-21-3C-21-11-11-14 0-14C12-14 21-10 21-2C21 7 12 12 0 12C-12 12-21 7-21-3Z";
+
+/** Filet de poisson blanc : bout épais arrondi à gauche, s'affine vers la queue à droite. Centré en (0, 0). */
+const WHITE_FILLET = "M-42-2C-41-13-26-19-8-18C10-17 28-12 40-4C44-1 44 3 40 5C28 10 10 13-8 13C-26 13-41 9-42-2Z";
+const FLAKES = "M-26-14C-30-6-30 4-26 11M-12-16C-16-8-16 4-12 12M2-16C-2-8-2 4 2 12M16-13C12-6 12 3 16 9M28-8C25-4 25 2 28 6";
+const lemonWedge = (x: number, y: number) => (
+  <>
+    <P d={`M${x - 13} ${y}A13 11 0 0 0 ${x + 13} ${y}Z`} f="#e9b923" />
+    <P d={`M${x - 10.5} ${y}A10.5 8.5 0 0 0 ${x + 10.5} ${y}Z`} f="#fbe27a" />
+    <In>
+      <L d={`M${x} ${y}V${y + 7}M${x} ${y}L${x - 6.5} ${y + 5.5}M${x} ${y}L${x + 6.5} ${y + 5.5}`} c="#fff6c9" w={1.4} />
+    </In>
+    <P d={`M${x - 13} ${y - 1.6}H${x + 13}V${y + 0.6}H${x - 13}Z`} f="#fff6c9" />
+  </>
+);
+
 const STEAK = "M18 62C16 44 40 38 60 42C80 38 104 46 102 64C100 82 80 90 60 88C38 92 20 80 18 62Z";
 
 // ---------- Féculents ----------
@@ -132,6 +149,46 @@ export const PANTRY = {
     ),
     plated: salmon,
   },
+  // Poisson blanc (cabillaud, lieu, merlu) : filet nacré à stries, bande de peau grise dessous pour se détacher de la découpe crème.
+  "poisson-blanc": {
+    product: () => (
+      <>
+        <G t="translate(58 70) rotate(-22) scale(1.16)">
+          <G t="translate(0 6)">
+            <P d={WHITE_FILLET} f="#6f8591" />
+          </G>
+          <G t="translate(0 3)">
+            <P d={WHITE_FILLET} f="#aab8bf" />
+          </G>
+          <P d={WHITE_FILLET} f="#f8f4ec" />
+          <In>
+            <L d={FLAKES} c="#cfc4b2" w={1.7} />
+            <P d="M-36-6C-33-12-24-15-14-15C-22-12-28-8-31-3C-33-3-35-4-36-6Z" f="#ffffff" />
+          </In>
+        </G>
+        {lemonWedge(90, 94)}
+      </>
+    ),
+    // Filet poêlé : bord doré, chair blanche, quartier de citron pour qu'il se détache de l'assiette crème.
+    plated: () => (
+      <>
+        <G t="translate(56 92) scale(1.12 .9)">
+          <G t="translate(0 5)">
+            <P d={WHITE_FILLET} f="#b8781f" />
+          </G>
+          <P d={WHITE_FILLET} f="#e4a53a" />
+          <In>
+            <G t="translate(-2 -1) scale(.86 .78)">
+              <P d={WHITE_FILLET} f="#fbf7ee" />
+            </G>
+            <L d={FLAKES} c="#e7ddcd" w={1.6} />
+            <P d="M-40 2C-36 8-26 11-14 12C-26 12-36 9-40 2Z" f="#c98a2a" />
+          </In>
+        </G>
+        {lemonWedge(92, 92)}
+      </>
+    ),
+  },
   oeuf: {
     product: () => (
       <>
@@ -164,22 +221,32 @@ export const PANTRY = {
         </In>
       </>
     ),
-    // Tranches saisies, marques du gril.
+    // Rôti en tranches, cuit à cœur (croûte brune, liseré de gras, chair beige rosé, jamais saignante), en éventail.
     plated: () => (
       <>
         {(
           [
-            [46, 82],
-            [74, 90],
-          ] as Pt[]
-        ).map(([x, y], i) => (
+            [36, 90, -16],
+            [58, 84, -2],
+            [82, 88, 14],
+          ] as const
+        ).map(([x, y, a], i) => (
           <g key={i}>
-            <E x={x} y={y + 5} rx={30} ry={14} f="#6e3a20" />
-            <E x={x} y={y} rx={30} ry={14} f="#9a5a35" />
-            <In>
-              <L d={`M${x - 16} ${y + 6}l10-14M${x - 4} ${y + 8}l10-14M${x + 8} ${y + 8}l10-14`} c="#64341b" w={2.6} />
-              <L d={`M${x - 22} ${y - 4}C${x - 12} ${y - 10} ${x + 4} ${y - 12} ${x + 14} ${y - 10}`} c="#c07e52" w={2} />
-            </In>
+            <G t={`translate(${x} ${y + 4}) rotate(${a})`}>
+              <P d={ROAST} f="#6b3d22" />
+            </G>
+            <G t={`translate(${x} ${y}) rotate(${a})`}>
+              <P d={ROAST} f="#8f5434" />
+              <In>
+                <G t="translate(0 1) scale(.88 .8)">
+                  <P d={ROAST} f="#f1e0c6" />
+                </G>
+                <G t="translate(0 1.5) scale(.84 .72)">
+                  <P d={ROAST} f="#cf9a7e" />
+                </G>
+                <E x={-6} y={-1} rx={6} ry={2.4} f="#e2b49b" />
+              </In>
+            </G>
           </g>
         ))}
       </>

@@ -1,10 +1,13 @@
 // Fruits : pomme, poire, coing, raisin, figue, kiwi, clémentine, orange, citron, châtaigne, quetsche, fruits rouges, banane.
 import type { IllustrationKey } from "@mijote/shared";
-import { C, discs, dots, E, G, In, L, leaf, LEAF, LEAF_DARK, P } from "./draw";
+import { C, discs, dots, E, G, halfLeaf, In, L, leaf, LEAF, LEAF_DARK, P, smooth } from "./draw";
 import type { Pt } from "./draw";
 import type { Food } from "./food";
 
 const BROWN = "#74502f";
+
+/** Coing : silhouette de poire trapue, épaules bosselées et fond irrégulier. */
+const QUINCE = smooth([[60, 37], [70, 38], [76, 46], [86, 52], [94, 64], [92, 74], [95, 84], [88, 96], [76, 103], [62, 104], [50, 104], [38, 99], [27, 88], [28, 76], [25, 66], [33, 56], [42, 50], [46, 42], [52, 37]]);
 
 const GRAPES: [number, number][] = [
   [42, 48], [60, 46], [78, 48],
@@ -47,21 +50,24 @@ export const FRUITS = {
       </>
     ),
   },
+  // Coing : poire trapue et bosselée, jaune moutarde (plus vert et plus mat que la pomme), duvet pâle, courte queue, grande feuille ovale.
   coing: {
     product: () => (
       <>
-        <P d={leaf(64, 34, 98, 20, 11, -2)} f="#7d9b5c" />
+        <P d={leaf(62, 32, 106, 12, 14, -3)} f="#5f8a3c" />
         <In>
-          <L d="M66 33L94 22" c="#a9bf86" w={1.4} />
+          <P d={halfLeaf(62, 32, 106, 12, 14, -3)} f="#4a7430" />
+          <L d="M64 31C78 26 92 19 104 13" c="#9cbf73" w={1.5} />
         </In>
-        <P d="M58 34C48 30 36 34 30 46C22 58 22 76 28 88C36 102 50 106 62 105C74 104 88 98 93 84C98 70 96 52 88 44C82 38 74 38 68 36C66 32 62 32 58 34Z" f="#f0c43a" />
+        <P d={QUINCE} f="#e2c13c" />
         <In>
-          <P d="M74 40C86 44 94 54 94 68C94 84 84 100 66 104C80 94 88 80 86 64C85 54 80 46 74 40Z" f="#d39f1f" />
-          <P d="M36 56C38 48 44 42 50 41C46 47 42 54 41 62C39 61 36 59 36 56Z" f="#f8df80" />
-          <E x={50} y={70} rx={10} ry={7} f="#f7e3a6" o={0.6} />
-          <P d="M56 102C58 99 64 99 66 102C64 104 58 104 56 102Z" f="#8a6a2e" />
+          <P d="M70 38C78 42 80 50 86 54C96 62 98 80 90 92C84 100 74 104 62 104C78 96 88 84 86 70C85 60 76 56 74 48C73 44 72 40 70 38Z" f="#bf9e22" />
+          <L d="M54 40C50 54 48 70 54 90M72 52C76 62 78 76 74 92" c="#cfae2c" w={1.8} />
+          <P d="M38 60C40 52 46 46 52 44C48 50 44 56 43 66C41 65 38 63 38 60Z" f="#f3dc84" />
+          <P d="M34 76C36 68 44 64 50 68C46 72 42 80 40 88C36 86 34 82 34 76Z" f="#f4e7b0" o={0.7} />
+          <P d={dots([[46, 58], [52, 64], [44, 72], [58, 54], [62, 62]], 0.9)} f="#fbf4d8" />
         </In>
-        <P d="M57 36C56 30 58 27 61 25C63 27 64 31 63 36Z" f={BROWN} />
+        <L d="M60 39C59 34 60 30 63 27" c={BROWN} w={4} />
       </>
     ),
   },

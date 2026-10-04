@@ -1,6 +1,6 @@
 // Racines et tubercules : carotte, panais, patate douce, betterave, navet, céleri-rave, pomme de terre, gingembre.
 import type { IllustrationKey } from "@mijote/shared";
-import { along, C, dots, E, G, In, L, leaf, LEAF, LEAF_DARK, LEAF_LIGHT, P, rings, root } from "./draw";
+import { along, C, dots, E, G, In, L, leaf, LEAF, LEAF_DARK, LEAF_LIGHT, P, polar, rings, root } from "./draw";
 import type { ReactNode } from "react";
 import type { Pt } from "./draw";
 import type { Food } from "./food";
@@ -37,7 +37,9 @@ const potatoes = (t: string) => (
   </G>
 );
 
-const KNOB = "M36 70C30 60 34 48 46 46C52 40 66 40 72 46C84 46 92 56 88 68C94 78 88 92 76 96C70 104 52 104 44 98C32 96 28 80 36 70Z";
+/** Céleri-rave : boule entière bosselée, et le bord de peau de la moitié coupée posée devant. */
+const CELERIAC = polar(46, 70, (t) => 28 + 2.6 * Math.sin(5 * t + 0.5), 15, 0.96);
+const CELERIAC_HALF = polar(82, 86, (t) => 22 + 1.6 * Math.sin(6 * t), 12, 0.8);
 
 export const ROOTS = {
   carotte: {
@@ -144,19 +146,40 @@ export const ROOTS = {
       </>
     ),
   },
+  // Céleri-rave : boule bosselée à radicelles, une moitié coupée (chair crème) devant, tiges courtes au sommet.
+  // Dans l'assiette : purée ivoire en volute (plus blanche que la pomme de terre), feuilles de céleri.
   celeri: {
     product: () => (
       <>
-        <L d="M50 50L46 30M60 48L60 26M70 50L76 30" c="#9cbf63" w={6} />
+        <L d="M40 46L32 26M47 44L46 18M54 46L62 26" c="#8fb85a" w={5} />
+        <P d={`${leaf(32, 26, 22, 14, 5, 1)}${leaf(46, 18, 40, 6, 4.5, 1)}${leaf(46, 18, 54, 6, 4.5)}${leaf(62, 26, 72, 16, 5, -1)}`} f={LEAF} />
+        <L d="M30 92C26 98 22 100 16 100M38 97C36 102 33 106 29 108M48 99C49 104 48 107 51 110M24 82C19 84 16 88 12 88" c="#937649" w={1.8} />
+        <P d={CELERIAC} f="#cdb586" />
         <In>
-          <L d="M46 30L45 27M60 26V23M76 30L77 27" c="#6f9a42" w={6} />
+          <P d="M62 50C72 58 76 72 70 84C64 94 52 99 42 98C58 92 68 80 66 66C65 60 64 54 62 50Z" f="#ad945f" />
+          <E x={46} y={46} rx={12} ry={5} f="#b7b77a" />
+          <L d="M28 64C31 62 33 62 35 64M34 80C37 78 39 78 41 80M50 58C53 56 55 56 57 58M46 88C49 86 51 86 53 88" c="#a88e5a" w={1.8} />
+          <P d="M30 70C30 60 36 54 42 52C38 58 35 64 35 74Z" f="#e2d1a6" />
         </In>
-        <L d="M44 98L38 108M54 101L52 110M66 101L68 110M76 97L84 106" c="#a88d5c" w={1.8} />
-        <P d={KNOB} f="#e2d1a5" />
+        <L d="M72 104C70 108 68 109 64 110M86 105C87 109 90 110 94 110" c="#937649" w={1.8} />
+        <P d={CELERIAC_HALF} f="#b79c68" />
+        <E x={82} y={85} rx={19} ry={14.5} f="#fbf5e1" />
         <In>
-          <P d="M76 50C86 54 92 62 88 70C94 80 88 92 76 96C70 104 56 104 48 100C66 98 80 86 78 70C80 62 80 56 76 50Z" f="#c8b27e" />
-          <P d={dots([[46, 64], [58, 56], [52, 80], [64, 74], [70, 90], [40, 84]], 1.5)} f="#b49b67" />
-          <P d="M40 66C40 58 44 52 50 50C46 56 44 62 44 70Z" f="#f2e8cc" />
+          <E x={82} y={86} rx={11} ry={8} f="#efe5c6" />
+        </In>
+      </>
+    ),
+    plated: () => (
+      <>
+        <P d="M22 103C20 84 38 68 60 68C82 68 100 84 98 103C84 107 36 107 22 103Z" f="#d9cfb6" />
+        <P d="M24 100C22 84 40 70 60 70C80 70 98 84 96 100C82 104 38 104 24 100Z" f="#fbf8ef" />
+        <In>
+          <P d="M66 71C84 74 98 86 96 100C90 102 82 103 74 103C84 94 82 80 66 71Z" f="#e4dcc6" />
+          <L d="M36 94C40 82 56 76 70 80C82 84 80 96 66 96C56 96 54 88 60 84" c="#e4dcc6" w={2.6} />
+        </In>
+        <P d={`${leaf(58, 74, 44, 62, 5.5, 1)}${leaf(58, 74, 58, 58, 5)}${leaf(58, 74, 72, 62, 5.5, -1)}`} f={LEAF} />
+        <In>
+          <P d={dots([[40, 96], [78, 92], [52, 88], [86, 98]], 1.4)} f={LEAF_DARK} />
         </In>
       </>
     ),

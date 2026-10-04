@@ -66,6 +66,7 @@ export const LABELS: Record<IllustrationKey | "sprig", string> = {
   "pois-chiche": "Pois chiches",
   haricot: "Haricots",
   poisson: "Poisson",
+  "poisson-blanc": "Poisson blanc",
   oeuf: "Œuf",
   viande: "Viande",
   poulet: "Poulet",

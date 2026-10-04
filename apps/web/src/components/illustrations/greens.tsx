@@ -85,6 +85,33 @@ const SPRIG: [number, number, number, number][] = [
   [80, 38, 98, 46],
 ];
 
+/** Feuille de mâche en cuillère depuis (bx, by), inclinée de `a` degrés par rapport à la verticale : pétiole fin, limbe rond. */
+const spoonAt = (bx: number, by: number, a: number) => {
+  const t = (a * Math.PI) / 180;
+  const [ux, uy, nx, ny] = [Math.sin(t), -Math.cos(t), Math.cos(t), Math.sin(t)];
+  return (u: number, v: number) => `${f1(bx + ux * u + nx * v)} ${f1(by + uy * u + ny * v)}`;
+};
+function spoon(bx: number, by: number, a: number, L: number, r: number): string {
+  const at = spoonAt(bx, by, a);
+  return `M${at(0, 2)}L${at(L - 1.9 * r, 3.2)}C${at(L - 1.5 * r, r * 1.15)} ${at(L + 0.1 * r, r * 1.2)} ${at(L, 0)}C${at(L + 0.1 * r, -r * 1.2)} ${at(L - 1.5 * r, -r * 1.15)} ${at(L - 1.9 * r, -3.2)}L${at(0, -2)}Z`;
+}
+/** Nervure du limbe seulement (pas d'étoile de traits au centre). */
+const rib = (bx: number, by: number, a: number, L: number, r: number) => {
+  const at = spoonAt(bx, by, a);
+  return `M${at(L - 2.2 * r, 0)}L${at(L - 0.5 * r, 0)}`;
+};
+/** [inclinaison, longueur, rayon du limbe, teinte] : feuilles du fond (foncées) puis de devant (claires), en éventail irrégulier. */
+const MACHE: [number, number, number, string][] = [
+  [-70, 42, 12, "#3f7a2c"],
+  [-36, 52, 12.5, "#4f8a35"],
+  [0, 58, 13, "#3f7a2c"],
+  [34, 52, 12.5, "#4f8a35"],
+  [68, 44, 12, "#3f7a2c"],
+  [-28, 30, 10.5, "#6fa148"],
+  [10, 33, 11, "#5f9a3e"],
+  [46, 28, 10, "#6fa148"],
+];
+
 export const GREENS = {
   poireau: {
     product: () => (
@@ -166,29 +193,17 @@ export const GREENS = {
       </>
     ),
   },
+  // Mâche : une petite touffe de feuilles en cuillère (pétiole fin, limbe rond) qui part d'un même pied, en éventail irrégulier.
   mache: {
     product: () => (
       <>
-        {[0, 1].map((ring) =>
-          (ring ? [15, 75, 135, 195, 255, 315] : [0, 45, 90, 135, 180, 225, 270, 315]).map((a) => {
-            const r = ring ? 11 : 25;
-            const t = (a * Math.PI) / 180;
-            return <E key={`${ring}-${a}`} x={60 + Math.cos(t) * r} y={72 + Math.sin(t) * r * 0.78} rx={ring ? 13 : 17} ry={ring ? 8.5 : 11} a={a} f={ring ? "#86b85a" : "#4f8a35"} />;
-          }),
-        )}
+        {MACHE.map(([a, len, r, c], i) => (
+          <P key={i} d={spoon(60, 102, a, len * 1.2, r * 1.15)} f={c} />
+        ))}
         <In>
-          <C x={60} y={72} r={6} f="#a6cf74" />
-          <L
-            d={[0, 45, 90, 135, 180, 225, 270, 315]
-              .map((a) => {
-                const t = (a * Math.PI) / 180;
-                return `M${(60 + Math.cos(t) * 14).toFixed(1)} ${(72 + Math.sin(t) * 11).toFixed(1)}L${(60 + Math.cos(t) * 34).toFixed(1)} ${(72 + Math.sin(t) * 27).toFixed(1)}`;
-              })
-              .join("")}
-            c="#79ad4c"
-            w={1.4}
-          />
+          <L d={MACHE.map(([a, len, r]) => rib(60, 102, a, len * 1.2, r * 1.15)).join("")} c="#a6cf74" w={1.6} />
         </In>
+        <L d="M60 102v3" c="#d8c9a0" w={3.4} />
       </>
     ),
   },

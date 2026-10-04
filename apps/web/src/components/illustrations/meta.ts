@@ -84,6 +84,7 @@ export const META: Record<IllustrationKey, Meta> = {
   "pois-chiche": m("terracotta", "protein", 1, "beige"),
   haricot: m("sage", "protein", 1, "brown"),
   poisson: m("terracotta", "protein", 2, "cream", { size: 1.05 }),
+  "poisson-blanc": m("sage", "protein", 2, "cream", { size: 1.05 }),
   oeuf: m("plum", "protein", 2, "yellow"),
   viande: m("sage", "protein", 2, "brown"),
   poulet: m("sage", "protein", 2, "beige", { size: 1.05 }),
