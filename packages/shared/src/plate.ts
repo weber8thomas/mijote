@@ -35,6 +35,7 @@ const VEGETABLES: Record<string, string> = {
 
 /** Aromates et herbes : illustrés, mais jamais légume vedette d'une assiette. */
 const AROMATICS: Record<string, string> = {
+  basilic: "herbes",
   oignon: "oignon",
   echalote: "echalote",
   ail: "ail",
@@ -64,6 +65,16 @@ const FRUITS: Record<string, string> = {
 export const GENERIC_PRODUCE = ["fruits-de-saison"] as const;
 
 const PROTEIN: Record<string, string> = {
+  "thon-boite": "poisson",
+  crevettes: "poisson",
+  "poulet-entier": "poulet",
+  "veau-blanquette": "viande",
+  "jambon-blanc": "viande",
+  lardons: "viande",
+  chorizo: "viande",
+  merguez: "viande",
+  "saucisse-toulouse": "viande",
+  "haricots-rouges": "haricot",
   "boeuf-hache": "viande",
   "boeuf-braiser": "viande",
   "agneau-epaule": "viande",
@@ -90,6 +101,13 @@ const PROTEIN: Record<string, string> = {
 };
 
 const STARCH: Record<string, string> = {
+  nouilles: "pates",
+  "feuilles-lasagne": "pates",
+  "tortilla-ble": "pain",
+  "pate-pizza": "pain",
+  "pate-feuilletee": "pain",
+  "pain-mie": "pain",
+  "pain-burger": "pain",
   pates: "pates",
   "petites-pates": "pates",
   riz: "riz",

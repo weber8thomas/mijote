@@ -1,12 +1,10 @@
-import { addDays, dayIron, illustrationOf, INGREDIENTS, MONTHS, prepTasksFor, seasonalProduce, SLOT_LABELS, SLOT_LABELS_LONG, toISODate } from "@mijote/shared";
+import { dayIron, illustrationOf, INGREDIENTS, MONTHS, seasonalProduce, SLOT_LABELS_LONG } from "@mijote/shared";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
-import { ChevronRight, Download, MoonStar } from "lucide-react";
-import { useState } from "react";
+import { Download } from "lucide-react";
 import { Badge, RecipeRow } from "@/components/cards";
-import { Art, Plate } from "@/components/art";
-import { PrepSheet } from "@/components/prep-sheet";
-import { Disclaimer, EmptyState, IronGauge, PageHeader, tintOf } from "@/components/kit";
+import { Art } from "@/components/art";
+import { Disclaimer, EmptyState, IronGauge, PageHeader } from "@/components/kit";
 import { CocotteIcon } from "@/components/brand";
 import { Shell } from "@/components/shell";
 import { Button } from "@/components/ui/button";
@@ -23,19 +21,6 @@ export function TodayView() {
   const now = today();
   const day = dayIndex(now);
   const { week, byId } = useWeek(thisWeek());
-  const tomorrowWeek = day === 6 ? nextWeek() : thisWeek();
-  const tomorrow = useWeek(tomorrowWeek);
-  const tomorrowDay = (day + 1) % 7;
-  const tasks = tomorrow.week ? prepTasksFor(tomorrow.week, tomorrowDay, tomorrow.byId) : [];
-  const taskKey = (id: string) => `${addDays(toISODate(now), 1)}:${id}`;
-  // Une ligne par plat à préparer (ses étapes sont dans la feuille de détail).
-  const groups = [...new Set(tasks.map((t) => t.entryId))].map((entryId) => {
-    const entry = tomorrow.week!.entries.find((e) => e.id === entryId)!;
-    const recipe = tomorrow.byId.get(entry.recipeId)!;
-    return { entry, recipe, count: recipe.prepAheadSteps.length };
-  });
-  const [prepOpen, setPrepOpen] = useState<string | null>(null);
-  const prepGroup = groups.find((g) => g.entry.id === prepOpen);
   const entries = week ? slotOrder(s.household.dessertSlot).map((slot) => week.entries.find((e) => e.day === day && e.slot === slot)).filter((e) => !!e) : [];
   const iron = week ? dayIron(week, day, byId) : 0;
   const month = now.getMonth() + 1;
@@ -96,58 +81,6 @@ export function TodayView() {
           </div>
 
           <aside className="space-y-4">
-            <section className="rounded-3xl bg-plum-soft/70 p-5" aria-labelledby="veille">
-              <h2 id="veille" className="flex items-center gap-2 text-xl font-semibold text-plum-ink">
-                <MoonStar className="size-5" aria-hidden /> Ce soir, pour demain
-              </h2>
-              {tasks.length === 0 ? (
-                tomorrow.week ? (
-                  <p className="mt-2 text-sm text-plum-ink/90">Rien à préparer ce soir. Profite !</p>
-                ) : (
-                  <div className="mt-2 space-y-3">
-                    <p className="text-sm text-plum-ink/90">Demain commence une nouvelle semaine, pas encore planifiée.</p>
-                    <Button
-                      className="h-11"
-                      onClick={() => {
-                        setSelectedWeek(nextWeek());
-                        actions.generate(nextWeek());
-                        go("/semaine/choix");
-                      }}
-                    >
-                      <CocotteIcon className="size-5" /> Préparer la semaine
-                    </Button>
-                  </div>
-                )
-              ) : (
-                <ul className="mt-3 space-y-2">
-                  {groups.map(({ entry, recipe, count }) => {
-                    const done = recipe.prepAheadSteps.filter((_, i) => s.prepDone[taskKey(`${entry.id}:${i}`)]).length;
-                    return (
-                      <li key={entry.id}>
-                        <button
-                          type="button"
-                          onClick={() => setPrepOpen(entry.id)}
-                          className="flex min-h-16 w-full items-center gap-3 rounded-2xl bg-card/85 p-2 pr-3 text-left"
-                        >
-                          <span className="grid size-14 shrink-0 place-items-center overflow-hidden rounded-xl" style={{ backgroundColor: tintOf(recipe.illustration) }}>
-                            <Plate recipe={recipe} className="h-[90%]" />
-                          </span>
-                          <span className="min-w-0 flex-1">
-                            <span className="block text-xs font-bold tracking-[0.1em] text-plum-ink uppercase">Demain {SLOT_LABELS[entry.slot].toLowerCase()}</span>
-                            <span className="line-clamp-2 text-sm font-semibold">{recipe.prepAheadSteps[0]}</span>
-                            <span className="text-xs text-muted-foreground">
-                              {recipe.title} · {done}/{count} fait{done > 1 ? "s" : ""}
-                            </span>
-                          </span>
-                          <ChevronRight className="size-4 shrink-0 text-plum-ink" aria-hidden />
-                        </button>
-                      </li>
-                    );
-                  })}
-                </ul>
-              )}
-            </section>
-
             <section className="paper rounded-3xl p-5 shadow-card ring-1 ring-border">
               <div className="flex items-center justify-between">
                 <h2 className="text-lg font-semibold">Fer du jour</h2>
@@ -172,7 +105,6 @@ export function TodayView() {
       )}
 
       <Disclaimer className="mt-8" />
-      {prepGroup && <PrepSheet recipe={prepGroup.recipe} entry={prepGroup.entry} doneKey={(i) => taskKey(`${prepGroup.entry.id}:${i}`)} onClose={() => setPrepOpen(null)} />}
     </Shell>
   );
 }

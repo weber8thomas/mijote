@@ -1,5 +1,5 @@
 import { BABY_DISCLAIMER, costPerPortion, costTier, tierLabel, type Recipe } from "@mijote/shared";
-import { Baby, Clock, Flame, MoonStar } from "lucide-react";
+import { Baby, Clock, Flame } from "lucide-react";
 import type { ReactNode } from "react";
 import { Art, Plate } from "@/components/art";
 import { ingredientsOf, useStore } from "@/data/store";
@@ -92,8 +92,8 @@ export function CostTier({ recipe, className }: { recipe: Recipe; className?: st
 export const minutes = (r: Recipe) => r.prepMinutes + r.cookMinutes;
 export const formatMinutes = (m: number) => (m >= 60 ? `${Math.floor(m / 60)} h${m % 60 ? ` ${String(m % 60).padStart(2, "0")}` : ""}` : `${m} min`);
 
-/** Pictos d'une recette : temps, prix, fer, veille, cuisson longue. */
-/** compact : pictos sans libellés · dense : en plus, sans les pictos veille / cuisson longue (déjà en badge). */
+/** Pictos d'une recette : temps, prix, fer, cuisson longue. */
+/** compact : pictos sans libellés · dense : en plus, sans le picto cuisson longue (déjà en badge). */
 export function RecipeMeta({ recipe, className, compact = false, dense = false }: { recipe: Recipe; className?: string; compact?: boolean; dense?: boolean }) {
   return (
     <div className={cn("flex flex-wrap items-center gap-x-2.5 gap-y-1 text-xs text-muted-foreground", className)}>
@@ -103,13 +103,6 @@ export function RecipeMeta({ recipe, className, compact = false, dense = false }
       </span>
       <CostTier recipe={recipe} />
       {recipe.ironScore > 0 && <IronGauge level={recipe.ironScore} />}
-      {recipe.prepAhead && !dense && (
-        <span className="inline-flex items-center gap-1 text-plum-ink" title="Se prépare la veille">
-          <MoonStar className="size-3.5" aria-hidden />
-          {!compact && "veille"}
-          <span className="sr-only">À préparer la veille</span>
-        </span>
-      )}
       {recipe.longCook && !dense && (
         <span className="inline-flex items-center gap-1 text-terracotta-ink" title="Cuisson longue">
           <Flame className="size-3.5" aria-hidden />

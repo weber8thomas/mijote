@@ -18,9 +18,9 @@ import {
 } from "@mijote/shared";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
-import { AlertTriangle, CalendarPlus, CheckCircle2, ChevronDown, ChevronLeft, Flame, MoonStar, Printer, RefreshCw, RotateCcw, Search, ShoppingBasket, Undo2, X } from "lucide-react";
+import { AlertTriangle, CalendarPlus, CheckCircle2, ChevronDown, ChevronLeft, Flame, Plus, Printer, RefreshCw, RotateCcw, Search, ShoppingBasket, Undo2, X } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { Badge, RecipeCard, RecipeTile } from "@/components/cards";
 import { EmptyState, IronGauge, PageHeader, Segmented } from "@/components/kit";
@@ -142,7 +142,7 @@ export function WeekView() {
                 aria-label="Ajouter les repas à mon agenda"
                 onClick={async () => {
                   const how = await downloadOrShareIcs(icsFilename(weekStart), weekToIcs(week, byId, { onlyConfirmed: week.status === "draft" }));
-                  if (how === "downloaded") toast.success("Fichier agenda téléchargé", { description: "Ouvre-le pour ajouter les repas et les rappels de la veille à ton agenda." });
+                  if (how === "downloaded") toast.success("Fichier agenda téléchargé", { description: "Ouvre-le pour ajouter les repas à ton agenda." });
                 }}
               >
                 <CalendarPlus className="size-5" />
@@ -310,12 +310,6 @@ function WeekGrid({ week, byId, order, onOpen, warnedIds }: { week: WeekPlan; by
           <>
             {suggestion && <Badge tone="ochre">à choisir</Badge>}
             {e.isLeftover && <Badge tone="sage">Reste</Badge>}
-            {r.prepAhead && !e.isLeftover && (
-              <Badge tone="plum">
-                <MoonStar className="size-3" aria-hidden />
-                <span className="sr-only">À préparer la veille</span>
-              </Badge>
-            )}
             {r.longCook && !e.isLeftover && (
               <Badge tone="terracotta">
                 <Flame className="size-3" aria-hidden />
@@ -382,12 +376,55 @@ function WeekGrid({ week, byId, order, onOpen, warnedIds }: { week: WeekPlan; by
   );
 }
 
-/** Les 6 choix d'un repas en grille 2 × 3. Tap = choisir, appui long = aperçu. */
-function ChoiceGrid({ weekStart, entry, picked, onChosen, fill }: { weekStart: string; entry: PlanEntry; picked?: string | null; onChosen: (r: Recipe) => void; fill?: boolean }) {
-  const choices = useChoices(weekStart, entry.id);
-  const selected = picked ?? (entry.confirmed ? entry.recipeId : undefined);
+const PAGE = 6;
+
+/** Moulinette : relancer les 6 idées, ou en afficher 6 de plus. */
+function ChoiceTools({ weekStart, entry, count, total, onMore, className }: { weekStart: string; entry: PlanEntry; count: number; total: number; onMore: () => void; className?: string }) {
+  const [spin, setSpin] = useState(0);
   return (
-    <div className={cn("grid grid-cols-2 gap-2.5 sm:grid-cols-3 sm:gap-3", fill && "h-full grid-rows-3 sm:grid-rows-2")}>
+    <div className={cn("flex gap-2", className)}>
+      <Button
+        variant="outline"
+        className="h-12 flex-1"
+        onClick={() => {
+          setSpin((v) => v + 1);
+          actions.reroll(weekStart, entry.id);
+        }}
+      >
+        <motion.span key={spin} initial={{ rotate: spin ? -360 : 0 }} animate={{ rotate: 0 }} transition={{ duration: 0.5, ease: [0.22, 0.8, 0.3, 1] }} className="inline-flex">
+          <RefreshCw aria-hidden />
+        </motion.span>
+        Autres idées
+      </Button>
+      <Button variant="outline" className="h-12 flex-1" disabled={total < count} onClick={onMore}>
+        <Plus aria-hidden /> 6 de plus
+      </Button>
+    </div>
+  );
+}
+
+/** Les choix d'un repas en grille 2 × 3 (+ 6 par page). Tap = choisir, appui long = aperçu. */
+function ChoiceGrid({ weekStart, entry, picked, onChosen, fill, count = PAGE }: { weekStart: string; entry: PlanEntry; picked?: string | null; onChosen: (r: Recipe) => void; fill?: boolean; count?: number }) {
+  const choices = useChoices(weekStart, entry.id, count);
+  const selected = picked ?? (entry.confirmed ? entry.recipeId : undefined);
+  const ref = useRef<HTMLDivElement>(null);
+  // Une page de plus : la grille défile jusqu'aux nouvelles idées.
+  const shown = useRef(count);
+  useEffect(() => {
+    if (count > shown.current) (ref.current?.children[shown.current] as HTMLElement | undefined)?.scrollIntoView({ behavior: "smooth", block: "start" });
+    shown.current = count;
+  }, [count]);
+  const paged = count > PAGE;
+  return (
+    <div
+      ref={ref}
+      className={cn(
+        "grid grid-cols-2 gap-2.5 sm:grid-cols-3 sm:gap-3",
+        fill && !paged && "h-full grid-rows-3 sm:grid-rows-2",
+        // Plusieurs pages : chaque rangée garde la hauteur d'un tiers (mobile) ou d'une moitié (tablette) de l'écran.
+        fill && paged && "auto-rows-[calc((100cqh-1.25rem)/3)] sm:auto-rows-[calc((100cqh-0.75rem)/2)]",
+      )}
+    >
       {choices.map((r, i) => {
         const leftover = entry.isLeftover && r.id === entry.recipeId;
         return (
@@ -398,16 +435,11 @@ function ChoiceGrid({ weekStart, entry, picked, onChosen, fill }: { weekStart: s
             onChoose={() => onChosen(r)}
             selected={r.id === selected}
             compact={fill}
-            className={fill ? "min-h-0" : undefined}
+            className={cn(fill && "min-h-0", i >= PAGE && "animate-in duration-300 fade-in slide-in-from-bottom-2")}
             badges={
               <>
                 {leftover && <Badge tone="sage">Reste d'hier soir</Badge>}
-                {i === 0 && !leftover && <Badge tone="ochre">suggestion</Badge>}
-                {r.prepAhead && (
-                  <Badge tone="plum">
-                    <MoonStar className="size-3" aria-hidden /> veille
-                  </Badge>
-                )}
+                {i === 0 && !leftover && !entry.confirmed && <Badge tone="ochre">suggestion</Badge>}
                 {r.longCook && (
                   <Badge tone="terracotta">
                     <Flame className="size-3" aria-hidden /> mijote
@@ -422,9 +454,19 @@ function ChoiceGrid({ weekStart, entry, picked, onChosen, fill }: { weekStart: s
   );
 }
 
+/** Nombre de choix affichés pour un repas ; repart à 6 quand on change de repas ou qu'on relance. */
+function usePages(entry: PlanEntry | undefined) {
+  const [pages, setPages] = useState({ key: "", count: PAGE });
+  const key = entry ? `${entry.id}:${entry.rerolls ?? 0}` : "";
+  const count = pages.key === key ? pages.count : PAGE;
+  return { count, more: () => setPages({ key, count: count + PAGE }) };
+}
+
 function ChoiceSheet({ week, entry, onClose }: { week: WeekPlan; entry: PlanEntry; onClose: () => void }) {
   const [searching, setSearching] = useState(false);
   const pickable = usePickable(week.weekStart, entry.id);
+  const pages = usePages(entry);
+  const total = useChoices(week.weekStart, entry.id, pages.count).length;
   const pick = (r: Recipe) => {
     chooseWithUndo(week.weekStart, entry, r);
     onClose();
@@ -435,7 +477,7 @@ function ChoiceSheet({ week, entry, onClose }: { week: WeekPlan; entry: PlanEntr
         open={!searching}
         onOpenChange={(o) => !o && onClose()}
         title={mealTitle(entry)}
-        description="6 idées · touche pour choisir, appui long pour un aperçu"
+        description={`${total} idées · touche pour choisir, appui long pour un aperçu`}
         footer={
           <div className="flex gap-2">
             <Button variant="outline" className="h-12 flex-1" onClick={() => setSearching(true)}>
@@ -456,7 +498,8 @@ function ChoiceSheet({ week, entry, onClose }: { week: WeekPlan; entry: PlanEntr
           </div>
         }
       >
-        <ChoiceGrid weekStart={week.weekStart} entry={entry} onChosen={pick} />
+        <ChoiceTools weekStart={week.weekStart} entry={entry} count={pages.count} total={total} onMore={pages.more} className="mb-3" />
+        <ChoiceGrid weekStart={week.weekStart} entry={entry} onChosen={pick} count={pages.count} />
       </Sheet>
       <SearchDialog
         open={searching}
@@ -500,6 +543,8 @@ export function ChooseView({ entryId }: { entryId?: string }) {
     if (entry && found < 0) replace(`/semaine/choix/${entry.id}`);
   }, [entry, found]);
   const pickable = usePickable(weekStart, entry?.id);
+  const pages = usePages(entry);
+  const total = useChoices(weekStart, entry?.id, pages.count).length;
 
   if (!week || !entry)
     return (
@@ -571,6 +616,7 @@ export function ChooseView({ entryId }: { entryId?: string }) {
 
       <main className="mx-auto flex min-h-0 w-full max-w-3xl flex-1 flex-col overflow-hidden px-3 pb-2 sm:px-4">
         {entry.isLeftover && <p className="mb-1.5 shrink-0 text-sm text-primary-ink">Le dîner d'hier en laisse assez pour ce midi : garde-le, ou choisis autre chose.</p>}
+        <ChoiceTools weekStart={weekStart} entry={entry} count={pages.count} total={total} onMore={pages.more} className="mb-2 shrink-0" />
         <AnimatePresence mode="popLayout" initial={false} custom={direction}>
           <motion.div
             key={entry.id}
@@ -585,9 +631,9 @@ export function ChooseView({ entryId }: { entryId?: string }) {
             exit="exit"
             transition={{ duration: 0.26, ease: [0.22, 0.8, 0.3, 1] }}
             style={{ willChange: "transform, opacity" }}
-            className="min-h-0 flex-1"
+            className={cn("min-h-0 flex-1", pages.count > PAGE && "overflow-y-auto overscroll-contain [container-type:size]")}
           >
-            <ChoiceGrid weekStart={weekStart} entry={entry} picked={picked} onChosen={onChosen} fill />
+            <ChoiceGrid key={entry.rerolls ?? 0} weekStart={weekStart} entry={entry} picked={picked} onChosen={onChosen} fill count={pages.count} />
           </motion.div>
         </AnimatePresence>
       </main>

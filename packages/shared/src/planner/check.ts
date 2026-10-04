@@ -63,15 +63,3 @@ export function dayIron(week: WeekPlan, day: number, byId: Map<string, Recipe>):
   return Math.min(3, best + (scores.filter((s) => s >= 2).length > 1 ? 1 : 0));
 }
 
-export type PrepTask = { id: string; recipeId: string; entryId: string; text: string };
-
-/** Tâches à faire la veille au soir pour les repas du jour `day`. */
-export function prepTasksFor(week: WeekPlan, day: number, byId: Map<string, Recipe>): PrepTask[] {
-  return week.entries
-    .filter((e) => e.day === day && !e.isLeftover)
-    .flatMap((e) => {
-      const r = byId.get(e.recipeId);
-      if (!r?.prepAhead) return [];
-      return r.prepAheadSteps.map((text, i) => ({ id: `${e.id}:${i}`, recipeId: r.id, entryId: e.id, text }));
-    });
-}

@@ -26,6 +26,12 @@ export default defineConfig({
         orientation: "portrait",
         background_color: "#f7f1e5",
         theme_color: "#f7f1e5",
+        // Partager un texte vers Mijoté (depuis Gemini, Keep, Messages…) l'ajoute à la liste de courses.
+        share_target: { action: base, method: "GET", params: { title: "titre", text: "t", url: "lien" } },
+        shortcuts: [
+          { name: "Ajouter aux courses", short_name: "Courses", url: `${base}#/courses/ajouter`, icons: [{ src: "icons/icon-192.png", sizes: "192x192" }] },
+          { name: "Scanner un produit", short_name: "Scanner", url: `${base}#/placard/scanner`, icons: [{ src: "icons/icon-192.png", sizes: "192x192" }] },
+        ],
         icons: [
           { src: "icons/icon-192.png", sizes: "192x192", type: "image/png" },
           { src: "icons/icon-512.png", sizes: "512x512", type: "image/png" },

@@ -1,7 +1,7 @@
 // Parcours principal de la vitrine, de bout en bout (Playwright, Chromium).
 // Préparer la semaine → remplacer 3 repas → aperçu par appui long → valider → courses → cocher, synchro entre 2 onglets → impressions.
 // Usage : npm run build && npm run preview (autre terminal), puis npm run test:e2e [url]
-import { existsSync, mkdirSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync } from "node:fs";
 import { chromium, devices, type Page } from "playwright";
 
 const base = process.argv[2] ?? "http://localhost:4173/mijote/";
@@ -23,7 +23,8 @@ const step = async (name: string, fn: () => Promise<void>) => {
 const shot = (page: Page, name: string) => page.screenshot({ path: `${out}flow-${name}.png` });
 
 const browser = await chromium.launch({ executablePath });
-const ctx = await browser.newContext({ ...devices["iPhone 13"], locale: "fr-FR", timezoneId: "Europe/Paris" });
+// Service worker bloqué : les faux serveurs (Home Assistant, Anthropic, Open Food Facts) passent par page.route.
+const ctx = await browser.newContext({ ...devices["iPhone 13"], locale: "fr-FR", timezoneId: "Europe/Paris", serviceWorkers: "block" });
 const page = await ctx.newPage();
 page.setDefaultTimeout(10000);
 const errors: string[] = [];
@@ -32,7 +33,8 @@ page.on("pageerror", (e) => errors.push(e.message));
 await step("l'accueil s'ouvre sur la semaine en cours", async () => {
   await page.goto(`${base}#/`);
   await page.getByRole("heading", { name: "Aujourd'hui" }).waitFor();
-  await page.getByText("Ce soir, pour demain").waitFor();
+  await page.getByText("Fer du jour").waitFor();
+  if (await page.getByText(/veille|Ce soir, pour demain/).count()) throw new Error("mention « veille » encore visible");
 });
 
 await step("préparer la semaine prochaine → choix repas par repas", async () => {
@@ -75,6 +77,18 @@ await step("« Autre recette… » : chercher et choisir hors des 6 idées", asy
   await dialog.getByPlaceholder(/Chercher pour/).fill("lentilles");
   await dialog.locator("[cmdk-item]").first().click();
   await page.getByText("Repas 2/14", { exact: false }).waitFor();
+});
+
+await step("moulinette : « Autres idées » puis « 6 de plus »", async () => {
+  const cards = page.locator("main .grid > div > button:first-child");
+  const titles = async () => (await cards.allInnerTexts()).map((t) => t.split("\n")[0]).join("|");
+  const before = await titles();
+  await page.getByRole("button", { name: "Autres idées" }).click();
+  const sel = "main .grid > div > button:first-child";
+  await page.waitForFunction(`[...document.querySelectorAll(${JSON.stringify(sel)})].map((e) => e.innerText.split("\\n")[0]).join("|") !== ${JSON.stringify(before)}`);
+  await page.getByRole("button", { name: "6 de plus" }).click();
+  await page.waitForFunction(`document.querySelectorAll(${JSON.stringify(sel)}).length === 12`);
+  await shot(page, "2b-moulinette");
 });
 
 await step("choisir les autres repas", async () => {
@@ -188,17 +202,87 @@ await step("« J'ai déjà » sort l'article de la liste", async () => {
   if (await page.getByRole("button", { name: label! }).count()) throw new Error("toujours dans la liste");
 });
 
-await step("supermarché et placard", async () => {
+await step("ajout à la main : « 2 carottes, papier cuisson »", async () => {
+  await page.getByLabel("Ajouter un article à la liste").fill("2 carottes, papier cuisson");
+  await page.getByRole("button", { name: "Ajouter", exact: true }).click();
+  await page.getByText("2 articles ajoutés").waitFor();
   await page.getByRole("tab", { name: /Supermarché/ }).click();
-  await page.getByRole("button", { name: "Placard" }).click();
-  await page.getByRole("dialog").getByText("Coche ce que tu as en stock").waitFor();
+  await page.getByRole("button", { name: "Retirer : papier cuisson" }).waitFor();
+});
+
+await step("lien profond #/courses/ajouter?t=… (Gemini, raccourci)", async () => {
+  await page.goto(`${base}#/courses/ajouter?t=${encodeURIComponent("lait d'avoine")}`);
+  await page.getByText(/ : ajouté$/).first().waitFor();
+  await page.waitForURL(/#\/courses$/);
+});
+
+await step("Home Assistant : relier, envoyer, importer", async () => {
+  const added: string[] = [];
+  const cors = { "Access-Control-Allow-Origin": "*", "Access-Control-Allow-Headers": "*", "Access-Control-Allow-Methods": "GET, POST, OPTIONS" };
+  await page.route("https://ha.test/**", async (route) => {
+    const req = route.request();
+    if (req.method() === "OPTIONS") return route.fulfill({ status: 204, headers: cors });
+    const url = new URL(req.url());
+    const json = (body: unknown) => route.fulfill({ status: 200, headers: { ...cors, "Content-Type": "application/json" }, body: JSON.stringify(body) });
+    if (req.headers().authorization !== "Bearer jeton-test") return route.fulfill({ status: 401, headers: cors });
+    if (url.pathname === "/api/") return json({ message: "API running." });
+    if (url.pathname === "/api/services/todo/get_items")
+      return json({ service_response: { "todo.shopping_list": { items: [{ summary: "Bananes", uid: "1", status: "needs_action" }, ...added.map((a, i) => ({ summary: a, uid: `a${i}`, status: "needs_action" }))] } } });
+    if (url.pathname === "/api/services/todo/add_item") {
+      added.push(JSON.parse(req.postData() ?? "{}").item);
+      return json([]);
+    }
+    return json([]);
+  });
+  await page.goto(`${base}#/reglages`);
+  await page.getByRole("button", { name: /Home Assistant/ }).click();
+  const dialog = page.getByRole("dialog");
+  await dialog.getByPlaceholder("https://maison.ui.nabu.casa").fill("https://ha.test");
+  await dialog.getByLabel("Jeton d'accès longue durée").fill("jeton-test");
+  await dialog.getByRole("button", { name: "Tester" }).click();
+  await page.getByText("Home Assistant répond").waitFor();
+  await dialog.getByRole("button", { name: "Enregistrer" }).click();
+  await page.goto(`${base}#/courses`);
+  await page.getByRole("button", { name: "Envoyer la liste" }).click();
+  await page.getByRole("button", { name: /Envoyer à Home Assistant/ }).click();
+  await page.getByText(/envoyés? à Home Assistant/).waitFor();
+  if (added.length < 3) throw new Error(`seulement ${added.length} article(s) envoyé(s)`);
+  await page.getByRole("button", { name: "Envoyer la liste" }).click();
+  await page.getByRole("button", { name: /Importer depuis Home Assistant/ }).click();
+  await page.getByText(/banane.* : ajouté/i).first().waitFor();
+  console.log(`  envoyés : ${added.length}, importé : Bananes`);
+});
+
+await step("placard et frigo", async () => {
+  await page.goto(`${base}#/courses`);
+  await page.getByRole("button", { name: "Placard et frigo" }).click();
+  await page.getByRole("heading", { name: /Placard/ }).first().waitFor();
   await shot(page, "5-placard");
-  await page.keyboard.press("Escape");
+});
+
+await step("scanner un produit (Open Food Facts simulé) → placard", async () => {
+  await page.route("https://world.openfoodfacts.org/**", (route) =>
+    route.fulfill({
+      status: 200,
+      headers: { "Access-Control-Allow-Origin": "*", "Content-Type": "application/json" },
+      body: JSON.stringify({
+        status: 1,
+        code: "3560070000000",
+        product: { product_name_fr: "Lentilles vertes", brands: "Bio Village", quantity: "500 g", nutriscore_grade: "a", nova_group: 1, additives_tags: [], allergens_tags: [], ingredients_text_fr: "Lentilles vertes" },
+      }),
+    }),
+  );
+  await page.evaluate("window.__mijoteFakeBarcode = '3560070000000'");
+  await page.getByRole("button", { name: "Scanner un produit" }).first().click();
+  await page.getByText("Lentilles vertes").first().waitFor();
+  await shot(page, "5b-scan");
+  await page.getByRole("button", { name: /^Ajouter au (placard|frigo|congélateur)$/ }).click();
+  await page.getByText(/rangé au/).first().waitFor();
 });
 
 await step("impressions frigo et courses", async () => {
   await page.goto(`${base}#/semaine/imprimer`);
-  await page.getByText("Ce soir, pour demain").first().waitFor();
+  await page.getByText("Tableau frigo").first().waitFor();
   await page.emulateMedia({ media: "print" });
   await page.pdf({ path: `${out}flow-frigo.pdf`, landscape: true, format: "A4", printBackground: true }).catch(() => undefined);
   await page.emulateMedia({ media: "screen" });
@@ -206,14 +290,73 @@ await step("impressions frigo et courses", async () => {
   await page.getByText("Supermarché").first().waitFor();
 });
 
-await step("bibliothèque, nouveautés et fiche recette", async () => {
+await step("bibliothèque, nouveautés (démo) et fiche recette", async () => {
   await page.goto(`${base}#/recettes`);
-  await page.getByRole("button", { name: "Nouveautés" }).click();
+  await page.getByRole("button", { name: "Nouvelle recette" }).click();
+  await page.getByRole("button", { name: /Idées de saison/ }).click();
   await page.getByRole("button", { name: "Garder" }).first().click({ timeout: 10000 });
   await page.keyboard.press("Escape");
   await page.locator("main .grid.gap-3 > div > button").first().click();
   await page.getByText("Pour bébé").waitFor();
   await shot(page, "6-fiche");
+});
+
+await step("Claude (API simulée) : relier, idées de dîners, garder", async () => {
+  const seed = (JSON.parse(readFileSync(new URL("../content/recipes/dinner.json", import.meta.url), "utf8")) as Record<string, any>[])[0];
+  // Brouillon au format demandé à Claude, à partir d'une recette du seed (qui passe le linter bébé).
+  const draft = {
+    title: `${seed.title} (Claude)`,
+    description: seed.description ?? "",
+    slots: ["dinner"],
+    prepMinutes: seed.prepMinutes,
+    cookMinutes: seed.cookMinutes,
+    longCook: !!seed.longCook,
+    yieldsLeftovers: !!seed.yieldsLeftovers,
+    servingsBase: seed.servingsBase,
+    ingredients: seed.ingredients.map((i: Record<string, any>) => ({ ingredientId: i.ingredientId, qty: i.qty, unit: i.unit, note: i.note ?? null, form: i.form ?? null, adultOnly: !!i.adultOnly })),
+    newIngredients: [],
+    steps: seed.steps,
+    babyAdaptation: { ...seed.babyAdaptation, notes: seed.babyAdaptation.notes ?? null },
+    ironScore: seed.ironScore,
+    mainProtein: seed.mainProtein,
+    tags: seed.tags ?? [],
+    illustration: seed.illustration,
+  };
+  let body: Record<string, any> = {};
+  const cors = { "Access-Control-Allow-Origin": "*", "Access-Control-Allow-Headers": "*", "Access-Control-Allow-Methods": "GET, POST, OPTIONS" };
+  await page.route("https://api.anthropic.com/**", async (route) => {
+    const req = route.request();
+    if (req.method() === "OPTIONS") return route.fulfill({ status: 204, headers: cors });
+    body = JSON.parse(req.postData() ?? "{}");
+    await route.fulfill({
+      status: 200,
+      headers: { ...cors, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        id: "msg_test",
+        type: "message",
+        role: "assistant",
+        model: body.model,
+        content: [{ type: "text", text: JSON.stringify({ recipes: [draft] }) }],
+        stop_reason: "end_turn",
+        stop_sequence: null,
+        usage: { input_tokens: 10, output_tokens: 10 },
+      }),
+    });
+  });
+  await page.goto(`${base}#/reglages`);
+  await page.getByRole("button", { name: /Claude \(IA\)/ }).click();
+  await page.getByRole("dialog").getByLabel("Clé API Anthropic").fill("sk-ant-test");
+  await page.getByRole("dialog").getByRole("button", { name: "Enregistrer" }).click();
+  await page.goto(`${base}#/recettes`);
+  await page.getByRole("button", { name: "Nouvelle recette" }).click();
+  await page.getByRole("button", { name: /Idées de saison/ }).click();
+  await page.getByRole("button", { name: "Dîners" }).click();
+  await page.getByText(draft.title).first().waitFor();
+  await shot(page, "7-claude");
+  await page.getByRole("button", { name: "Garder" }).first().click();
+  await page.getByText(/ajoutée à tes recettes/).waitFor();
+  if (body.model !== "claude-opus-5-5") throw new Error(`modèle : ${body.model}`);
+  if (body.fallbacks !== "default" || !body.output_config?.format) throw new Error("requête sans repli ou sans format structuré");
 });
 
 await step("aucune erreur JavaScript", async () => {

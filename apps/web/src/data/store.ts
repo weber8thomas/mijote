@@ -14,7 +14,11 @@ import {
   addDays,
   PANTRY_BASICS,
   RECIPES,
+  manualItem,
+  parseShoppingText,
+  rerollChoices,
   type Household,
+  type InventoryItem,
   type Ingredient,
   type Recipe,
   type RecipeStatus,
@@ -39,11 +43,22 @@ export type State = {
   shopping: Record<string, ShoppingItem[]>;
   /** Basiques du placard : true = en stock. */
   pantry: Record<string, boolean>;
-  /** Tâches de veille faites, par jour (clé AAAA-MM-JJ:tâche). */
-  prepDone: Record<string, boolean>;
   /** Brouillons « IA » déjà proposés (simulation). */
   draftsSeen: string[];
   installSeen?: boolean;
+  /** Ce qu'il y a à la maison (placard, frigo, congélateur). */
+  inventory?: InventoryItem[];
+  /** Recettes proposées par Claude, pas encore gardées ni jetées. */
+  aiDrafts?: Recipe[];
+  /** Ingrédients créés par l'IA pour ses recettes (« à vérifier »). */
+  customIngredients?: Ingredient[];
+  /** Connexions : Home Assistant, IA. Gardées sur cet appareil, jamais exportées. */
+  integrations?: Integrations;
+};
+
+export type Integrations = {
+  ha?: { url: string; token: string; entity: string; autoSync?: boolean };
+  ai?: { apiKey: string; model: string; dailyLimit: number; used?: { day: string; count: number } };
 };
 
 // v2 : plus de petit-déjeuner, 6 choix par repas.
@@ -66,7 +81,6 @@ function initial(): State {
     weeks: {},
     shopping: {},
     pantry: Object.fromEntries(PANTRY_BASICS.map((id) => [id, true])),
-    prepDone: {},
     draftsSeen: [],
   };
   // La semaine en cours est déjà planifiée et validée : l'écran « Aujourd'hui » a du contenu dès l'ouverture.
@@ -78,7 +92,10 @@ function initial(): State {
 function load(): State {
   try {
     const raw = localStorage.getItem(KEY);
-    if (raw) return JSON.parse(raw) as State;
+    if (raw) {
+      const saved = JSON.parse(raw) as State;
+      return { ...saved, inventory: saved.inventory ?? [], integrations: saved.integrations ?? {} };
+    }
   } catch {
     // Données illisibles : on repart de zéro.
   }
@@ -130,10 +147,18 @@ const memo = <A extends object, R>(fn: (a: A) => R) => {
   };
 };
 
-const ingredientsFor = memo((prices: Record<string, number>) => {
-  const list: Ingredient[] = INGREDIENTS.map((i) => (prices[i.id] !== undefined ? { ...i, avgPrice: prices[i.id] } : i));
-  return { list, byId: new Map(list.map((i) => [i.id, i])) };
-});
+const NO_INGREDIENTS: Ingredient[] = [];
+let ingredientsCache: { prices: Record<string, number>; custom: Ingredient[]; value: { list: Ingredient[]; byId: Map<string, Ingredient> } } | undefined;
+
+/** Catalogue + ingrédients ajoutés par l'IA (« à vérifier »), avec les prix du foyer. Mémorisé par référence. */
+function ingredientsFor(prices: Record<string, number>, custom: Ingredient[] = NO_INGREDIENTS) {
+  if (ingredientsCache?.prices === prices && ingredientsCache.custom === custom) return ingredientsCache.value;
+  const known = new Set(INGREDIENTS.map((i) => i.id));
+  const list: Ingredient[] = [...INGREDIENTS, ...custom.filter((i) => !known.has(i.id))].map((i) => (prices[i.id] !== undefined ? { ...i, avgPrice: prices[i.id] } : i));
+  const value = { list, byId: new Map(list.map((i) => [i.id, i])) };
+  ingredientsCache = { prices, custom, value };
+  return value;
+}
 
 const recipesFor = memo((s: State) => {
   const all = [...RECIPES, ...s.customRecipes].map((r) => ({ ...r, status: s.statuses[r.id] ?? r.status }));
@@ -144,23 +169,24 @@ const recipesFor = memo((s: State) => {
 const knownFor = memo((s: State) => {
   const { byId } = recipesFor(s);
   const map = new Map(byId);
-  for (const r of AI_SAMPLES) if (!map.has(r.id)) map.set(r.id, r);
+  for (const r of [...AI_SAMPLES, ...(s.aiDrafts ?? [])]) if (!map.has(r.id)) map.set(r.id, r);
   return map;
 });
 
-export const ingredientsOf = (s: State) => ingredientsFor(s.prices);
+export const ingredientsOf = (s: State) => ingredientsFor(s.prices, s.customIngredients);
 export const recipesOf = (s: State) => recipesFor(s);
 export const recipeMap = (s: State) => knownFor(s);
 
 function planContext(s: State) {
-  return { recipes: recipesFor(s).all, ingredients: ingredientsFor(s.prices).byId, household: s.household };
+  return { recipes: recipesFor(s).all, ingredients: ingredientsOf(s).byId, household: s.household };
 }
 
 function withShopping(s: State, weekStart: string): State {
   const week = s.weeks[weekStart];
   if (!week || week.status !== "validated") return s;
   const pantryInStock = new Set(Object.entries(s.pantry).filter(([, v]) => v).map(([k]) => k));
-  const items = buildShoppingList({ week, recipes: knownFor(s), ingredients: ingredientsFor(s.prices).byId, pantryInStock, previous: s.shopping[weekStart] });
+  const atHome = new Set((s.inventory ?? []).flatMap((i) => (i.ingredientId ? [i.ingredientId] : [])));
+  const items = buildShoppingList({ week, recipes: knownFor(s), ingredients: ingredientsOf(s).byId, pantryInStock, atHome, previous: s.shopping[weekStart] });
   return { ...s, shopping: { ...s.shopping, [weekStart]: items } };
 }
 
@@ -189,13 +215,13 @@ export function useWeek(weekStart: string) {
 }
 
 /** Les 6 choix d'un repas, à jour avec ce qui est déjà décidé dans la semaine. */
-export function useChoices(weekStart: string, entryId: string | undefined) {
+export function useChoices(weekStart: string, entryId: string | undefined, n?: number) {
   const s = useStore();
   const week = s.weeks[weekStart];
   const byId = recipeMap(s);
   return useMemo(
-    () => (week && entryId ? choicesFor(week, entryId, planContext(s)).map((id) => byId.get(id)).filter((r): r is Recipe => !!r) : []),
-    [week, entryId, s, byId],
+    () => (week && entryId ? choicesFor(week, entryId, planContext(s), n).map((id) => byId.get(id)).filter((r): r is Recipe => !!r) : []),
+    [week, entryId, s, byId, n],
   );
 }
 
@@ -216,6 +242,13 @@ export function useShopping(weekStart: string) {
 const uid = () => Math.random().toString(36).slice(2, 9);
 
 export const actions = {
+  /** Relance les 6 idées d'un repas (« Autres idées »). */
+  reroll(weekStart: string, entryId: string) {
+    const week = state.weeks[weekStart];
+    if (!week) return;
+    set({ ...state, weeks: { ...state.weeks, [weekStart]: rerollChoices(week, entryId, planContext(state)) } });
+  },
+
   generate(weekStart: string, seed = Math.floor(Math.random() * 1e6)) {
     const previous = state.weeks[addDays(weekStart, -7)];
     const ctx = { ...planContext(state), previousRecipeIds: previous?.entries.map((e) => e.recipeId) };
@@ -266,12 +299,86 @@ export const actions = {
     set({ ...state, shopping: { ...state.shopping, [weekStart]: items } });
   },
 
+  /** Ajoute des articles écrits à la main (« 3 carottes, du lait »). Renvoie les lignes ajoutées. */
+  addToShopping(weekStart: string, text: string) {
+    const { list, byId } = ingredientsOf(state);
+    const lines = parseShoppingText(text, list);
+    if (!lines.length) return [];
+    const current = state.shopping[weekStart] ?? [];
+    // Déjà dans la liste (pour une recette) : on le remet à acheter plutôt que de le doubler.
+    const revive = new Set<string>();
+    const fresh = lines.filter((l) => {
+      const hit = l.ingredientId && current.find((i) => i.ingredientId === l.ingredientId);
+      if (hit) revive.add(hit.id);
+      return !hit;
+    });
+    const items = fresh.map((l, i) => manualItem(weekStart, l, byId, new Date(Date.now() + i)));
+    const now = new Date().toISOString();
+    const kept = current.map((i) => (revive.has(i.id) ? { ...i, haveAlready: false, checked: false, checkedBy: undefined, updatedAt: now } : i));
+    set({ ...state, shopping: { ...state.shopping, [weekStart]: [...kept, ...items] } });
+    return [...kept.filter((i) => revive.has(i.id)), ...items];
+  },
+
+  removeShoppingItem(weekStart: string, itemId: string) {
+    set({ ...state, shopping: { ...state.shopping, [weekStart]: (state.shopping[weekStart] ?? []).filter((i) => i.id !== itemId) } });
+  },
+
+  restoreShoppingItem(weekStart: string, item: ShoppingItem) {
+    const list = state.shopping[weekStart] ?? [];
+    if (list.some((i) => i.id === item.id)) return;
+    set({ ...state, shopping: { ...state.shopping, [weekStart]: [...list, item] } });
+  },
+
+  addInventory(items: Omit<InventoryItem, "id" | "addedAt">[]) {
+    const now = new Date().toISOString();
+    const added = items.map((i) => ({ ...i, id: uid(), addedAt: now }));
+    set(refreshAllShopping({ ...state, inventory: [...(state.inventory ?? []), ...added] }));
+    return added;
+  },
+
+  updateInventory(id: string, patch: Partial<InventoryItem>) {
+    set(refreshAllShopping({ ...state, inventory: (state.inventory ?? []).map((i) => (i.id === id ? { ...i, ...patch } : i)) }));
+  },
+
+  removeInventory(id: string) {
+    set(refreshAllShopping({ ...state, inventory: (state.inventory ?? []).filter((i) => i.id !== id) }));
+  },
+
+  setIntegrations(patch: Partial<Integrations>) {
+    set({ ...state, integrations: { ...state.integrations, ...patch } });
+  },
+
   setPantry(ingredientId: string, inStock: boolean) {
     set(refreshAllShopping({ ...state, pantry: { ...state.pantry, [ingredientId]: inStock } }));
   },
 
   setStatus(recipeId: string, status: RecipeStatus) {
     set({ ...state, statuses: { ...state.statuses, [recipeId]: status } });
+  },
+
+  addIngredients(list: Ingredient[]) {
+    const have = new Set(ingredientsOf(state).list.map((i) => i.id));
+    const fresh = list.filter((i) => !have.has(i.id));
+    if (fresh.length) set({ ...state, customIngredients: [...(state.customIngredients ?? []), ...fresh] });
+  },
+
+  /** Compte un appel à l'IA pour la limite du jour. Renvoie false si la limite est atteinte. */
+  useAiCall() {
+    const ai = state.integrations?.ai;
+    if (!ai) return false;
+    const day = new Date().toISOString().slice(0, 10);
+    const count = ai.used?.day === day ? ai.used.count : 0;
+    if (count >= ai.dailyLimit) return false;
+    set({ ...state, integrations: { ...state.integrations, ai: { ...ai, used: { day, count: count + 1 } } } });
+    return true;
+  },
+
+  addAiDrafts(recipes: Recipe[]) {
+    set({ ...state, aiDrafts: [...(state.aiDrafts ?? []), ...recipes] });
+  },
+
+  removeAiDraft(id: string) {
+    set({ ...state, aiDrafts: (state.aiDrafts ?? []).filter((r) => r.id !== id) });
   },
 
   addRecipe(recipe: Recipe) {
@@ -299,22 +406,22 @@ export const actions = {
     set(refreshAllShopping({ ...state, prices: price === undefined ? rest : { ...rest, [ingredientId]: price } }));
   },
 
-  togglePrep(key: string) {
-    set({ ...state, prepDone: { ...state.prepDone, [key]: !state.prepDone[key] } });
-  },
-
   setInstallSeen() {
     set({ ...state, installSeen: true });
   },
 
   exportJSON() {
-    return JSON.stringify({ app: "mijote", version: 1, exportedAt: new Date().toISOString(), state }, null, 2);
+    // Les clés et jetons (IA, Home Assistant) restent sur l'appareil : jamais dans une sauvegarde.
+    const { integrations: _secrets, ...rest } = state;
+    void _secrets;
+    return JSON.stringify({ app: "mijote", version: 1, exportedAt: new Date().toISOString(), state: rest }, null, 2);
   },
 
   importJSON(text: string) {
     const data = JSON.parse(text) as { app?: string; state?: State };
     if (data.app !== "mijote" || !data.state?.household) throw new Error("Fichier de sauvegarde Mijoté invalide");
-    set(data.state);
+    // Une sauvegarde n'emporte pas les connexions de cet appareil.
+    set({ ...data.state, inventory: data.state.inventory ?? [], integrations: state.integrations });
   },
 
   reset() {

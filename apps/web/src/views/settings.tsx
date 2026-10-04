@@ -1,9 +1,10 @@
 import { formatPrice, householdPortions, type Ingredient } from "@mijote/shared";
-import { ChevronLeft, ChevronRight, Download, KeyRound, Minus, Plus, RotateCcw, Smartphone, Upload, Users } from "lucide-react";
+import { ChevronLeft, ChevronRight, Download, HouseWifi, KeyRound, Mic, Minus, Package, Plus, RotateCcw, Smartphone, Sparkles, Upload, Users } from "lucide-react";
 import { useMemo, useRef, useState, type ReactNode } from "react";
 import { toast } from "sonner";
 import { LogoMark } from "@/components/brand";
 import { Art } from "@/components/art";
+import { ClaudeSheet, HomeAssistantSheet, VoiceSheet } from "@/components/connections";
 import { Disclaimer, PageHeader, Segmented } from "@/components/kit";
 import { Shell } from "@/components/shell";
 import { Sheet } from "@/components/sheet";
@@ -19,6 +20,9 @@ export function SettingsView() {
   const file = useRef<HTMLInputElement>(null);
   const [prices, setPrices] = useState(false);
   const [resetting, setResetting] = useState(false);
+  const [ha, setHa] = useState(false);
+  const [voice, setVoice] = useState(false);
+  const [ai, setAi] = useState(false);
 
   const exportFile = () => {
     const blob = new Blob([actions.exportJSON()], { type: "application/json" });
@@ -86,6 +90,21 @@ export function SettingsView() {
           <SoonRow icon={<KeyRound className="size-5" />}>Phrase secrète du foyer</SoonRow>
         </Group>
 
+        <Group title="Maison et connexions">
+          <LinkRow onClick={() => go("/placard")} icon={<Package className="size-5" />}>
+            Placard et frigo
+          </LinkRow>
+          <LinkRow onClick={() => setHa(true)} icon={<HouseWifi className="size-5" />} detail={s.integrations?.ha ? "relié" : undefined}>
+            Home Assistant
+          </LinkRow>
+          <LinkRow onClick={() => setAi(true)} icon={<Sparkles className="size-5" />} detail={s.integrations?.ai ? "relié" : undefined}>
+            Claude (IA)
+          </LinkRow>
+          <LinkRow onClick={() => setVoice(true)} icon={<Mic className="size-5" />}>
+            À la voix (Gemini, Assistant)
+          </LinkRow>
+        </Group>
+
         <Group title="Sauvegarde">
           <LinkRow onClick={exportFile} icon={<Download className="size-5" />}>
             Exporter (JSON)
@@ -112,6 +131,9 @@ export function SettingsView() {
       </div>
 
       <PricesSheet open={prices} onOpenChange={setPrices} />
+      <HomeAssistantSheet open={ha} onOpenChange={setHa} />
+      <VoiceSheet open={voice} onOpenChange={setVoice} />
+      <ClaudeSheet open={ai} onOpenChange={setAi} />
       <Sheet
         open={resetting}
         onOpenChange={setResetting}
@@ -165,11 +187,12 @@ function Row({ label, hint, children }: { label: string; hint?: string; children
   );
 }
 
-function LinkRow({ onClick, icon, children }: { onClick: () => void; icon: ReactNode; children: ReactNode }) {
+function LinkRow({ onClick, icon, detail, children }: { onClick: () => void; icon: ReactNode; detail?: string; children: ReactNode }) {
   return (
     <button type="button" onClick={onClick} className="flex min-h-14 w-full items-center gap-3 px-4 text-left font-semibold hover:bg-muted/60">
       <span className="grid size-8 place-items-center text-primary-ink">{icon}</span>
       <span className="flex-1">{children}</span>
+      {detail && <span className="rounded-full bg-sage-soft px-2.5 py-0.5 text-xs text-sage-ink">{detail}</span>}
       <ChevronRight className="size-4 text-muted-foreground" aria-hidden />
     </button>
   );

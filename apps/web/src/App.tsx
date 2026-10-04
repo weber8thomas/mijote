@@ -2,9 +2,10 @@ import { MotionConfig } from "motion/react";
 import { PreviewProvider } from "@/components/preview";
 import { GlobalSearch } from "@/components/search";
 import { Toaster } from "@/components/ui/sonner";
-import { useRoute } from "@/lib/router";
+import { query, useRoute } from "@/lib/router";
 import { useSelectedWeek } from "@/lib/ui";
 import { NewRecipeView } from "@/views/new-recipe";
+import { PantryView } from "@/views/pantry";
 import { FridgePrint, ShoppingPrint } from "@/views/print";
 import { RecipeView } from "@/views/recipe";
 import { RecipesView } from "@/views/recipes";
@@ -20,9 +21,11 @@ function Routes() {
     case "semaine":
       return a === "imprimer" ? <FridgePrint weekStart={b ?? week} /> : a === "choix" ? <ChooseView entryId={b} /> : <WeekView />;
     case "courses":
-      return a === "imprimer" ? <ShoppingPrint weekStart={b ?? week} /> : <ShoppingView />;
+      return a === "imprimer" ? <ShoppingPrint weekStart={b ?? week} /> : <ShoppingView add={a === "ajouter" ? (query().get("t") ?? "") : undefined} />;
     case "recettes":
       return a === "nouvelle" ? <NewRecipeView /> : a === "ingredient" ? <RecipesView ingredient={b} /> : a ? <RecipeView slug={a} /> : <RecipesView />;
+    case "placard":
+      return <PantryView key={a ?? ""} scan={a === "scanner"} />;
     case "reglages":
       return <SettingsView />;
     case "installer":

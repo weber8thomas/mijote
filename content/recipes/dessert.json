@@ -277,7 +277,7 @@
   {
     "id": "flan-vanille-four",
     "slug": "flan-vanille-four",
-    "title": "Flan aux œufs à la vanille",
+    "title": "Flan aux œufs (œufs au lait)",
     "description": "Un petit flan au four tout simple, parfumé à la vanille, à servir avec une compote.",
     "slots": [
       "dessert"
@@ -476,7 +476,7 @@
   {
     "id": "creme-chataigne-yaourt",
     "slug": "creme-chataigne-yaourt",
-    "title": "Crème de châtaigne au yaourt",
+    "title": "Yaourt à la crème de châtaigne",
     "description": "Des châtaignes d'octobre mixées en crème vanillée et servies sur un yaourt nature.",
     "slots": [
       "dessert"
@@ -581,6 +581,1091 @@
       "quick"
     ],
     "illustration": "clementine",
+    "source": "seed"
+  },
+  {
+    "id": "yaourt-fruit-saison",
+    "slug": "yaourt-fruit-saison",
+    "title": "Yaourt nature et fruit de saison",
+    "description": "Le dessert de tous les jours : un yaourt nature avec un fruit mûr coupé dessus.",
+    "slots": [
+      "dessert"
+    ],
+    "prepMinutes": 5,
+    "cookMinutes": 0,
+    "longCook": false,
+    "prepAhead": false,
+    "prepAheadSteps": [],
+    "yieldsLeftovers": false,
+    "servingsBase": 4,
+    "ingredients": [
+      {
+        "ingredientId": "yaourt-nature",
+        "qty": 4,
+        "unit": "piece"
+      },
+      {
+        "ingredientId": "poire",
+        "qty": 2,
+        "unit": "piece",
+        "note": "bien mûres"
+      },
+      {
+        "ingredientId": "sucre",
+        "qty": 2,
+        "unit": "cc",
+        "note": "si besoin",
+        "adultOnly": true
+      }
+    ],
+    "steps": [
+      "Épluche les poires et coupe-les en petits dés.",
+      "Répartis-les sur les yaourts.",
+      "Sucre légèrement les yaourts des grands si tu veux."
+    ],
+    "babyAdaptation": {
+      "when": "Prélever la portion bébé avant de sucrer",
+      "texture": "poire très mûre écrasée ou en petits dés fondants dans le yaourt",
+      "amount": "1 yaourt (125 g) et 1/2 poire",
+      "notes": "Change de fruit selon la saison : pomme cuite, banane, kiwi."
+    },
+    "ironScore": 0,
+    "mainProtein": "dairy",
+    "tags": [
+      "quick",
+      "dairy-heavy",
+      "seasonal-fruit"
+    ],
+    "illustration": "poire",
+    "source": "seed"
+  },
+  {
+    "id": "gateau-yaourt-pommes",
+    "slug": "gateau-yaourt-pommes",
+    "title": "Gâteau au yaourt aux pommes",
+    "description": "Le gâteau au yaourt de toujours, sucré à la compote et à la banane, avec des pommes fondantes.",
+    "slots": [
+      "dessert"
+    ],
+    "prepMinutes": 15,
+    "cookMinutes": 35,
+    "longCook": false,
+    "prepAhead": false,
+    "prepAheadSteps": [],
+    "yieldsLeftovers": false,
+    "servingsBase": 4,
+    "ingredients": [
+      {
+        "ingredientId": "yaourt-nature",
+        "qty": 1,
+        "unit": "piece",
+        "note": "le pot sert de mesure"
+      },
+      {
+        "ingredientId": "oeuf",
+        "qty": 3,
+        "unit": "piece"
+      },
+      {
+        "ingredientId": "farine",
+        "qty": 250,
+        "unit": "g",
+        "note": "2 pots"
+      },
+      {
+        "ingredientId": "levure-chimique",
+        "qty": 1,
+        "unit": "cs"
+      },
+      {
+        "ingredientId": "huile-colza",
+        "qty": 60,
+        "unit": "ml",
+        "note": "1/2 pot"
+      },
+      {
+        "ingredientId": "banane",
+        "qty": 2,
+        "unit": "piece",
+        "note": "très mûres, écrasées"
+      },
+      {
+        "ingredientId": "pomme",
+        "qty": 2,
+        "unit": "piece",
+        "note": "en fines lamelles",
+        "form": "cooked"
+      },
+      {
+        "ingredientId": "vanille",
+        "qty": 1,
+        "unit": "cc"
+      },
+      {
+        "ingredientId": "sucre",
+        "qty": 2,
+        "unit": "cs",
+        "note": "saupoudré sur la moitié des grands",
+        "adultOnly": true
+      }
+    ],
+    "steps": [
+      "Préchauffe le four à 180 °C et huile un moule.",
+      "Mélange le yaourt, les œufs, les bananes écrasées, l'huile et la vanille.",
+      "Ajoute la farine et la levure, mélange juste ce qu'il faut.",
+      "Verse dans le moule et enfonce les lamelles de pomme sur le dessus.",
+      "Saupoudre de sucre la moitié des grands et enfourne 35 min : la lame doit ressortir sèche."
+    ],
+    "babyAdaptation": {
+      "when": "Couper la part de bébé côté non sucré, une fois tiédi",
+      "texture": "gâteau moelleux en petits bâtonnets",
+      "amount": "1 petite part (40 g)",
+      "notes": "Sucré seulement par la banane et la pomme. Allergènes : œuf, gluten, lait."
+    },
+    "ironScore": 1,
+    "mainProtein": "egg",
+    "tags": [
+      "oven",
+      "finger-food"
+    ],
+    "illustration": "pomme",
+    "source": "seed"
+  },
+  {
+    "id": "moelleux-banane",
+    "slug": "moelleux-banane",
+    "title": "Moelleux à la banane (banana bread)",
+    "description": "Un cake moelleux à la banane bien mûre, sans sucre ajouté, à couper en tranches pour le goûter aussi.",
+    "slots": [
+      "dessert"
+    ],
+    "prepMinutes": 10,
+    "cookMinutes": 40,
+    "longCook": false,
+    "prepAhead": false,
+    "prepAheadSteps": [],
+    "yieldsLeftovers": false,
+    "servingsBase": 4,
+    "ingredients": [
+      {
+        "ingredientId": "banane",
+        "qty": 3,
+        "unit": "piece",
+        "note": "très mûres"
+      },
+      {
+        "ingredientId": "oeuf",
+        "qty": 2,
+        "unit": "piece"
+      },
+      {
+        "ingredientId": "farine",
+        "qty": 180,
+        "unit": "g"
+      },
+      {
+        "ingredientId": "flocons-avoine",
+        "qty": 50,
+        "unit": "g"
+      },
+      {
+        "ingredientId": "levure-chimique",
+        "qty": 2,
+        "unit": "cc"
+      },
+      {
+        "ingredientId": "huile-colza",
+        "qty": 50,
+        "unit": "ml"
+      },
+      {
+        "ingredientId": "cannelle",
+        "qty": 1,
+        "unit": "cc"
+      },
+      {
+        "ingredientId": "chocolat-noir",
+        "qty": 40,
+        "unit": "g",
+        "note": "en pépites, sur la moitié du cake",
+        "adultOnly": true
+      }
+    ],
+    "steps": [
+      "Préchauffe le four à 180 °C.",
+      "Écrase les bananes, mélange avec les œufs et l'huile.",
+      "Ajoute farine, flocons, levure et cannelle.",
+      "Verse dans un moule à cake et parsème de pépites de chocolat la moitié des grands.",
+      "Enfourne 40 min, jusqu'à ce que la lame ressorte sèche."
+    ],
+    "babyAdaptation": {
+      "when": "Couper la part de bébé côté sans chocolat, une fois refroidi",
+      "texture": "tranche moelleuse en bâtonnets",
+      "amount": "1 tranche fine",
+      "notes": "Sucré seulement par la banane. Allergènes : œuf, gluten."
+    },
+    "ironScore": 1,
+    "mainProtein": "egg",
+    "tags": [
+      "oven",
+      "finger-food"
+    ],
+    "illustration": "banane",
+    "source": "seed"
+  },
+  {
+    "id": "pommes-four-cannelle",
+    "slug": "pommes-four-cannelle",
+    "title": "Pommes au four à la cannelle",
+    "description": "Des pommes entières qui confisent au four avec un peu de beurre et de cannelle.",
+    "slots": [
+      "dessert"
+    ],
+    "prepMinutes": 10,
+    "cookMinutes": 35,
+    "longCook": false,
+    "prepAhead": false,
+    "prepAheadSteps": [],
+    "yieldsLeftovers": false,
+    "servingsBase": 4,
+    "ingredients": [
+      {
+        "ingredientId": "pomme",
+        "qty": 4,
+        "unit": "piece",
+        "form": "cooked"
+      },
+      {
+        "ingredientId": "beurre",
+        "qty": 15,
+        "unit": "g"
+      },
+      {
+        "ingredientId": "cannelle",
+        "qty": 1,
+        "unit": "cc"
+      },
+      {
+        "ingredientId": "vanille",
+        "qty": 1,
+        "unit": "cc"
+      },
+      {
+        "ingredientId": "sucre",
+        "qty": 2,
+        "unit": "cc",
+        "note": "sur les pommes des grands",
+        "adultOnly": true
+      }
+    ],
+    "steps": [
+      "Préchauffe le four à 180 °C.",
+      "Évide les pommes sans les éplucher et pose-les dans un plat.",
+      "Mets une noisette de beurre, la cannelle et la vanille dans chaque pomme, et un fond d'eau dans le plat.",
+      "Sucre les pommes des grands et enfourne 35 min, jusqu'à ce qu'elles soient très tendres."
+    ],
+    "babyAdaptation": {
+      "when": "Prélever une pomme non sucrée après cuisson",
+      "texture": "chair de pomme fondante écrasée, sans la peau",
+      "amount": "1/2 pomme"
+    },
+    "ironScore": 0,
+    "mainProtein": "none",
+    "tags": [
+      "oven",
+      "seasonal-fruit"
+    ],
+    "illustration": "pomme",
+    "source": "seed"
+  },
+  {
+    "id": "semoule-au-lait",
+    "slug": "semoule-au-lait",
+    "title": "Semoule au lait à la vanille",
+    "description": "La semoule au lait de notre enfance, crémeuse, servie avec une compote.",
+    "slots": [
+      "dessert"
+    ],
+    "prepMinutes": 5,
+    "cookMinutes": 15,
+    "longCook": false,
+    "prepAhead": false,
+    "prepAheadSteps": [],
+    "yieldsLeftovers": false,
+    "servingsBase": 4,
+    "ingredients": [
+      {
+        "ingredientId": "lait",
+        "qty": 750,
+        "unit": "ml"
+      },
+      {
+        "ingredientId": "semoule",
+        "qty": 70,
+        "unit": "g"
+      },
+      {
+        "ingredientId": "vanille",
+        "qty": 1,
+        "unit": "cc"
+      },
+      {
+        "ingredientId": "pomme",
+        "qty": 2,
+        "unit": "piece",
+        "note": "en compote rapide",
+        "form": "cooked"
+      },
+      {
+        "ingredientId": "sucre",
+        "qty": 2,
+        "unit": "cs",
+        "note": "dans les parts des grands",
+        "adultOnly": true
+      }
+    ],
+    "steps": [
+      "Fais cuire les pommes en dés 10 min à couvert avec un fond d'eau, puis écrase-les.",
+      "Porte le lait à frémissement avec la vanille.",
+      "Verse la semoule en pluie et remue 5 min jusqu'à épaississement.",
+      "Prélève la part de bébé, puis sucre les parts des grands.",
+      "Sers tiède ou froid avec la compote."
+    ],
+    "babyAdaptation": {
+      "when": "Prélever la portion bébé avant de sucrer",
+      "texture": "semoule bien cuite et lisse avec la compote",
+      "amount": "4 c. à soupe",
+      "notes": "Tu peux cuire la part de bébé au lait infantile. Allergènes : lait, gluten."
+    },
+    "ironScore": 1,
+    "mainProtein": "dairy",
+    "tags": [
+      "dairy-heavy"
+    ],
+    "illustration": "cereales",
+    "source": "seed"
+  },
+  {
+    "id": "pain-perdu-pommes",
+    "slug": "pain-perdu-pommes",
+    "title": "Pain perdu et pommes poêlées",
+    "description": "Le pain rassis trempé dans le lait et l'œuf, doré à la poêle, avec des pommes fondantes.",
+    "slots": [
+      "dessert"
+    ],
+    "prepMinutes": 10,
+    "cookMinutes": 15,
+    "longCook": false,
+    "prepAhead": false,
+    "prepAheadSteps": [],
+    "yieldsLeftovers": false,
+    "servingsBase": 4,
+    "ingredients": [
+      {
+        "ingredientId": "pain",
+        "qty": 0.5,
+        "unit": "piece",
+        "note": "rassis, en tranches"
+      },
+      {
+        "ingredientId": "oeuf",
+        "qty": 3,
+        "unit": "piece"
+      },
+      {
+        "ingredientId": "lait",
+        "qty": 250,
+        "unit": "ml"
+      },
+      {
+        "ingredientId": "vanille",
+        "qty": 1,
+        "unit": "cc"
+      },
+      {
+        "ingredientId": "cannelle",
+        "qty": 1,
+        "unit": "pincee"
+      },
+      {
+        "ingredientId": "beurre",
+        "qty": 30,
+        "unit": "g"
+      },
+      {
+        "ingredientId": "pomme",
+        "qty": 2,
+        "unit": "piece",
+        "note": "en quartiers",
+        "form": "cooked"
+      },
+      {
+        "ingredientId": "sucre",
+        "qty": 2,
+        "unit": "cs",
+        "note": "sur les parts des grands",
+        "adultOnly": true
+      }
+    ],
+    "steps": [
+      "Fais fondre les pommes en quartiers dans un peu de beurre 10 min à couvert.",
+      "Bats les œufs avec le lait, la vanille et la cannelle.",
+      "Trempe les tranches de pain des deux côtés.",
+      "Fais-les dorer dans le reste de beurre 3 min par face, jusqu'à ce que l'œuf soit bien cuit au centre.",
+      "Saupoudre de sucre les parts des grands."
+    ],
+    "babyAdaptation": {
+      "when": "Prélever une tranche avant de sucrer",
+      "texture": "pain perdu bien cuit en bâtonnets, pommes écrasées",
+      "amount": "1/2 tranche + 2 quartiers de pomme",
+      "notes": "L'œuf doit être totalement cuit. Le trempage de bébé peut se faire au lait infantile. Allergènes : œuf, lait, gluten."
+    },
+    "ironScore": 1,
+    "mainProtein": "egg",
+    "tags": [
+      "finger-food"
+    ],
+    "illustration": "pain",
+    "source": "seed"
+  },
+  {
+    "id": "crepes-maison",
+    "slug": "crepes-maison",
+    "title": "Crêpes maison",
+    "description": "La pâte à crêpes sans sucre ; chacun garnit la sienne : compote pour bébé, sucre ou confiture pour les grands.",
+    "slots": [
+      "dessert"
+    ],
+    "prepMinutes": 10,
+    "cookMinutes": 25,
+    "longCook": false,
+    "prepAhead": false,
+    "prepAheadSteps": [],
+    "yieldsLeftovers": false,
+    "servingsBase": 4,
+    "ingredients": [
+      {
+        "ingredientId": "farine",
+        "qty": 250,
+        "unit": "g"
+      },
+      {
+        "ingredientId": "oeuf",
+        "qty": 3,
+        "unit": "piece"
+      },
+      {
+        "ingredientId": "lait",
+        "qty": 500,
+        "unit": "ml"
+      },
+      {
+        "ingredientId": "beurre",
+        "qty": 30,
+        "unit": "g",
+        "note": "fondu"
+      },
+      {
+        "ingredientId": "vanille",
+        "qty": 1,
+        "unit": "cc"
+      },
+      {
+        "ingredientId": "pomme",
+        "qty": 2,
+        "unit": "piece",
+        "note": "en compote",
+        "form": "cooked"
+      },
+      {
+        "ingredientId": "sucre",
+        "qty": 3,
+        "unit": "cs",
+        "note": "pour garnir les crêpes des grands",
+        "adultOnly": true
+      }
+    ],
+    "steps": [
+      "Fais une compote rapide avec les pommes en dés, 10 min à couvert avec un fond d'eau.",
+      "Fouette la farine et les œufs, puis le lait petit à petit, le beurre fondu et la vanille.",
+      "Fais cuire les crêpes dans une poêle beurrée, 1 min par face.",
+      "Garnis celle de bébé de compote, et celles des grands de sucre ou de confiture."
+    ],
+    "babyAdaptation": {
+      "when": "Préparer la crêpe de bébé avant de sortir le sucre",
+      "texture": "crêpe roulée à la compote coupée en lanières",
+      "amount": "1 crêpe",
+      "notes": "La pâte de bébé peut se faire au lait infantile. Allergènes : œuf, lait, gluten."
+    },
+    "ironScore": 1,
+    "mainProtein": "egg",
+    "tags": [
+      "finger-food"
+    ],
+    "illustration": "oeuf",
+    "source": "seed"
+  },
+  {
+    "id": "petits-suisses-coulis-fruits-rouges",
+    "slug": "petits-suisses-coulis-fruits-rouges",
+    "title": "Petits-suisses au coulis de fruits rouges",
+    "description": "Des petits-suisses nature avec un coulis de fruits rouges cuits, sans sucre ajouté.",
+    "slots": [
+      "dessert"
+    ],
+    "prepMinutes": 5,
+    "cookMinutes": 8,
+    "longCook": false,
+    "prepAhead": false,
+    "prepAheadSteps": [],
+    "yieldsLeftovers": false,
+    "servingsBase": 4,
+    "ingredients": [
+      {
+        "ingredientId": "petit-suisse",
+        "qty": 6,
+        "unit": "piece"
+      },
+      {
+        "ingredientId": "fruits-rouges-surgeles",
+        "qty": 250,
+        "unit": "g"
+      },
+      {
+        "ingredientId": "banane",
+        "qty": 1,
+        "unit": "piece",
+        "note": "pour adoucir le coulis"
+      },
+      {
+        "ingredientId": "sucre",
+        "qty": 2,
+        "unit": "cc",
+        "note": "si besoin",
+        "adultOnly": true
+      }
+    ],
+    "steps": [
+      "Fais cuire les fruits rouges 8 min à feu doux.",
+      "Mixe-les avec la banane et passe au tamis pour retirer les grains.",
+      "Verse le coulis sur les petits-suisses, et sucre ceux des grands si tu veux."
+    ],
+    "babyAdaptation": {
+      "when": "Prélever la portion bébé avant de sucrer",
+      "texture": "petit-suisse lisse avec le coulis tamisé",
+      "amount": "1 à 2 petits-suisses",
+      "notes": "Vitamine C des fruits rouges. Allergène : lait."
+    },
+    "ironScore": 0,
+    "mainProtein": "dairy",
+    "tags": [
+      "quick",
+      "dairy-heavy"
+    ],
+    "illustration": "fruits-rouges",
+    "source": "seed"
+  },
+  {
+    "id": "salade-fruits-automne",
+    "slug": "salade-fruits-automne",
+    "title": "Salade de fruits d'automne",
+    "description": "Poires, raisin, kiwi et banane, avec un filet de citron.",
+    "slots": [
+      "dessert"
+    ],
+    "prepMinutes": 15,
+    "cookMinutes": 0,
+    "longCook": false,
+    "prepAhead": false,
+    "prepAheadSteps": [],
+    "yieldsLeftovers": false,
+    "servingsBase": 4,
+    "ingredients": [
+      {
+        "ingredientId": "poire",
+        "qty": 2,
+        "unit": "piece"
+      },
+      {
+        "ingredientId": "raisin",
+        "qty": 200,
+        "unit": "g",
+        "note": "coupé en quatre, épépiné",
+        "form": "quartered"
+      },
+      {
+        "ingredientId": "kiwi",
+        "qty": 2,
+        "unit": "piece"
+      },
+      {
+        "ingredientId": "banane",
+        "qty": 2,
+        "unit": "piece"
+      },
+      {
+        "ingredientId": "citron",
+        "qty": 0.5,
+        "unit": "piece",
+        "note": "jus"
+      },
+      {
+        "ingredientId": "vanille",
+        "qty": 1,
+        "unit": "cc"
+      }
+    ],
+    "steps": [
+      "Épluche les poires, les kiwis et les bananes, coupe-les en petits dés.",
+      "Coupe les grains de raisin en quatre et retire les pépins.",
+      "Mélange avec le jus de citron et la vanille."
+    ],
+    "babyAdaptation": {
+      "when": "Prélever la portion bébé avant de servir",
+      "texture": "fruits très mûrs en petits dés fondants, raisin en quartiers sans peau",
+      "amount": "60 à 80 g",
+      "notes": "Raisin toujours coupé en quatre : risque d'étouffement."
+    },
+    "ironScore": 0,
+    "mainProtein": "none",
+    "tags": [
+      "seasonal-fruit",
+      "quick"
+    ],
+    "illustration": "raisin",
+    "source": "seed"
+  },
+  {
+    "id": "creme-chocolat-banane",
+    "slug": "creme-chocolat-banane",
+    "title": "Crème au chocolat maison",
+    "description": "Une crème dessert au cacao, adoucie à la banane, sans sucre ajouté.",
+    "slots": [
+      "dessert"
+    ],
+    "prepMinutes": 10,
+    "cookMinutes": 10,
+    "longCook": false,
+    "prepAhead": false,
+    "prepAheadSteps": [],
+    "yieldsLeftovers": false,
+    "servingsBase": 4,
+    "ingredients": [
+      {
+        "ingredientId": "lait",
+        "qty": 500,
+        "unit": "ml"
+      },
+      {
+        "ingredientId": "cacao",
+        "qty": 2,
+        "unit": "cs"
+      },
+      {
+        "ingredientId": "maizena",
+        "qty": 35,
+        "unit": "g"
+      },
+      {
+        "ingredientId": "banane",
+        "qty": 2,
+        "unit": "piece",
+        "note": "très mûres"
+      },
+      {
+        "ingredientId": "vanille",
+        "qty": 1,
+        "unit": "cc"
+      },
+      {
+        "ingredientId": "chocolat-noir",
+        "qty": 40,
+        "unit": "g",
+        "note": "fondu dans les crèmes des grands",
+        "adultOnly": true
+      }
+    ],
+    "steps": [
+      "Mixe la banane avec un peu de lait.",
+      "Délaye la fécule et le cacao dans le reste du lait froid, ajoute la banane et la vanille.",
+      "Porte à ébullition en fouettant sans arrêt, jusqu'à épaississement.",
+      "Remplis le ramequin de bébé, puis ajoute le chocolat fondu au reste.",
+      "Laisse refroidir au frais au moins 1 h."
+    ],
+    "babyAdaptation": {
+      "when": "Remplir le ramequin de bébé avant d'ajouter le chocolat",
+      "texture": "crème lisse et prise, servie froide",
+      "amount": "1 petit ramequin (80 g)",
+      "notes": "Peut se faire au lait infantile pour bébé. Cacao en petite quantité. Allergène : lait."
+    },
+    "ironScore": 1,
+    "mainProtein": "dairy",
+    "tags": [
+      "dairy-heavy"
+    ],
+    "illustration": "banane",
+    "source": "seed"
+  },
+  {
+    "id": "poires-belle-helene",
+    "slug": "poires-belle-helene",
+    "title": "Poires Belle-Hélène",
+    "description": "Des poires pochées à la vanille, nappées de sauce chocolat pour les grands.",
+    "slots": [
+      "dessert"
+    ],
+    "prepMinutes": 10,
+    "cookMinutes": 25,
+    "longCook": false,
+    "prepAhead": false,
+    "prepAheadSteps": [],
+    "yieldsLeftovers": false,
+    "servingsBase": 4,
+    "ingredients": [
+      {
+        "ingredientId": "poire",
+        "qty": 4,
+        "unit": "piece"
+      },
+      {
+        "ingredientId": "vanille",
+        "qty": 2,
+        "unit": "cc"
+      },
+      {
+        "ingredientId": "citron",
+        "qty": 0.5,
+        "unit": "piece",
+        "note": "jus"
+      },
+      {
+        "ingredientId": "chocolat-noir",
+        "qty": 80,
+        "unit": "g",
+        "adultOnly": true
+      },
+      {
+        "ingredientId": "creme-liquide",
+        "qty": 60,
+        "unit": "ml",
+        "note": "pour la sauce",
+        "adultOnly": true
+      }
+    ],
+    "steps": [
+      "Épluche les poires et arrose-les de citron.",
+      "Poche-les 20 min dans 75 cl d'eau frémissante avec la vanille.",
+      "Fais fondre le chocolat avec la crème.",
+      "Nappe de sauce chocolat les poires des grands."
+    ],
+    "babyAdaptation": {
+      "when": "Prélever une demi-poire avant d'ajouter la sauce",
+      "texture": "poire fondante écrasée ou en lamelles",
+      "amount": "1/2 poire"
+    },
+    "ironScore": 0,
+    "mainProtein": "none",
+    "tags": [
+      "seasonal-fruit"
+    ],
+    "illustration": "poire",
+    "source": "seed"
+  },
+  {
+    "id": "tarte-pommes",
+    "slug": "tarte-pommes",
+    "title": "Tarte aux pommes",
+    "description": "La tarte aux pommes maison sur une compote, sucrée seulement sur la moitié des grands.",
+    "slots": [
+      "dessert"
+    ],
+    "prepMinutes": 20,
+    "cookMinutes": 35,
+    "longCook": false,
+    "prepAhead": false,
+    "prepAheadSteps": [],
+    "yieldsLeftovers": false,
+    "servingsBase": 4,
+    "ingredients": [
+      {
+        "ingredientId": "pate-brisee",
+        "qty": 1,
+        "unit": "piece"
+      },
+      {
+        "ingredientId": "pomme",
+        "qty": 6,
+        "unit": "piece",
+        "note": "2 en compote, 4 en lamelles",
+        "form": "cooked"
+      },
+      {
+        "ingredientId": "beurre",
+        "qty": 15,
+        "unit": "g"
+      },
+      {
+        "ingredientId": "vanille",
+        "qty": 1,
+        "unit": "cc"
+      },
+      {
+        "ingredientId": "cannelle",
+        "qty": 1,
+        "unit": "pincee"
+      },
+      {
+        "ingredientId": "sucre",
+        "qty": 2,
+        "unit": "cs",
+        "note": "sur la moitié de la tarte",
+        "adultOnly": true
+      }
+    ],
+    "steps": [
+      "Fais une compote avec 2 pommes en dés, 10 min à couvert, puis écrase-la avec la vanille.",
+      "Préchauffe le four à 190 °C. Étale la pâte dans un moule et pique le fond.",
+      "Étale la compote, puis les lamelles de pomme en rosace.",
+      "Parsème de beurre et de cannelle, sucre la moitié des grands.",
+      "Enfourne 35 min, jusqu'à ce que les pommes soient dorées et fondantes."
+    ],
+    "babyAdaptation": {
+      "when": "Couper la part de bébé côté non sucré",
+      "texture": "pommes fondantes et compote, avec un peu de pâte ramollie",
+      "amount": "1 petite part",
+      "notes": "Allergènes : gluten, lait."
+    },
+    "ironScore": 0,
+    "mainProtein": "none",
+    "tags": [
+      "oven",
+      "seasonal-fruit"
+    ],
+    "illustration": "pomme",
+    "source": "seed"
+  },
+  {
+    "id": "cookies-avoine-banane",
+    "slug": "cookies-avoine-banane",
+    "title": "Cookies avoine-banane",
+    "description": "Des petits biscuits moelleux à deux ingrédients principaux, parfaits à attraper avec les doigts.",
+    "slots": [
+      "dessert"
+    ],
+    "prepMinutes": 10,
+    "cookMinutes": 15,
+    "longCook": false,
+    "prepAhead": false,
+    "prepAheadSteps": [],
+    "yieldsLeftovers": false,
+    "servingsBase": 4,
+    "ingredients": [
+      {
+        "ingredientId": "banane",
+        "qty": 2,
+        "unit": "piece",
+        "note": "très mûres"
+      },
+      {
+        "ingredientId": "flocons-avoine",
+        "qty": 150,
+        "unit": "g"
+      },
+      {
+        "ingredientId": "puree-amande",
+        "qty": 30,
+        "unit": "g",
+        "form": "puree"
+      },
+      {
+        "ingredientId": "cannelle",
+        "qty": 1,
+        "unit": "pincee"
+      },
+      {
+        "ingredientId": "chocolat-noir",
+        "qty": 30,
+        "unit": "g",
+        "note": "en pépites, dans la moitié des cookies",
+        "adultOnly": true
+      }
+    ],
+    "steps": [
+      "Préchauffe le four à 180 °C.",
+      "Écrase les bananes, mélange avec les flocons, la purée d'amande et la cannelle.",
+      "Ajoute les pépites de chocolat dans la moitié de la pâte, pour les grands.",
+      "Forme des petits tas aplatis sur une plaque.",
+      "Enfourne 15 min, jusqu'à ce qu'ils soient dorés."
+    ],
+    "babyAdaptation": {
+      "when": "Garder les cookies sans chocolat pour bébé",
+      "texture": "cookie moelleux à tenir dans la main",
+      "amount": "1 à 2 cookies",
+      "notes": "Amande uniquement en purée lisse. Allergènes : gluten, fruits à coque."
+    },
+    "ironScore": 0,
+    "mainProtein": "none",
+    "tags": [
+      "oven",
+      "finger-food"
+    ],
+    "illustration": "avoine",
+    "source": "seed"
+  },
+  {
+    "id": "clafoutis-poires",
+    "slug": "clafoutis-poires",
+    "title": "Clafoutis aux poires",
+    "description": "Le clafoutis d'automne, aux poires fondantes et à la vanille.",
+    "slots": [
+      "dessert"
+    ],
+    "prepMinutes": 15,
+    "cookMinutes": 35,
+    "longCook": false,
+    "prepAhead": false,
+    "prepAheadSteps": [],
+    "yieldsLeftovers": false,
+    "servingsBase": 4,
+    "ingredients": [
+      {
+        "ingredientId": "poire",
+        "qty": 4,
+        "unit": "piece",
+        "note": "en lamelles"
+      },
+      {
+        "ingredientId": "oeuf",
+        "qty": 3,
+        "unit": "piece"
+      },
+      {
+        "ingredientId": "lait",
+        "qty": 250,
+        "unit": "ml"
+      },
+      {
+        "ingredientId": "farine",
+        "qty": 60,
+        "unit": "g"
+      },
+      {
+        "ingredientId": "vanille",
+        "qty": 1,
+        "unit": "cc"
+      },
+      {
+        "ingredientId": "beurre",
+        "qty": 10,
+        "unit": "g"
+      },
+      {
+        "ingredientId": "sucre",
+        "qty": 2,
+        "unit": "cs",
+        "note": "sur la moitié du plat",
+        "adultOnly": true
+      }
+    ],
+    "steps": [
+      "Préchauffe le four à 180 °C et beurre un plat.",
+      "Dispose les lamelles de poire dans le plat.",
+      "Fouette les œufs, la farine, la vanille et le lait jusqu'à obtenir une pâte lisse.",
+      "Verse sur les poires, sucre la moitié des grands et enfourne 35 min, jusqu'à ce que le centre soit bien pris."
+    ],
+    "babyAdaptation": {
+      "when": "Couper la part de bébé côté non sucré, une fois tiédi",
+      "texture": "clafoutis bien pris en petits morceaux fondants",
+      "amount": "1 petite part (60 à 80 g)",
+      "notes": "Œufs totalement cuits. La part de bébé peut se faire au lait infantile dans un ramequin. Allergènes : œuf, lait, gluten."
+    },
+    "ironScore": 1,
+    "mainProtein": "egg",
+    "tags": [
+      "oven",
+      "seasonal-fruit"
+    ],
+    "illustration": "poire",
+    "source": "seed"
+  },
+  {
+    "id": "muffins-banane-fruits-rouges",
+    "slug": "muffins-banane-fruits-rouges",
+    "title": "Muffins banane et fruits rouges",
+    "description": "Des muffins moelleux sucrés à la banane, avec des fruits rouges qui fondent à la cuisson.",
+    "slots": [
+      "dessert"
+    ],
+    "prepMinutes": 15,
+    "cookMinutes": 20,
+    "longCook": false,
+    "prepAhead": false,
+    "prepAheadSteps": [],
+    "yieldsLeftovers": false,
+    "servingsBase": 4,
+    "ingredients": [
+      {
+        "ingredientId": "banane",
+        "qty": 2,
+        "unit": "piece",
+        "note": "très mûres"
+      },
+      {
+        "ingredientId": "oeuf",
+        "qty": 2,
+        "unit": "piece"
+      },
+      {
+        "ingredientId": "yaourt-nature",
+        "qty": 1,
+        "unit": "piece"
+      },
+      {
+        "ingredientId": "farine",
+        "qty": 200,
+        "unit": "g"
+      },
+      {
+        "ingredientId": "levure-chimique",
+        "qty": 2,
+        "unit": "cc"
+      },
+      {
+        "ingredientId": "huile-colza",
+        "qty": 50,
+        "unit": "ml"
+      },
+      {
+        "ingredientId": "fruits-rouges-surgeles",
+        "qty": 150,
+        "unit": "g"
+      },
+      {
+        "ingredientId": "vanille",
+        "qty": 1,
+        "unit": "cc"
+      }
+    ],
+    "steps": [
+      "Préchauffe le four à 180 °C.",
+      "Écrase les bananes avec les œufs, le yaourt, l'huile et la vanille.",
+      "Ajoute la farine et la levure, puis les fruits rouges encore surgelés.",
+      "Répartis dans 12 moules à muffins.",
+      "Enfourne 20 min, jusqu'à ce que la lame ressorte sèche."
+    ],
+    "babyAdaptation": {
+      "when": "Servir un muffin refroidi",
+      "texture": "muffin moelleux coupé en morceaux",
+      "amount": "1 muffin",
+      "notes": "Sans sucre ajouté. Allergènes : œuf, gluten, lait."
+    },
+    "ironScore": 1,
+    "mainProtein": "egg",
+    "tags": [
+      "oven",
+      "finger-food"
+    ],
+    "illustration": "fruits-rouges",
     "source": "seed"
   }
 ]

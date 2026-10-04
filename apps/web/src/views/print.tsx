@@ -1,4 +1,4 @@
-import { CHANNEL_LABELS, DAYS, formatEuros, formatQty, groupByAisle, prepTasksFor, SLOT_LABELS_LONG, totals, type Slot } from "@mijote/shared";
+import { CHANNEL_LABELS, DAYS, formatEuros, formatQty, groupByAisle, itemName, SLOT_LABELS_LONG, totals, type Slot } from "@mijote/shared";
 import { ChevronLeft, Printer } from "lucide-react";
 import { useEffect } from "react";
 import { Logo } from "@/components/brand";
@@ -55,8 +55,6 @@ export function FridgePrint({ weekStart }: { weekStart: string }) {
   // Ordre du tableau : Déjeuner / Dîner / Dessert (le dessert suit le repas auquel il est rattaché).
   const rows: Slot[] = slotOrder(s.household.dessertSlot);
   const at = (day: number, slot: Slot) => week.entries.find((e) => e.day === day && e.slot === slot);
-  // Tâches de veille : à faire le soir du jour J pour le lendemain.
-  const prep = (day: number) => (day < 6 ? prepTasksFor(week, day + 1, byId) : []);
 
   return (
     <PrintFrame title="Tableau frigo" landscape fallback="/semaine">
@@ -103,18 +101,6 @@ export function FridgePrint({ weekStart }: { weekStart: string }) {
                 })}
               </tr>
             ))}
-            <tr>
-              <th className="py-3 pr-1 text-left align-top text-[9pt] font-bold uppercase">Ce soir, pour demain</th>
-              {DAYS.map((_, day) => (
-                <td key={day} className="px-1.5 py-3 align-top text-[9pt]">
-                  {prep(day).map((t) => (
-                    <span key={t.id} className="mb-0.5 block">
-                      ☐ {t.text}
-                    </span>
-                  ))}
-                </td>
-              ))}
-            </tr>
           </tbody>
         </table>
         <p className="mt-4 text-[8.5pt] text-[#555]">Portion bébé : prélever avant le sel. Règles générales de diversification, demandez conseil à votre pédiatre en cas de doute ou d'allergie.</p>
@@ -147,12 +133,11 @@ export function ShoppingPrint({ weekStart }: { weekStart: string }) {
                 <h3 className="mb-1 text-[8.5pt] font-bold uppercase">{g.aisle}</h3>
                 <ul>
                   {g.items.map((it) => {
-                    const ing = ingredients.get(it.ingredientId)!;
                     return (
                       <li key={it.id} className="flex items-baseline gap-2 py-[1.5pt]">
                         <span className="inline-block size-[9pt] shrink-0 translate-y-[1pt] rounded-[2pt] border border-[#1f1b17]">{it.checked ? "✓" : ""}</span>
-                        <span className="flex-1 first-letter:uppercase">{ing.name}</span>
-                        <span className="tabular-nums">{formatQty(it.qty, it.unit)}</span>
+                        <span className="flex-1 first-letter:uppercase">{itemName(it, ingredients)}</span>
+                        <span className="tabular-nums">{it.qty ? formatQty(it.qty, it.unit) : ""}</span>
                       </li>
                     );
                   })}

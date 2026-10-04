@@ -1,7 +1,7 @@
 import { addDays, parseISODate, type PlanEntry, type Recipe, type WeekPlan } from "@mijote/shared";
 
-// Export iCalendar (RFC 5545) d'une semaine : un évènement par déjeuner et dîner, plus un rappel
-// la veille au soir pour les recettes qui se préparent à l'avance. Les desserts ne sont pas exportés.
+// Export iCalendar (RFC 5545) d'une semaine : un évènement par déjeuner et dîner.
+// Les desserts ne sont pas exportés.
 //
 // Heures « flottantes » (sans TZID ni Z) : 12 h 30 reste 12 h 30 dans le fuseau de l'appareil qui
 // importe le fichier. C'est le sens voulu pour un repas, et on évite un bloc VTIMEZONE à maintenir.
@@ -20,7 +20,6 @@ const MEALS = {
   lunch: { label: "Déjeuner", start: "123000", end: "133000" },
   dinner: { label: "Dîner", start: "193000", end: "203000" },
 } as const;
-const PREP = { start: "203000", end: "204500" };
 
 const pad = (n: number) => String(n).padStart(2, "0");
 
@@ -65,7 +64,7 @@ export function foldLine(line: string) {
   return parts.join(`${CRLF} `);
 }
 
-type Event = { uid: string; date: string; start: string; end: string; summary: string; description?: string; alarm?: string };
+type Event = { uid: string; date: string; start: string; end: string; summary: string; description?: string };
 
 function vevent(e: Event, stamp: string): string[] {
   const lines = [
@@ -79,7 +78,6 @@ function vevent(e: Event, stamp: string): string[] {
   if (e.description) lines.push(`DESCRIPTION:${escapeText(e.description)}`);
   // Un repas n'occupe pas l'agenda (disponible).
   lines.push("TRANSP:TRANSPARENT");
-  if (e.alarm) lines.push("BEGIN:VALARM", "ACTION:DISPLAY", `DESCRIPTION:${escapeText(e.alarm)}`, "TRIGGER:-PT0M", "END:VALARM");
   lines.push("END:VEVENT");
   return lines;
 }
@@ -117,19 +115,6 @@ export function weekToIcs(week: WeekPlan, recipesById: Map<string, Recipe>, opts
       summary: `${meal.label} : ${r.title}`,
       description: mealDescription(entry, r),
     });
-    if (r.prepAhead && !entry.isLeftover) {
-      const [first, ...rest] = r.prepAheadSteps;
-      const title = `Ce soir, pour demain : ${first ?? r.title}`;
-      events.push({
-        uid: `${week.weekStart}-${entry.day}-${entry.slot}-veille@mijote`,
-        date: addDays(date, -1),
-        start: PREP.start,
-        end: PREP.end,
-        summary: title,
-        description: [`Pour le ${meal.label.toLowerCase()} de demain : ${r.title}.`, ...(first ? [first, ...rest].map((s) => `• ${s}`) : [])].join("\n"),
-        alarm: title,
-      });
-    }
   }
 
   const first = parseISODate(week.weekStart);

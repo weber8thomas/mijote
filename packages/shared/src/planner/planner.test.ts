@@ -4,8 +4,8 @@ import { lintRecipe } from "../baby-rules";
 import { DEFAULT_THRESHOLDS } from "../pricing";
 import type { Household, Recipe } from "../schemas";
 import { buildShoppingList, totals } from "../shopping";
-import { checkWeek, dayIron, prepTasksFor } from "./check";
-import { CHOICES, chooseEntry, choicesFor, generateWeek, LIMITS, mealsOf, nextToChoose, pickableFor, tally, unchooseEntry } from "./generate";
+import { checkWeek, dayIron } from "./check";
+import { CHOICES, chooseEntry, choicesFor, generateWeek, LIMITS, mealsOf, nextToChoose, pickableFor, rerollChoices, tally, unchooseEntry } from "./generate";
 import { plateOf } from "../plate";
 
 const household: Household = { id: "h", name: "Test", adults: 2, babies: 1, dessertSlot: "dinner", priceThresholds: DEFAULT_THRESHOLDS };
@@ -119,6 +119,29 @@ describe("choix repas par repas", () => {
     for (const id of warns) expect(hidden.has(id)).toBe(false);
   });
 
+  it("« Autres idées » propose 6 recettes nouvelles, éligibles, sans doublon", () => {
+    const week = generateWeek(ctx, "2026-10-05", 5);
+    const first = mealsOf(week)[0];
+    const next = rerollChoices(week, first.id, ctx);
+    const e = next.entries.find((x) => x.id === first.id)!;
+    expect(e.choices).toHaveLength(CHOICES);
+    expect(new Set(e.choices).size).toBe(CHOICES);
+    expect(e.choices.filter((id) => first.choices.includes(id)).length).toBeLessThanOrEqual(1);
+    expect(e.rerolls).toBe(1);
+    // Choisir une idée relancée garde une semaine sans doublon (les suggestions suivantes s'ajustent).
+    const chosen = chooseEntry(next, first.id, e.choices[2], ctx);
+    expect(checkWeek(chosen, byId).filter((w) => w.id.startsWith("dup-"))).toEqual([]);
+  });
+
+  it("« + 6 de plus » allonge la liste sans répétition", () => {
+    const week = generateWeek(ctx, "2026-10-05", 5);
+    const first = mealsOf(week)[0];
+    const twelve = choicesFor(week, first.id, ctx, 12);
+    expect(twelve.slice(0, 6)).toEqual(choicesFor(week, first.id, ctx));
+    expect(new Set(twelve).size).toBe(twelve.length);
+    expect(twelve.length).toBeGreaterThan(6);
+  });
+
   it("un repas choisi peut être remis à choisir", () => {
     const week = generateWeek(ctx, "2026-10-05", 6);
     const [first, second] = mealsOf(week);
@@ -204,9 +227,4 @@ describe("contenu", () => {
     expect(lintRecipe({ ...base, tags: [...base.tags, "raw-egg"] }, ingredients).some((i) => i.level === "error")).toBe(true);
   });
 
-  it("propose des tâches de veille", () => {
-    const weeks = [1, 2, 3, 4, 5].map((seed) => generateWeek(ctx, "2026-10-05", seed));
-    const tasks = weeks.flatMap((week) => [0, 1, 2, 3, 4, 5, 6].flatMap((d) => prepTasksFor(week, d, byId)));
-    expect(tasks.length).toBeGreaterThan(0);
-  });
 });

@@ -1,7 +1,11 @@
 import { useSyncExternalStore } from "react";
 
 // Routage minimal par ancre (#/semaine/imprimer) : fonctionne tel quel sur GitHub Pages.
-const read = () => window.location.hash.replace(/^#\/?/, "").split("/").filter(Boolean);
+// Paramètres éventuels après « ? » (#/courses/ajouter?t=lait) : voir query().
+const read = () => window.location.hash.replace(/^#\/?/, "").split("?")[0].split("/").filter(Boolean);
+
+/** Paramètres de l'adresse courante (#/courses/ajouter?t=lait → t = « lait »). */
+export const query = () => new URLSearchParams(window.location.hash.split("?")[1] ?? "");
 
 // Fil de navigation : d'où l'on vient, et où l'on en était dans chaque page.
 const trail: string[] = [];

@@ -45,8 +45,6 @@ export function NewRecipeView() {
   const [items, setItems] = useState<RecipeIngredient[]>([]);
   const [search, setSearch] = useState("");
   const [stepsText, setStepsText] = useState("");
-  const [prepAhead, setPrepAhead] = useState(false);
-  const [aheadText, setAheadText] = useState("");
   const [when, setWhen] = useState("Prélever la portion de bébé avant d'ajouter le sel");
   const [texture, setTexture] = useState("Écrasé à la fourchette, petits morceaux fondants");
   const [amount, setAmount] = useState("3 à 4 cuillères à soupe");
@@ -73,8 +71,8 @@ export function NewRecipeView() {
       prepMinutes: prep,
       cookMinutes: cook,
       longCook: cook >= 90,
-      prepAhead,
-      prepAheadSteps: prepAhead ? lines(aheadText) : [],
+      prepAhead: false,
+      prepAheadSteps: [],
       servingsBase: servings,
       ingredients: items,
       steps: lines(stepsText),
@@ -235,15 +233,6 @@ export function NewRecipeView() {
             <Field label="Étapes (une par ligne)">
               <Textarea value={stepsText} onChange={(e) => setStepsText(e.target.value)} rows={8} placeholder={"Coupe la courge en dés.\nFais-la rôtir 30 min à 200 °C."} className="text-base" />
             </Field>
-            <label className="flex min-h-12 items-center gap-3 rounded-2xl bg-card px-4 shadow-card ring-1 ring-border">
-              <input type="checkbox" checked={prepAhead} onChange={(e) => setPrepAhead(e.target.checked)} className="size-5 accent-[var(--primary)]" />
-              <span className="font-semibold">Se prépare en partie la veille</span>
-            </label>
-            {prepAhead && (
-              <Field label="À faire la veille (une tâche par ligne)">
-                <Textarea value={aheadText} onChange={(e) => setAheadText(e.target.value)} rows={3} placeholder="Faire tremper les pois chiches" className="text-base" />
-              </Field>
-            )}
           </>
         )}
 

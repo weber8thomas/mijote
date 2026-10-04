@@ -129,7 +129,8 @@ export function score(r: Recipe, c: SlotCtx, ctx: PlanContext, byId: Map<string,
   }
 
   const dayIron = Math.max(0, ...c.entries.filter((e) => e.day === c.day).map((e) => byId.get(e.recipeId)?.ironScore ?? 0));
-  s += r.ironScore * (dayIron < 2 ? (c.slot === "dinner" ? 1.4 : 0.9) : 0.3);
+  // Le fer compte, sans écraser le reste : sinon les mêmes plats riches en fer reviennent chaque semaine.
+  s += r.ironScore * (dayIron < 2 ? (c.slot === "dinner" ? 0.8 : 0.5) : 0.15);
   if (isFish(r.mainProtein)) {
     s += c.tally.fish < LIMITS.fish ? 2 : -8;
     if (r.mainProtein === "oily-fish" && c.tally.oilyFish === 0) s += 1;
@@ -143,6 +144,11 @@ export function score(r: Recipe, c: SlotCtx, ctx: PlanContext, byId: Map<string,
     if (c.slot === "dinner" && t <= 40) s += 1;
     if (t > 60 && !r.prepAhead) s -= 1.5;
   }
+  // Le week-end, on a le temps : les plats familiaux plus longs passent devant.
+  if (weekend && !r.longCook && totalMinutes(r) > 40) s += 1;
+  // Varier les protéines sur la semaine (volaille, œufs, laitages… pas seulement fer et poisson).
+  const sameProtein = c.entries.filter((e) => e.slot !== "dessert" && byId.get(e.recipeId)?.mainProtein === r.mainProtein).length;
+  s -= 0.6 * sameProtein;
   if (c.slot === "dinner" && r.yieldsLeftovers && c.day <= 3 && c.tally.leftovers < LIMITS.leftovers) s += 0.8;
   return s;
 }
@@ -151,22 +157,28 @@ export function score(r: Recipe, c: SlotCtx, ctx: PlanContext, byId: Map<string,
 export function rankCandidates(c: SlotCtx, ctx: PlanContext, byId: Map<string, Recipe>, random: () => number, relaxed = false): Recipe[] {
   return ctx.recipes
     .filter((r) => eligible(r, c, byId, relaxed))
-    .map((r) => ({ r, s: score(r, c, ctx, byId) + random() * 1.5 }))
+    .map((r) => ({ r, s: score(r, c, ctx, byId) + random() * 2.5 }))
     .sort((a, b) => b.s - a.s || a.r.id.localeCompare(b.r.id))
     .map((x) => x.r);
 }
 
 /** 6 choix : d'abord ceux qui cochent tout, complétés si besoin par des recettes à alerte douce (jamais un doublon). */
-function topChoices(c: SlotCtx, ctx: PlanContext, byId: Map<string, Recipe>, seed: number, first: string[] = []): string[] {
+function topChoices(c: SlotCtx, ctx: PlanContext, byId: Map<string, Recipe>, seed: number, first: string[] = [], n = CHOICES, avoid: Set<string> = new Set()): string[] {
   const out = [...first];
-  for (const relaxed of [false, true]) {
-    if (out.length >= CHOICES) break;
+  // Des idées variées : au plus 2 par protéine dans une page de 6 (premier passage seulement).
+  const proteinCount = (p: string) => out.filter((id) => byId.get(id)?.mainProtein === p).length;
+  const capped = (r: Recipe) => c.slot !== "dessert" && proteinCount(r.mainProtein) >= Math.ceil((out.length + 1) / CHOICES) * 2;
+  // D'abord celles qui cochent tout et pas encore montrées, puis les déjà vues, puis les alertes douces.
+  for (const [relaxed, skipAvoided, diverse] of [[false, true, true], [false, true, false], [false, false, false], [true, true, false], [true, false, false]] as const) {
+    if (out.length >= n) break;
     for (const r of rankCandidates(c, ctx, byId, rng(seed), relaxed)) {
-      if (out.length >= CHOICES) break;
+      if (out.length >= n) break;
+      if (skipAvoided && avoid.has(r.id)) continue;
+      if (diverse && capped(r)) continue;
       if (!out.includes(r.id)) out.push(r.id);
     }
   }
-  return out.slice(0, CHOICES);
+  return out.slice(0, n);
 }
 
 const entryId = (weekStart: string, day: number, slot: Slot) => `${weekStart}-${day}-${slot}`;
@@ -210,7 +222,7 @@ export function generateWeek(ctx: PlanContext, weekStart: string, seed: number, 
  * Les 6 choix d'un repas, à jour avec ce qui est déjà décidé : les repas confirmés et ceux qui le précèdent.
  * Les suggestions suivantes, pas encore confirmées, s'adapteront après le choix (voir chooseEntry).
  */
-export function choicesFor(week: WeekPlan, entryId: string, ctx: PlanContext): string[] {
+export function choicesFor(week: WeekPlan, entryId: string, ctx: PlanContext, n = CHOICES): string[] {
   const byId = new Map(ctx.recipes.map((r) => [r.id, r]));
   const entry = week.entries.find((e) => e.id === entryId);
   if (!entry) return [];
@@ -221,7 +233,24 @@ export function choicesFor(week: WeekPlan, entryId: string, ctx: PlanContext): s
     const r = byId.get(id);
     return !!r && eligible(r, c, byId, true);
   });
-  return topChoices(c, ctx, byId, week.seed ^ hash(entryId), kept);
+  return topChoices(c, ctx, byId, week.seed ^ hash(entryId) ^ ((entry.rerolls ?? 0) * 7919), kept, n);
+}
+
+/**
+ * « Autres idées » : 6 nouvelles propositions pour un repas, en évitant celles déjà montrées tant qu'il en reste.
+ * Un repas déjà choisi garde sa recette (elle reste en tête des choix).
+ */
+export function rerollChoices(week: WeekPlan, entryId: string, ctx: PlanContext): WeekPlan {
+  const byId = new Map(ctx.recipes.map((r) => [r.id, r]));
+  const entry = week.entries.find((e) => e.id === entryId);
+  if (!entry) return week;
+  const rerolls = (entry.rerolls ?? 0) + 1;
+  const others = week.entries.filter((e) => e.id !== entryId && (e.confirmed || mealIndex(e) < mealIndex(entry)));
+  const c: SlotCtx = { day: entry.day, slot: entry.slot, entries: others, tally: tally(others, byId), month: monthOfWeek(week.weekStart), dessertSlot: ctx.household.dessertSlot };
+  const keep = entry.confirmed || entry.isLeftover ? [entry.recipeId] : [];
+  const choices = topChoices(c, ctx, byId, week.seed ^ hash(entryId) ^ (rerolls * 7919), keep, CHOICES, new Set(entry.choices));
+  const recipeId = keep.length ? entry.recipeId : choices[0];
+  return { ...week, entries: week.entries.map((e) => (e.id === entryId ? { ...e, choices, rerolls, recipeId } : e)) };
 }
 
 /**

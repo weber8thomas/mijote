@@ -1,12 +1,13 @@
 import { AI_SAMPLES, isInSeason, SLOT_LABELS, type Recipe, type Slot } from "@mijote/shared";
 import { Command as CommandPrimitive } from "cmdk";
-import { Ban, Heart, MoreHorizontal, Plus, RotateCcw, Search, Sparkles, Trash2, X } from "lucide-react";
+import { Ban, Heart, Inbox, MoreHorizontal, RotateCcw, Search, Sparkles, Trash2, X } from "lucide-react";
 import { motion } from "motion/react";
 import { DropdownMenu } from "radix-ui";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { RecipeCard } from "@/components/cards";
 import { Chip, EmptyState, PageHeader, Segmented } from "@/components/kit";
+import { NewRecipeSheet } from "@/components/new-recipe-sheet";
 import { Shell } from "@/components/shell";
 import { Sheet } from "@/components/sheet";
 import { Button } from "@/components/ui/button";
@@ -15,7 +16,7 @@ import { go } from "@/lib/router";
 import { normalize } from "@/lib/text";
 import { cn } from "@/lib/utils";
 
-type Filter = Slot | "season" | "favorite" | "quick" | "prepAhead" | "longCook" | "iron";
+type Filter = Slot | "season" | "favorite" | "quick" | "longCook" | "iron";
 
 const FILTERS: { id: Filter; label: string }[] = [
   { id: "lunch", label: SLOT_LABELS.lunch },
@@ -24,7 +25,6 @@ const FILTERS: { id: Filter; label: string }[] = [
   { id: "season", label: "De saison" },
   { id: "favorite", label: "Favoris" },
   { id: "quick", label: "Rapide" },
-  { id: "prepAhead", label: "La veille" },
   { id: "longCook", label: "Mijote" },
   { id: "iron", label: "Riche en fer" },
 ];
@@ -37,19 +37,30 @@ export function RecipesView({ ingredient }: { ingredient?: string } = {}) {
   const [tab, setTab] = useState<"active" | "excluded">("active");
   const [q, setQ] = useState("");
   const [filters, setFilters] = useState<Set<Filter>>(new Set());
-  const [drafts, setDrafts] = useState<{ ids: string[]; loading: boolean } | null>(null);
+  const [drafts, setDrafts] = useState<Drafts | null>(null);
+  const [creating, setCreating] = useState(false);
+  const pending = s.aiDrafts ?? [];
 
-  // « Proposer des nouveautés » : une fournée de 6 idées pas encore vues (simulation de l'appel IA).
-  const propose = () => {
+  // Sans clé Claude : une fournée de 6 idées pré-écrites pas encore vues (démo).
+  const demoIdeas = () => {
     const kept = new Set(s.customRecipes.map((r) => r.id));
     const fresh = AI_SAMPLES.filter((r) => !s.draftsSeen.includes(r.id) && !kept.has(r.id));
     const pool = fresh.length >= 6 ? fresh : AI_SAMPLES.filter((r) => !kept.has(r.id));
-    const ids = pool.slice(0, 6).map((r) => r.id);
-    setDrafts({ ids, loading: true });
+    const recipes = pool.slice(0, 6);
+    setDrafts({ label: "Nouveautés de saison", recipes, loading: true, ai: false });
     window.setTimeout(() => {
       setDrafts((d) => d && { ...d, loading: false });
-      actions.markDraftsSeen(ids);
+      actions.markDraftsSeen(recipes.map((r) => r.id));
     }, 1400);
+  };
+
+  // Avec Claude : la feuille montre l'attente, puis les brouillons (ou l'erreur).
+  const run = (label: string, call: () => Promise<Recipe[]>) => {
+    setDrafts({ label, recipes: [], loading: true, ai: true });
+    call().then(
+      (recipes) => setDrafts((d) => d && { ...d, recipes, loading: false }),
+      (e: unknown) => setDrafts((d) => d && { ...d, loading: false, error: e instanceof Error ? e.message : String(e) }),
+    );
   };
   const month = today().getMonth() + 1;
 
@@ -70,7 +81,6 @@ export function RecipesView({ ingredient }: { ingredient?: string } = {}) {
       .filter((r) => !filters.has("season") || isInSeason(r, ingredients, month))
       .filter((r) => !filters.has("favorite") || r.status === "favorite")
       .filter((r) => !filters.has("quick") || r.prepMinutes + r.cookMinutes < 20)
-      .filter((r) => !filters.has("prepAhead") || r.prepAhead)
       .filter((r) => !filters.has("longCook") || r.longCook)
       .filter((r) => !filters.has("iron") || r.ironScore >= 2)
       .filter((r) => !ingredient || r.ingredients.some((i) => i.ingredientId === ingredient))
@@ -83,11 +93,11 @@ export function RecipesView({ ingredient }: { ingredient?: string } = {}) {
       <PageHeader title="Recettes" subtitle={`${all.filter((r) => r.status !== "excluded").length} recettes de famille`} />
 
       <div className="mb-3 grid grid-cols-2 gap-2">
-        <Button size="lg" className="h-12" onClick={propose}>
-          <Sparkles aria-hidden /> Nouveautés
+        <Button size="lg" className="h-12" onClick={() => setCreating(true)}>
+          <Sparkles aria-hidden /> Nouvelle recette
         </Button>
-        <Button size="lg" variant="outline" className="h-12" onClick={() => go("/recettes/nouvelle")}>
-          <Plus aria-hidden /> Ma recette
+        <Button size="lg" variant="outline" className="h-12" disabled={!pending.length} onClick={() => setDrafts({ label: "Brouillons", recipes: pending, loading: false, ai: true })}>
+          <Inbox aria-hidden /> Brouillons{pending.length ? ` (${pending.length})` : ""}
         </Button>
       </div>
 
@@ -151,7 +161,8 @@ export function RecipesView({ ingredient }: { ingredient?: string } = {}) {
         </div>
       )}
 
-      <DraftsSheet open={!!drafts} ids={drafts?.ids ?? []} loading={!!drafts?.loading} onClose={() => setDrafts(null)} />
+      <NewRecipeSheet open={creating} onOpenChange={setCreating} onRun={run} onDemoIdeas={demoIdeas} />
+      <DraftsSheet drafts={drafts} onClose={() => setDrafts(null)} />
     </Shell>
   );
 }
@@ -207,27 +218,36 @@ function RecipeActions({ recipe }: { recipe: Recipe }) {
   );
 }
 
-/** « Proposer des nouveautés » : simulation de l'IA avec des brouillons pré-écrits (validés par le linter bébé). */
-function DraftsSheet({ open, ids, loading, onClose }: { open: boolean; ids: string[]; loading: boolean; onClose: () => void }) {
+type Drafts = { label: string; recipes: Recipe[]; loading: boolean; error?: string; ai: boolean };
+
+/** Brouillons de recettes (Claude, ou idées pré-écrites de la démo) : garder ou jeter. Déjà validés par le linter bébé. */
+function DraftsSheet({ drafts, onClose }: { drafts: Drafts | null; onClose: () => void }) {
   const s = useStore();
   const kept = new Set(s.customRecipes.map((r) => r.id));
-  const drafts = ids.map((id) => AI_SAMPLES.find((r) => r.id === id)).filter((r): r is Recipe => !!r);
   const [thrown, setThrown] = useState<Set<string>>(new Set());
+  const list = drafts?.recipes ?? [];
 
   return (
-    <Sheet open={open} onOpenChange={(o) => !o && onClose()} title="Nouveautés de saison" description="Démo : idées pré-écrites. Avec le serveur, Claude les génère selon la saison et vos goûts, puis le linter bébé les vérifie.">
-      {loading ? (
+    <Sheet
+      open={!!drafts}
+      onOpenChange={(o) => !o && onClose()}
+      title={drafts?.label ?? ""}
+      description={drafts?.ai ? "Proposées par Claude, vérifiées par le linter bébé. Garde ce qui te plaît." : "Démo : idées pré-écrites. Relie Claude dans les réglages pour de vraies propositions."}
+    >
+      {drafts?.loading ? (
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-          {Array.from({ length: 6 }, (_, i) => (
+          {Array.from({ length: drafts.ai ? 4 : 6 }, (_, i) => (
             <div key={i} className="aspect-[3/4] animate-pulse rounded-3xl bg-paper-deep" style={{ animationDelay: `${i * 90}ms` }} />
           ))}
-          <p className="col-span-full text-center text-sm text-muted-foreground">Mijoté cherche des idées de saison…</p>
+          <p className="col-span-full text-center text-sm text-muted-foreground">{drafts.ai ? "Claude cuisine des idées… (jusqu'à une minute)" : "Mijoté cherche des idées de saison…"}</p>
         </div>
-      ) : drafts.length === 0 ? (
+      ) : drafts?.error ? (
+        <p className="rounded-2xl bg-ochre-soft/80 p-4 text-sm text-ochre-ink">{drafts.error}</p>
+      ) : list.length === 0 ? (
         <p className="py-8 text-center text-muted-foreground">Tu as déjà gardé toutes les idées de la démo.</p>
       ) : (
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-          {drafts.map((r) => {
+          {list.map((r) => {
             const isKept = kept.has(r.id);
             const isThrown = thrown.has(r.id);
             return (
@@ -237,15 +257,25 @@ function DraftsSheet({ open, ids, loading, onClose }: { open: boolean; ids: stri
                   <Button
                     variant={isKept ? "secondary" : "default"}
                     className="h-11"
-                    disabled={isKept}
+                    disabled={isKept || isThrown}
                     onClick={() => {
                       actions.addRecipe({ ...r, createdAt: new Date().toISOString() });
+                      if (drafts?.ai) actions.removeAiDraft(r.id);
                       toast.success(`« ${r.title} » ajoutée à tes recettes`);
                     }}
                   >
                     {isKept ? "Gardée" : "Garder"}
                   </Button>
-                  <Button variant="outline" className="h-11" disabled={isKept || isThrown} onClick={() => setThrown((t) => new Set(t).add(r.id))} aria-label={`Jeter ${r.title}`}>
+                  <Button
+                    variant="outline"
+                    className="h-11"
+                    disabled={isKept || isThrown}
+                    onClick={() => {
+                      setThrown((t) => new Set(t).add(r.id));
+                      if (drafts?.ai) actions.removeAiDraft(r.id);
+                    }}
+                    aria-label={`Jeter ${r.title}`}
+                  >
                     <Trash2 aria-hidden />
                   </Button>
                 </div>

@@ -1,5 +1,5 @@
 import { householdPortions, ingredientLine, type Recipe } from "@mijote/shared";
-import { Baby, BookOpen, Check, MoonStar } from "lucide-react";
+import { Baby, BookOpen, Check } from "lucide-react";
 import { createContext, memo, use, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { RecipeMeta, RecipeVisual } from "@/components/kit";
@@ -217,18 +217,6 @@ const PreviewBody = memo(function PreviewBody({ recipe, onChoose, onClose, handl
                 <strong>Pour bébé :</strong> {recipe.babyAdaptation.when}. {recipe.babyAdaptation.texture}. {recipe.babyAdaptation.amount}.
               </span>
             </p>
-            {recipe.prepAhead && (
-              <div className="rounded-2xl bg-plum-soft/70 px-3 py-2.5 text-sm text-plum-ink">
-                <p className="mb-1 flex items-center gap-2 font-bold">
-                  <MoonStar className="size-4" aria-hidden /> La veille
-                </p>
-                <ul className="space-y-0.5">
-                  {recipe.prepAheadSteps.map((t) => (
-                    <li key={t}>• {t}</li>
-                  ))}
-                </ul>
-              </div>
-            )}
           </div>
 
           <div className="flex shrink-0 gap-2 border-t border-border p-3">

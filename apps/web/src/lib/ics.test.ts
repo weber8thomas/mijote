@@ -76,12 +76,11 @@ describe("weekToIcs", () => {
     expect(ics.replace(/\r\n/g, "")).not.toMatch(/[\r\n]/);
   });
 
-  it("un évènement par déjeuner et dîner, plus la veille ; pas de dessert", () => {
-    // 5 repas + 1 rappel de veille (la daube du lundi soir ; son reste du mardi midi n'en a pas).
-    expect(events).toHaveLength(6);
+  it("un évènement par déjeuner et dîner ; pas de dessert", () => {
+    expect(events).toHaveLength(5);
     expect(unfolded).not.toContain("compote");
     expect(unfolded).not.toContain("Cuire les pommes");
-    expect(new Set(events.map((e) => e.match(/UID:(.*)\r\n/)?.[1])).size).toBe(6);
+    expect(new Set(events.map((e) => e.match(/UID:(.*)\r\n/)?.[1])).size).toBe(5);
     for (const e of events) expect(e).toContain("DTSTAMP:20261004T081500Z\r\n");
   });
 
@@ -111,18 +110,13 @@ describe("weekToIcs", () => {
     expect(unfolded).toContain("noisettes torréfiées de la ferme d'à côté\r\n");
   });
 
-  it("rappelle la veille à 20 h 30 avec une alarme", () => {
-    const prep = events.filter((e) => e.includes("VALARM"));
-    expect(prep).toHaveLength(1);
-    expect(prep[0]).toContain("DTSTART:20261004T203000\r\nDTEND:20261004T204500\r\n");
-    expect(prep[0]).toContain("SUMMARY:Ce soir\\, pour demain : Faire mariner la viande au vin\\, au frais\r\n");
-    expect(prep[0]).toContain("BEGIN:VALARM\r\nACTION:DISPLAY\r\n");
-    expect(prep[0]).toContain("TRIGGER:-PT0M\r\nEND:VALARM\r\n");
-    expect(prep[0]).toContain("• Éplucher les carottes");
+  it("n'ajoute aucun rappel de veille", () => {
+    expect(unfolded).not.toContain("VALARM");
+    expect(unfolded).not.toContain("Faire mariner");
   });
 
   it("peut se limiter aux repas choisis", () => {
     const only = weekToIcs(week, recipes, { now: NOW, onlyConfirmed: true });
-    expect(only.split("BEGIN:VEVENT")).toHaveLength(6);
+    expect(only.split("BEGIN:VEVENT")).toHaveLength(5);
   });
 });

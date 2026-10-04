@@ -26,6 +26,7 @@ export const AISLE_ORDER = [
   "Épices",
   "Bébé",
   "Surgelés",
+  "Divers",
 ];
 
 export type BuildInput = {
@@ -34,11 +35,13 @@ export type BuildInput = {
   ingredients: Map<string, Ingredient>;
   /** Basiques du placard en stock : exclus de la liste. */
   pantryInStock: Set<string>;
-  /** Liste précédente : on garde ce qui était coché / « j'ai déjà ». */
+  /** Liste précédente : on garde ce qui était coché / « j'ai déjà », et les articles ajoutés à la main. */
   previous?: ShoppingItem[];
+  /** Ingrédients présents dans l'inventaire (placard, frigo) : proposés en « déjà à la maison ». */
+  atHome?: Set<string>;
 };
 
-export function buildShoppingList({ week, recipes, ingredients, pantryInStock, previous = [] }: BuildInput): ShoppingItem[] {
+export function buildShoppingList({ week, recipes, ingredients, pantryInStock, previous = [], atHome = new Set() }: BuildInput): ShoppingItem[] {
   const acc = new Map<string, { qty: number; recipeIds: Set<string> }>();
   for (const e of week.entries) {
     const r = recipes.get(e.recipeId);
@@ -56,7 +59,7 @@ export function buildShoppingList({ week, recipes, ingredients, pantryInStock, p
       acc.set(ing.id, cur);
     }
   }
-  const prev = new Map(previous.map((p) => [p.ingredientId, p]));
+  const prev = new Map(previous.filter((p) => !p.manual).map((p) => [p.ingredientId, p]));
   const items: ShoppingItem[] = [];
   for (const [id, { qty, recipeIds }] of acc) {
     const ing = ingredients.get(id)!;
@@ -72,12 +75,14 @@ export function buildShoppingList({ week, recipes, ingredients, pantryInStock, p
       aisle: ing.aisle,
       cost: priceOf(rounded, ing),
       recipeIds: [...recipeIds],
-      haveAlready: p?.haveAlready ?? false,
+      haveAlready: p?.haveAlready ?? atHome.has(id),
       checked: p?.checked ?? false,
       checkedBy: p?.checkedBy,
       updatedAt: p?.updatedAt,
     });
   }
+  // Les articles ajoutés à la main restent, même quand les repas changent.
+  items.push(...previous.filter((p) => p.manual));
   return sortItems(items, ingredients);
 }
 
@@ -115,11 +120,117 @@ export function shoppingText(items: ShoppingItem[], ingredients: Map<string, Ing
     lines.push("", `— ${CHANNEL_LABELS[channel]} —`);
     for (const g of groupByAisle(list)) {
       lines.push(`${g.aisle} :`);
-      for (const it of g.items) {
-        const ing = ingredients.get(it.ingredientId)!;
-        lines.push(`${it.checked ? "☑" : "☐"} ${it.unit === "piece" ? formatQty(it.qty, it.unit, ing) : `${ing.name} · ${formatQty(it.qty, it.unit)}`}`);
-      }
+      for (const it of g.items) lines.push(`${it.checked ? "☑" : "☐"} ${itemLine(it, ingredients)}`);
     }
   }
   return lines.join("\n");
+}
+
+// ——— Ajout à la main (texte libre, voix, partage) ———
+
+const norm = (t: string) =>
+  t
+    .normalize("NFD")
+    .replace(/\p{Diacritic}/gu, "")
+    .toLowerCase()
+    .trim();
+/** « carottes » → « carotte », « choux » → « chou ». */
+const singular = (w: string) => w.replace(/(eaux|oux)$/, (m) => m.slice(0, -1)).replace(/s$/, "");
+
+export type ParsedLine = { text: string; label: string; ingredientId?: string; qty?: number; unit?: "g" | "ml" | "piece" };
+
+const UNITS: Record<string, { unit: "g" | "ml"; factor: number }> = {
+  g: { unit: "g", factor: 1 },
+  gr: { unit: "g", factor: 1 },
+  kg: { unit: "g", factor: 1000 },
+  ml: { unit: "ml", factor: 1 },
+  cl: { unit: "ml", factor: 10 },
+  l: { unit: "ml", factor: 1000 },
+};
+
+/** Retrouve l'ingrédient du catalogue le plus proche d'un libellé (« lait » → lait demi-écrémé). */
+export function matchIngredient(label: string, ingredients: Ingredient[]): Ingredient | undefined {
+  const words = norm(label).split(/[^a-z0-9]+/).filter((w) => w.length > 1).map(singular);
+  if (!words.length) return undefined;
+  let best: { ing: Ingredient; score: number } | undefined;
+  for (const ing of ingredients) {
+    const names = [ing.name, ing.plural ?? "", ing.pieceName ?? ""].map(norm).filter(Boolean);
+    for (const n of names) {
+      const nw = n.split(/[^a-z0-9]+/).filter(Boolean).map(singular);
+      const hits = words.filter((w) => nw.includes(w)).length;
+      if (!hits) continue;
+      // Tous les mots du libellé retrouvés, et le nom du catalogue le plus court possible.
+      const score = hits / words.length + (nw[0] === words[0] ? 0.5 : 0) - nw.length * 0.05;
+      if (!best || score > best.score) best = { ing, score };
+    }
+  }
+  return best && best.score >= 0.5 ? best.ing : undefined;
+}
+
+/** « 3 carottes, du lait et 500 g de farine » → une ligne par article, avec quantité si elle est dite. */
+export function parseShoppingText(text: string, ingredients: Ingredient[]): ParsedLine[] {
+  return text
+    .split(/[,;\n]+|\s+et\s+|\s+\+\s+/i)
+    .map((t) => t.trim())
+    .filter(Boolean)
+    .map((raw) => {
+      let rest = raw.replace(/^(ajoute[rz]?|ajout|achete[rz]?|il faut|prendre)\s+/i, "");
+      let qty: number | undefined;
+      let unit: ParsedLine["unit"];
+      const m = rest.match(/^(\d+(?:[.,]\d+)?)\s*(kg|gr|g|cl|ml|l)?\b\s*/i);
+      if (m) {
+        const n = Number(m[1].replace(",", "."));
+        const u = m[2] ? UNITS[m[2].toLowerCase()] : undefined;
+        qty = u ? n * u.factor : n;
+        unit = u ? u.unit : "piece";
+        rest = rest.slice(m[0].length);
+      } else if (/^(un|une)\s+/i.test(rest)) {
+        qty = 1;
+        unit = "piece";
+      }
+      const label = rest.replace(/^(un|une|des|du|de la|de l'|de|d'|les|le|la|l')\s*/i, "").trim() || raw;
+      const ing = matchIngredient(label, ingredients);
+      return { text: raw, label, ingredientId: ing?.id, qty, unit };
+    });
+}
+
+const slug = (t: string) =>
+  norm(t)
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "");
+
+/** Article de liste ajouté à la main, à partir d'une ligne analysée. */
+export function manualItem(weekStart: string, line: ParsedLine, ingredients: Map<string, Ingredient>, now = new Date()): ShoppingItem {
+  const ing = line.ingredientId ? ingredients.get(line.ingredientId) : undefined;
+  const base = ing ? baseUnitOf(ing) : (line.unit ?? "piece");
+  let qty = 0;
+  if (ing && line.qty !== undefined && line.unit) qty = line.unit === base ? line.qty : line.unit === "piece" ? toBase(line.qty, "piece", ing) : toBase(line.qty, line.unit, ing);
+  else if (!ing && line.qty !== undefined) qty = line.qty;
+  return {
+    id: `${weekStart}:manual:${ing?.id ?? slug(line.label)}:${now.getTime().toString(36)}`,
+    ingredientId: ing?.id ?? `divers:${slug(line.label)}`,
+    label: ing ? undefined : line.label,
+    manual: true,
+    qty,
+    unit: base,
+    channel: ing?.channel ?? "supermarket",
+    aisle: ing?.aisle ?? "Divers",
+    cost: ing && qty ? priceOf(qty, ing) : 0,
+    recipeIds: [],
+    haveAlready: false,
+    checked: false,
+    updatedAt: now.toISOString(),
+  };
+}
+
+/** Nom affiché d'un article (catalogue ou libellé libre). */
+export const itemName = (it: ShoppingItem, ingredients: Map<string, Ingredient>) => ingredients.get(it.ingredientId)?.name ?? it.label ?? it.ingredientId.replace(/^divers:/, "").replace(/-/g, " ");
+
+/** « 3 carottes », « lait · 1 L », « papier toilette » : l'article en une ligne de texte. */
+export function itemLine(it: ShoppingItem, ingredients: Map<string, Ingredient>): string {
+  const ing = ingredients.get(it.ingredientId);
+  const name = itemName(it, ingredients);
+  if (!it.qty) return name;
+  if (it.unit === "piece") return ing ? formatQty(it.qty, "piece", ing) : `${formatQty(it.qty, "piece")} ${name}`;
+  return `${name} · ${formatQty(it.qty, it.unit)}`;
 }

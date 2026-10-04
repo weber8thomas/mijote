@@ -215,6 +215,8 @@ export const PlanEntry = z.object({
   isLeftover: z.boolean().default(false),
   /** Choisi par le foyer (sinon : simple suggestion, qui peut encore s'ajuster). */
   confirmed: z.boolean().default(false),
+  /** Nombre de fois où l'on a relancé les 6 idées (« Autres idées »). */
+  rerolls: z.number().int().nonnegative().optional(),
 });
 export type PlanEntry = z.infer<typeof PlanEntry>;
 
@@ -231,7 +233,12 @@ export type WeekPlan = z.infer<typeof WeekPlan>;
 
 export const ShoppingItem = z.object({
   id: z.string(),
+  /** Ingrédient connu, ou « divers:<slug> » pour un article ajouté à la main hors catalogue. */
   ingredientId: z.string(),
+  /** Libellé affiché pour un article hors catalogue (« papier toilette »). */
+  label: z.string().optional(),
+  /** Ajouté à la main (ou par la voix, un partage, Home Assistant) : gardé quand la liste est recalculée. */
+  manual: z.boolean().optional(),
   /** Quantité dans l'unité de base (g, ml ou pièce). */
   qty: z.number().nonnegative(),
   unit: z.enum(["g", "ml", "piece"]),
@@ -250,3 +257,35 @@ export type ShoppingItem = z.infer<typeof ShoppingItem>;
 
 export const PantryItem = z.object({ ingredientId: z.string(), inStock: z.boolean() });
 export type PantryItem = z.infer<typeof PantryItem>;
+
+export const StorageLocation = z.enum(["placard", "frigo", "congelateur"]);
+export type StorageLocation = z.infer<typeof StorageLocation>;
+
+/** Fiche Open Food Facts résumée (scan d'un code-barres). */
+export const ProductInfo = z.object({
+  name: z.string(),
+  brand: z.string().optional(),
+  image: z.string().optional(),
+  nutriscore: z.string().optional(),
+  nova: z.number().optional(),
+  additives: z.array(z.string()).default([]),
+  allergens: z.array(z.string()).default([]),
+  ingredientsText: z.string().optional(),
+  quantity: z.string().optional(),
+});
+export type ProductInfo = z.infer<typeof ProductInfo>;
+
+/** Ce qu'il y a à la maison : placard, frigo, congélateur. */
+export const InventoryItem = z.object({
+  id: z.string(),
+  name: z.string(),
+  /** Ingrédient du catalogue reconnu (sert aux courses et à « Avec ce que j'ai »). */
+  ingredientId: z.string().optional(),
+  location: StorageLocation,
+  qty: z.number().positive().optional(),
+  unit: z.enum(["g", "ml", "piece"]).optional(),
+  barcode: z.string().optional(),
+  product: ProductInfo.optional(),
+  addedAt: z.string(),
+});
+export type InventoryItem = z.infer<typeof InventoryItem>;

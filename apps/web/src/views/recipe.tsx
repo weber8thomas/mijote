@@ -1,5 +1,5 @@
 import { BABY_PORTION, ingredientLine, MONTHS, outOfSeason, SLOT_LABELS_LONG, type Recipe } from "@mijote/shared";
-import { Baby, Ban, ChefHat, ChevronLeft, ChevronRight, Clock, Flame, Heart, Leaf, Minus, MoonStar, Plus, RotateCcw, X } from "lucide-react";
+import { Baby, Ban, ChefHat, ChevronLeft, ChevronRight, Clock, Flame, Heart, Leaf, Minus, Plus, RotateCcw, X } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
@@ -103,16 +103,6 @@ function RecipeDetail({ recipe }: { recipe: Recipe }) {
               </Fact>
             </div>
           </header>
-
-          {recipe.prepAhead && (
-            <Box title="La veille" icon={<MoonStar className="size-5" />} tone="plum">
-              <ul className="space-y-1">
-                {recipe.prepAheadSteps.map((t) => (
-                  <li key={t}>• {t}</li>
-                ))}
-              </ul>
-            </Box>
-          )}
 
           <section>
             <div className="mb-3 flex flex-wrap items-center justify-between gap-3">

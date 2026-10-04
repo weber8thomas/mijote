@@ -109,11 +109,8 @@
     "prepMinutes": 15,
     "cookMinutes": 25,
     "longCook": false,
-    "prepAhead": true,
-    "prepAheadSteps": [
-      "Cuire les lentilles vertes et les garder au frais",
-      "Cuire les betteraves 45 min à l'eau si elles sont crues"
-    ],
+    "prepAhead": false,
+    "prepAheadSteps": [],
     "yieldsLeftovers": false,
     "servingsBase": 4,
     "ingredients": [
@@ -209,7 +206,7 @@
   {
     "id": "tortilla-pommes-de-terre-epinards",
     "slug": "tortilla-pommes-de-terre-epinards",
-    "title": "Tortilla aux pommes de terre et épinards",
+    "title": "Tortilla de pommes de terre aux épinards",
     "description": "Une omelette épaisse et moelleuse à couper en bâtonnets, que bébé attrape tout seul.",
     "slots": [
       "lunch",
@@ -293,7 +290,7 @@
   {
     "id": "tarte-poireaux-chevre-frais",
     "slug": "tarte-poireaux-chevre-frais",
-    "title": "Tarte fondante aux poireaux et chèvre frais",
+    "title": "Quiche aux poireaux et chèvre frais",
     "description": "Une tarte réconfortante aux poireaux fondus, douce et crémeuse sous la dent.",
     "slots": [
       "lunch",
@@ -393,7 +390,7 @@
   {
     "id": "tartines-rillettes-sardines-carottes-rapees",
     "slug": "tartines-rillettes-sardines-carottes-rapees",
-    "title": "Tartines de rillettes de sardines, carottes râpées au citron",
+    "title": "Tartines de rillettes de sardines et carottes râpées",
     "description": "Des rillettes express de sardines au fromage blanc sur pain grillé, et des carottes râpées acidulées.",
     "slots": [
       "lunch"
@@ -424,12 +421,6 @@
         "note": "jus"
       },
       {
-        "ingredientId": "ciboulette",
-        "qty": 0.5,
-        "unit": "piece",
-        "note": "ciselée"
-      },
-      {
         "ingredientId": "pain",
         "qty": 1,
         "unit": "piece",
@@ -449,7 +440,7 @@
       },
       {
         "ingredientId": "persil",
-        "qty": 0.5,
+        "qty": 1,
         "unit": "piece",
         "note": "ciselé"
       },
@@ -463,7 +454,7 @@
     ],
     "steps": [
       "Égoutte les sardines, retire l'arête centrale et écrase-les à la fourchette.",
-      "Mélange-les avec le fromage blanc, le jus d'un demi-citron et la ciboulette.",
+      "Mélange-les avec le fromage blanc, le jus d'un demi-citron et le persil.",
       "Râpe finement les carottes et assaisonne-les avec l'huile d'olive, le reste du jus de citron et le persil.",
       "Fais griller les tranches de pain et tartine-les de rillettes.",
       "Prélève la part de bébé, puis poivre les tartines des grands."
@@ -486,7 +477,7 @@
   {
     "id": "coquillettes-saumon-brocoli-citron",
     "slug": "coquillettes-saumon-brocoli-citron",
-    "title": "Coquillettes au saumon, brocoli et citron",
+    "title": "Pâtes au saumon et brocoli",
     "description": "Un plat de pâtes express, crémeux et plein d'oméga-3.",
     "slots": [
       "lunch",
@@ -584,11 +575,8 @@
     "prepMinutes": 15,
     "cookMinutes": 30,
     "longCook": false,
-    "prepAhead": true,
-    "prepAheadSteps": [
-      "Rôtir les cubes de patate douce et cuire le quinoa",
-      "Garder le tout au frais dans une boîte fermée"
-    ],
+    "prepAhead": false,
+    "prepAheadSteps": [],
     "yieldsLeftovers": false,
     "servingsBase": 4,
     "ingredients": [
@@ -609,10 +597,10 @@
         "note": "cuits, en bocal, rincés"
       },
       {
-        "ingredientId": "coriandre",
+        "ingredientId": "persil",
         "qty": 0.5,
         "unit": "piece",
-        "note": "ciselée"
+        "note": "ciselée, ou coriandre"
       },
       {
         "ingredientId": "citron",
@@ -654,14 +642,14 @@
       "Préchauffe le four à 200 °C. Coupe la patate douce en cubes et mélange-la avec 1 c. à soupe d'huile, le cumin et le paprika.",
       "Rôtis 25 min, jusqu'à ce qu'elle soit fondante.",
       "Rince le quinoa et fais-le cuire 12 min dans deux fois son volume d'eau, puis laisse-le gonfler à couvert.",
-      "Mélange quinoa, patate douce et pois chiches avec le jus de citron, le reste d'huile et la coriandre.",
+      "Mélange quinoa, patate douce et pois chiches avec le jus de citron, le reste d'huile et le persil.",
       "Prélève la portion bébé, puis sale et poivre."
     ],
     "babyAdaptation": {
       "when": "Prélever avant de saler et de poivrer",
       "texture": "pois chiches écrasés à la fourchette (jamais entiers), patate douce en cubes fondants, quinoa bien cuit",
       "amount": "4 c. à soupe de mélange dont 2 c. à soupe de pois chiches écrasés",
-      "notes": "Fer du quinoa et des pois chiches + vitamine C du citron et de la coriandre. Ajouter 1 c. à café d'huile de colza."
+      "notes": "Fer du quinoa et des pois chiches + vitamine C du citron et du persil. Ajouter 1 c. à café d'huile de colza."
     },
     "ironScore": 2,
     "mainProtein": "legume",
@@ -675,7 +663,7 @@
   {
     "id": "soupe-pois-casses-carottes-cumin",
     "slug": "soupe-pois-casses-carottes-cumin",
-    "title": "Soupe de pois cassés aux carottes et au cumin",
+    "title": "Soupe de pois cassés",
     "description": "Une soupe épaisse et veloutée, riche en fer, encore meilleure réchauffée.",
     "slots": [
       "lunch",
@@ -684,10 +672,8 @@
     "prepMinutes": 15,
     "cookMinutes": 50,
     "longCook": false,
-    "prepAhead": true,
-    "prepAheadSteps": [
-      "Préparer la soupe de pois cassés et la garder au frais"
-    ],
+    "prepAhead": false,
+    "prepAheadSteps": [],
     "yieldsLeftovers": false,
     "servingsBase": 4,
     "ingredients": [
@@ -864,7 +850,7 @@
   {
     "id": "boulettes-boeuf-persil-sauce-tomate",
     "slug": "boulettes-boeuf-persil-sauce-tomate",
-    "title": "Boulettes de bœuf au persil, sauce tomate et semoule",
+    "title": "Boulettes de bœuf sauce tomate et semoule",
     "description": "Des boulettes tendres à attraper avec les doigts, mijotées dans une sauce tomate douce aux carottes.",
     "slots": [
       "lunch",
@@ -977,7 +963,7 @@
   {
     "id": "saute-dinde-chou-carottes-gingembre",
     "slug": "saute-dinde-chou-carottes-gingembre",
-    "title": "Sauté de dinde au chou et aux carottes, riz au gingembre",
+    "title": "Sauté de dinde au chou et aux carottes, riz",
     "description": "Un sauté minute aux légumes fondants, parfumé au gingembre pour les grands comme pour les petits.",
     "slots": [
       "lunch",
@@ -1029,10 +1015,10 @@
         "unit": "g"
       },
       {
-        "ingredientId": "coriandre",
+        "ingredientId": "persil",
         "qty": 0.5,
         "unit": "piece",
-        "note": "ciselée"
+        "note": "ciselée, ou coriandre"
       },
       {
         "ingredientId": "sauce-soja",
@@ -1046,7 +1032,7 @@
       "Émince finement le chou, coupe les carottes en fins bâtonnets et la dinde en lanières.",
       "Fais dorer la dinde 5 min dans l'huile avec l'oignon et le gingembre, jusqu'à ce qu'elle soit cuite à cœur, puis réserve.",
       "Fais sauter le chou et les carottes 8 min avec un fond d'eau, à couvert, jusqu'à ce qu'ils soient tendres.",
-      "Remets la dinde, ajoute la coriandre et prélève la portion bébé.",
+      "Remets la dinde, ajoute le persil et prélève la portion bébé.",
       "Ajoute la sauce soja pour les grands et sers avec le riz."
     ],
     "babyAdaptation": {
@@ -1064,7 +1050,7 @@
   {
     "id": "navarin-agneau-navets-carottes",
     "slug": "navarin-agneau-navets-carottes",
-    "title": "Navarin d'agneau aux navets et carottes",
+    "title": "Navarin d'agneau",
     "description": "Le mijoté du dimanche : agneau confit, navets et carottes fondants dans une sauce tomatée douce.",
     "slots": [
       "lunch",
@@ -1186,7 +1172,7 @@
   {
     "id": "potee-chou-echine-porc",
     "slug": "potee-chou-echine-porc",
-    "title": "Potée au chou et échine de porc",
+    "title": "Potée au chou",
     "description": "Une potée généreuse où le chou devient fondant au contact de la viande, sans charcuterie.",
     "slots": [
       "lunch",
@@ -1293,7 +1279,7 @@
   {
     "id": "one-pot-poulet-champignons-petites-pates",
     "slug": "one-pot-poulet-champignons-petites-pates",
-    "title": "One-pot de poulet, champignons et petites pâtes",
+    "title": "One-pot poulet, champignons et petites pâtes",
     "description": "Tout cuit dans la même casserole : poulet tendre, champignons, épinards et petites pâtes qui boivent la sauce.",
     "slots": [
       "lunch",
@@ -1392,6 +1378,2772 @@
       "one-pot"
     ],
     "illustration": "champignon",
+    "source": "seed"
+  },
+  {
+    "id": "pates-bolognaise",
+    "slug": "pates-bolognaise",
+    "title": "Pâtes à la bolognaise",
+    "description": "La sauce tomate à la viande de tous les jours, avec des carottes râpées fondues dedans.",
+    "slots": [
+      "lunch",
+      "dinner"
+    ],
+    "prepMinutes": 15,
+    "cookMinutes": 35,
+    "longCook": false,
+    "prepAhead": false,
+    "prepAheadSteps": [],
+    "yieldsLeftovers": true,
+    "servingsBase": 4,
+    "ingredients": [
+      {
+        "ingredientId": "boeuf-hache",
+        "qty": 500,
+        "unit": "g"
+      },
+      {
+        "ingredientId": "carotte",
+        "qty": 2,
+        "unit": "piece",
+        "note": "râpées",
+        "form": "cooked"
+      },
+      {
+        "ingredientId": "oignon",
+        "qty": 1,
+        "unit": "piece"
+      },
+      {
+        "ingredientId": "ail",
+        "qty": 1,
+        "unit": "piece"
+      },
+      {
+        "ingredientId": "tomates-concassees",
+        "qty": 800,
+        "unit": "g"
+      },
+      {
+        "ingredientId": "concentre-tomate",
+        "qty": 1,
+        "unit": "cs"
+      },
+      {
+        "ingredientId": "herbes-provence",
+        "qty": 1,
+        "unit": "cc"
+      },
+      {
+        "ingredientId": "huile-olive",
+        "qty": 2,
+        "unit": "cs"
+      },
+      {
+        "ingredientId": "pates",
+        "qty": 320,
+        "unit": "g",
+        "note": "spaghetti ou penne"
+      },
+      {
+        "ingredientId": "persil",
+        "qty": 0.5,
+        "unit": "piece",
+        "note": "haché"
+      },
+      {
+        "ingredientId": "parmesan",
+        "qty": 30,
+        "unit": "g",
+        "note": "râpé au service",
+        "adultOnly": true
+      },
+      {
+        "ingredientId": "sel",
+        "qty": 1,
+        "unit": "pincee",
+        "note": "au service",
+        "adultOnly": true
+      },
+      {
+        "ingredientId": "poivre",
+        "qty": 1,
+        "unit": "pincee",
+        "note": "au service",
+        "adultOnly": true
+      }
+    ],
+    "steps": [
+      "Fais revenir l'oignon et l'ail hachés dans l'huile 3 min.",
+      "Ajoute le bœuf et fais-le cuire 8 min en l'émiettant, jusqu'à ce qu'il ne soit plus rose.",
+      "Ajoute les carottes râpées, les tomates concassées, le concentré et les herbes.",
+      "Laisse mijoter 25 min à couvert, à feu doux.",
+      "Fais cuire les pâtes dans une grande casserole d'eau non salée.",
+      "Ajoute le persil, prélève la portion bébé, puis sale, poivre et sers les grands avec le parmesan."
+    ],
+    "babyAdaptation": {
+      "when": "Prélever avant de saler et d'ajouter le parmesan",
+      "texture": "pâtes bien cuites coupées en petits tronçons, sauce à la viande bien émiettée",
+      "amount": "4 à 5 c. à soupe dont 20 g de viande",
+      "notes": "Fer du bœuf + vitamine C de la tomate et du persil. La sauce se congèle très bien en portions. Allergène : gluten."
+    },
+    "ironScore": 3,
+    "mainProtein": "red-meat",
+    "tags": [
+      "batch"
+    ],
+    "illustration": "tomate",
+    "source": "seed"
+  },
+  {
+    "id": "pates-thon-tomates",
+    "slug": "pates-thon-tomates",
+    "title": "Pâtes au thon et à la tomate",
+    "description": "Le plat du placard : une boîte de thon, une boîte de tomates, et le dîner est prêt en un quart d'heure.",
+    "slots": [
+      "lunch",
+      "dinner"
+    ],
+    "prepMinutes": 10,
+    "cookMinutes": 15,
+    "longCook": false,
+    "prepAhead": false,
+    "prepAheadSteps": [],
+    "yieldsLeftovers": false,
+    "servingsBase": 4,
+    "ingredients": [
+      {
+        "ingredientId": "pates",
+        "qty": 320,
+        "unit": "g"
+      },
+      {
+        "ingredientId": "thon-boite",
+        "qty": 2,
+        "unit": "piece",
+        "note": "au naturel, égoutté"
+      },
+      {
+        "ingredientId": "tomates-concassees",
+        "qty": 600,
+        "unit": "g"
+      },
+      {
+        "ingredientId": "oignon",
+        "qty": 1,
+        "unit": "piece"
+      },
+      {
+        "ingredientId": "ail",
+        "qty": 1,
+        "unit": "piece"
+      },
+      {
+        "ingredientId": "huile-olive",
+        "qty": 2,
+        "unit": "cs"
+      },
+      {
+        "ingredientId": "persil",
+        "qty": 0.5,
+        "unit": "piece",
+        "note": "haché"
+      },
+      {
+        "ingredientId": "citron",
+        "qty": 0.5,
+        "unit": "piece",
+        "note": "zeste"
+      },
+      {
+        "ingredientId": "sel",
+        "qty": 1,
+        "unit": "pincee",
+        "note": "au service",
+        "adultOnly": true
+      },
+      {
+        "ingredientId": "poivre",
+        "qty": 1,
+        "unit": "pincee",
+        "note": "au service",
+        "adultOnly": true
+      }
+    ],
+    "steps": [
+      "Fais cuire les pâtes dans une grande casserole d'eau non salée.",
+      "Fais fondre l'oignon et l'ail émincés 3 min dans l'huile.",
+      "Ajoute les tomates concassées et laisse réduire 10 min.",
+      "Ajoute le thon émietté et le zeste de citron, réchauffe 2 min.",
+      "Mélange avec les pâtes égouttées et le persil.",
+      "Prélève la portion bébé, puis sale et poivre."
+    ],
+    "babyAdaptation": {
+      "when": "Prélever avant de saler et de poivrer",
+      "texture": "pâtes coupées en petits morceaux, thon bien émietté dans la sauce",
+      "amount": "4 c. à soupe dont 15 à 20 g de thon",
+      "notes": "Le thon se donne au plus une fois par semaine à bébé (poisson à limiter avant 3 ans). Allergènes : poisson, gluten."
+    },
+    "ironScore": 1,
+    "mainProtein": "fish",
+    "tags": [
+      "quick"
+    ],
+    "illustration": "tomate",
+    "source": "seed"
+  },
+  {
+    "id": "pates-sardines-tomate-citron",
+    "slug": "pates-sardines-tomate-citron",
+    "title": "Pâtes aux sardines, tomate et citron",
+    "description": "Des sardines en boîte écrasées dans une sauce tomate citronnée : économique et plein d'oméga-3.",
+    "slots": [
+      "lunch",
+      "dinner"
+    ],
+    "prepMinutes": 10,
+    "cookMinutes": 15,
+    "longCook": false,
+    "prepAhead": false,
+    "prepAheadSteps": [],
+    "yieldsLeftovers": false,
+    "servingsBase": 4,
+    "ingredients": [
+      {
+        "ingredientId": "pates",
+        "qty": 320,
+        "unit": "g"
+      },
+      {
+        "ingredientId": "sardines-huile",
+        "qty": 2,
+        "unit": "piece",
+        "note": "égouttées, arête retirée"
+      },
+      {
+        "ingredientId": "tomates-concassees",
+        "qty": 600,
+        "unit": "g"
+      },
+      {
+        "ingredientId": "oignon",
+        "qty": 1,
+        "unit": "piece"
+      },
+      {
+        "ingredientId": "ail",
+        "qty": 1,
+        "unit": "piece"
+      },
+      {
+        "ingredientId": "citron",
+        "qty": 1,
+        "unit": "piece",
+        "note": "zeste et jus"
+      },
+      {
+        "ingredientId": "persil",
+        "qty": 1,
+        "unit": "piece",
+        "note": "haché"
+      },
+      {
+        "ingredientId": "huile-olive",
+        "qty": 1,
+        "unit": "cs"
+      },
+      {
+        "ingredientId": "sel",
+        "qty": 1,
+        "unit": "pincee",
+        "note": "au service",
+        "adultOnly": true
+      },
+      {
+        "ingredientId": "poivre",
+        "qty": 1,
+        "unit": "pincee",
+        "note": "au service",
+        "adultOnly": true
+      }
+    ],
+    "steps": [
+      "Fais cuire les pâtes dans une grande casserole d'eau non salée.",
+      "Fais fondre l'oignon et l'ail émincés dans l'huile, ajoute les tomates et laisse réduire 10 min.",
+      "Retire l'arête centrale des sardines et écrase-les à la fourchette.",
+      "Ajoute-les à la sauce avec le zeste et la moitié du jus de citron, réchauffe 2 min.",
+      "Mélange avec les pâtes et le persil.",
+      "Prélève la portion bébé, puis sale et poivre."
+    ],
+    "babyAdaptation": {
+      "when": "Prélever avant de saler et de poivrer",
+      "texture": "sardines écrasées sans arête dans la sauce, pâtes coupées en petits morceaux",
+      "amount": "4 c. à soupe dont 20 g de sardine",
+      "notes": "Poisson gras riche en oméga-3. Vérifie qu'il ne reste aucune arête. Allergènes : poisson, gluten."
+    },
+    "ironScore": 2,
+    "mainProtein": "oily-fish",
+    "tags": [
+      "quick"
+    ],
+    "illustration": "citron",
+    "source": "seed"
+  },
+  {
+    "id": "pates-carbonara-champignons",
+    "slug": "pates-carbonara-champignons",
+    "title": "Pâtes carbonara aux champignons (œufs bien cuits)",
+    "description": "Une carbonara crémeuse dont les œufs cuisent jusqu'au bout ; les lardons sont poêlés à part pour les grands.",
+    "slots": [
+      "lunch",
+      "dinner"
+    ],
+    "prepMinutes": 10,
+    "cookMinutes": 15,
+    "longCook": false,
+    "prepAhead": false,
+    "prepAheadSteps": [],
+    "yieldsLeftovers": false,
+    "servingsBase": 4,
+    "ingredients": [
+      {
+        "ingredientId": "pates",
+        "qty": 320,
+        "unit": "g",
+        "note": "spaghetti"
+      },
+      {
+        "ingredientId": "oeuf",
+        "qty": 4,
+        "unit": "piece"
+      },
+      {
+        "ingredientId": "creme-liquide",
+        "qty": 150,
+        "unit": "ml"
+      },
+      {
+        "ingredientId": "champignon",
+        "qty": 250,
+        "unit": "g",
+        "note": "émincés"
+      },
+      {
+        "ingredientId": "oignon",
+        "qty": 1,
+        "unit": "piece"
+      },
+      {
+        "ingredientId": "huile-olive",
+        "qty": 1,
+        "unit": "cs"
+      },
+      {
+        "ingredientId": "emmental-rape",
+        "qty": 40,
+        "unit": "g"
+      },
+      {
+        "ingredientId": "persil",
+        "qty": 0.5,
+        "unit": "piece",
+        "note": "haché"
+      },
+      {
+        "ingredientId": "lardons",
+        "qty": 150,
+        "unit": "g",
+        "note": "poêlés à part",
+        "adultOnly": true
+      },
+      {
+        "ingredientId": "parmesan",
+        "qty": 30,
+        "unit": "g",
+        "note": "au service",
+        "adultOnly": true
+      },
+      {
+        "ingredientId": "sel",
+        "qty": 1,
+        "unit": "pincee",
+        "note": "au service",
+        "adultOnly": true
+      },
+      {
+        "ingredientId": "poivre",
+        "qty": 1,
+        "unit": "pincee",
+        "note": "au service",
+        "adultOnly": true
+      }
+    ],
+    "steps": [
+      "Fais cuire les pâtes dans une grande casserole d'eau non salée.",
+      "Fais dorer les lardons à sec dans une petite poêle et réserve-les.",
+      "Fais revenir l'oignon et les champignons dans l'huile 8 min.",
+      "Bats les œufs avec la crème et l'emmental.",
+      "Remets les pâtes égouttées sur feu doux avec les champignons, verse les œufs et remue 3 min, jusqu'à ce qu'il ne reste aucune partie liquide.",
+      "Parsème de persil, prélève la portion bébé, puis ajoute lardons, parmesan et poivre aux grands."
+    ],
+    "babyAdaptation": {
+      "when": "Prélever avant d'ajouter lardons, parmesan et poivre",
+      "texture": "pâtes coupées en petits morceaux, sauce aux œufs bien prise, champignons hachés",
+      "amount": "4 à 5 c. à soupe (environ 1/2 œuf)",
+      "notes": "Œufs totalement cuits, pas de sauce coulante. Pas de lardons avant 3 ans. Allergènes : œuf, lait, gluten."
+    },
+    "ironScore": 2,
+    "mainProtein": "egg",
+    "tags": [
+      "quick"
+    ],
+    "illustration": "champignon",
+    "source": "seed"
+  },
+  {
+    "id": "steak-hache-puree-carottes",
+    "slug": "steak-hache-puree-carottes",
+    "title": "Steak haché, purée maison et carottes",
+    "description": "Le grand classique des soirs pressés : steak bien cuit, vraie purée et carottes fondantes.",
+    "slots": [
+      "lunch",
+      "dinner"
+    ],
+    "prepMinutes": 10,
+    "cookMinutes": 25,
+    "longCook": false,
+    "prepAhead": false,
+    "prepAheadSteps": [],
+    "yieldsLeftovers": false,
+    "servingsBase": 4,
+    "ingredients": [
+      {
+        "ingredientId": "boeuf-hache",
+        "qty": 500,
+        "unit": "g",
+        "note": "en 4 steaks"
+      },
+      {
+        "ingredientId": "pomme-de-terre",
+        "qty": 1000,
+        "unit": "g"
+      },
+      {
+        "ingredientId": "carotte",
+        "qty": 4,
+        "unit": "piece",
+        "note": "en rondelles",
+        "form": "cooked"
+      },
+      {
+        "ingredientId": "lait",
+        "qty": 150,
+        "unit": "ml"
+      },
+      {
+        "ingredientId": "beurre",
+        "qty": 30,
+        "unit": "g"
+      },
+      {
+        "ingredientId": "muscade",
+        "qty": 1,
+        "unit": "pincee"
+      },
+      {
+        "ingredientId": "huile-colza",
+        "qty": 1,
+        "unit": "cs"
+      },
+      {
+        "ingredientId": "persil",
+        "qty": 0.5,
+        "unit": "piece",
+        "note": "haché"
+      },
+      {
+        "ingredientId": "sel",
+        "qty": 1,
+        "unit": "pincee",
+        "note": "au service",
+        "adultOnly": true
+      },
+      {
+        "ingredientId": "poivre",
+        "qty": 1,
+        "unit": "pincee",
+        "note": "au service",
+        "adultOnly": true
+      }
+    ],
+    "steps": [
+      "Fais cuire les pommes de terre épluchées et les carottes 20 min dans de l'eau non salée.",
+      "Égoutte et écrase les pommes de terre avec le lait chaud, le beurre et la muscade.",
+      "Fais cuire les steaks dans l'huile 4 à 5 min par face, jusqu'à ce qu'ils ne soient plus rosés à cœur.",
+      "Parsème les carottes de persil.",
+      "Prélève la portion bébé, puis sale et poivre les assiettes des grands."
+    ],
+    "babyAdaptation": {
+      "when": "Prélever avant de saler et de poivrer",
+      "texture": "steak bien cuit émietté finement dans la purée, carottes écrasées",
+      "amount": "20 g de viande + 4 c. à soupe de purée et de carottes",
+      "notes": "Steak haché toujours cuit à cœur. La purée de bébé peut être faite au lait infantile."
+    },
+    "ironScore": 3,
+    "mainProtein": "red-meat",
+    "tags": [
+      "quick"
+    ],
+    "illustration": "carotte",
+    "source": "seed"
+  },
+  {
+    "id": "burgers-maison-potatoes",
+    "slug": "burgers-maison-potatoes",
+    "title": "Burgers maison et potatoes au four",
+    "description": "Le burger du vendredi, fait maison : steak bien cuit, fromage fondu et pommes de terre rôties.",
+    "slots": [
+      "lunch",
+      "dinner"
+    ],
+    "prepMinutes": 20,
+    "cookMinutes": 30,
+    "longCook": false,
+    "prepAhead": false,
+    "prepAheadSteps": [],
+    "yieldsLeftovers": false,
+    "servingsBase": 4,
+    "ingredients": [
+      {
+        "ingredientId": "pain-burger",
+        "qty": 4,
+        "unit": "piece"
+      },
+      {
+        "ingredientId": "boeuf-hache",
+        "qty": 500,
+        "unit": "g",
+        "note": "en 4 steaks"
+      },
+      {
+        "ingredientId": "pomme-de-terre",
+        "qty": 900,
+        "unit": "g",
+        "note": "en quartiers"
+      },
+      {
+        "ingredientId": "oignon",
+        "qty": 1,
+        "unit": "piece",
+        "note": "en rondelles"
+      },
+      {
+        "ingredientId": "emmental-rape",
+        "qty": 60,
+        "unit": "g"
+      },
+      {
+        "ingredientId": "huile-olive",
+        "qty": 3,
+        "unit": "cs"
+      },
+      {
+        "ingredientId": "paprika",
+        "qty": 1,
+        "unit": "cc"
+      },
+      {
+        "ingredientId": "persil",
+        "qty": 0.5,
+        "unit": "piece",
+        "note": "haché"
+      },
+      {
+        "ingredientId": "mache",
+        "qty": 60,
+        "unit": "g",
+        "adultOnly": true
+      },
+      {
+        "ingredientId": "moutarde",
+        "qty": 2,
+        "unit": "cc",
+        "adultOnly": true
+      },
+      {
+        "ingredientId": "sel",
+        "qty": 1,
+        "unit": "pincee",
+        "note": "au service",
+        "adultOnly": true
+      },
+      {
+        "ingredientId": "poivre",
+        "qty": 1,
+        "unit": "pincee",
+        "note": "au service",
+        "adultOnly": true
+      }
+    ],
+    "steps": [
+      "Préchauffe le four à 210 °C. Mélange les quartiers de pommes de terre avec 2 c. à soupe d'huile et le paprika.",
+      "Enfourne 30 min en les retournant à mi-cuisson.",
+      "Fais fondre l'oignon dans le reste d'huile 10 min.",
+      "Fais cuire les steaks 4 à 5 min par face, jusqu'à ce qu'ils soient cuits à cœur, puis parsème d'emmental pour le faire fondre.",
+      "Monte les burgers avec l'oignon, la mâche et la moutarde pour les grands.",
+      "Prélève la part de bébé, parsème les potatoes de persil, puis sale et poivre."
+    ],
+    "babyAdaptation": {
+      "when": "Prélever avant d'ajouter moutarde, sel et poivre",
+      "texture": "steak bien cuit coupé en petits morceaux, pain en bâtonnets, potatoes fondantes sans peau",
+      "amount": "20 g de viande + 1/2 pain + 3 à 4 potatoes",
+      "notes": "Steak cuit à cœur, sans rose. Allergènes : gluten, lait."
+    },
+    "ironScore": 3,
+    "mainProtein": "red-meat",
+    "tags": [
+      "oven",
+      "finger-food"
+    ],
+    "illustration": "pomme-de-terre",
+    "source": "seed"
+  },
+  {
+    "id": "nuggets-poulet-frites-four",
+    "slug": "nuggets-poulet-frites-four",
+    "title": "Nuggets de poulet maison et frites au four",
+    "description": "Des nuggets panés à la chapelure et cuits au four, avec des frites sans friteuse et une salade de carottes.",
+    "slots": [
+      "lunch",
+      "dinner"
+    ],
+    "prepMinutes": 20,
+    "cookMinutes": 30,
+    "longCook": false,
+    "prepAhead": false,
+    "prepAheadSteps": [],
+    "yieldsLeftovers": false,
+    "servingsBase": 4,
+    "ingredients": [
+      {
+        "ingredientId": "poulet-filet",
+        "qty": 500,
+        "unit": "g"
+      },
+      {
+        "ingredientId": "oeuf",
+        "qty": 1,
+        "unit": "piece"
+      },
+      {
+        "ingredientId": "farine",
+        "qty": 40,
+        "unit": "g"
+      },
+      {
+        "ingredientId": "chapelure",
+        "qty": 70,
+        "unit": "g"
+      },
+      {
+        "ingredientId": "paprika",
+        "qty": 1,
+        "unit": "cc"
+      },
+      {
+        "ingredientId": "pomme-de-terre",
+        "qty": 1000,
+        "unit": "g",
+        "note": "en frites"
+      },
+      {
+        "ingredientId": "huile-olive",
+        "qty": 4,
+        "unit": "cs"
+      },
+      {
+        "ingredientId": "carotte",
+        "qty": 300,
+        "unit": "g",
+        "note": "râpées finement",
+        "form": "grated"
+      },
+      {
+        "ingredientId": "citron",
+        "qty": 1,
+        "unit": "piece"
+      },
+      {
+        "ingredientId": "sel",
+        "qty": 1,
+        "unit": "pincee",
+        "note": "au service",
+        "adultOnly": true
+      },
+      {
+        "ingredientId": "poivre",
+        "qty": 1,
+        "unit": "pincee",
+        "note": "au service",
+        "adultOnly": true
+      }
+    ],
+    "steps": [
+      "Préchauffe le four à 210 °C. Mélange les frites avec 3 c. à soupe d'huile et étale-les sur une plaque.",
+      "Enfourne-les 30 min en les retournant à mi-cuisson.",
+      "Coupe le poulet en morceaux, passe-les dans la farine, l'œuf battu puis la chapelure au paprika.",
+      "Dépose-les sur une seconde plaque, arrose d'un filet d'huile et enfourne 15 à 18 min, jusqu'à ce qu'ils soient blancs à cœur.",
+      "Assaisonne les carottes râpées avec le jus de citron.",
+      "Prélève la part de bébé, puis sale et poivre les grands."
+    ],
+    "babyAdaptation": {
+      "when": "Prélever avant de saler",
+      "texture": "nuggets coupés en bâtonnets à tenir, frites fondantes, carottes râpées très finement",
+      "amount": "2 à 3 nuggets (20 g de poulet) + quelques frites + 2 c. à soupe de carottes",
+      "notes": "Poulet cuit à cœur. Allergènes : œuf, gluten."
+    },
+    "ironScore": 1,
+    "mainProtein": "poultry",
+    "tags": [
+      "oven",
+      "finger-food"
+    ],
+    "illustration": "pomme-de-terre",
+    "source": "seed"
+  },
+  {
+    "id": "escalopes-dinde-creme-champignons",
+    "slug": "escalopes-dinde-creme-champignons",
+    "title": "Escalopes de dinde à la crème et aux champignons, riz",
+    "description": "Une sauce crème-champignons toute simple qui nappe la dinde et le riz.",
+    "slots": [
+      "lunch",
+      "dinner"
+    ],
+    "prepMinutes": 10,
+    "cookMinutes": 20,
+    "longCook": false,
+    "prepAhead": false,
+    "prepAheadSteps": [],
+    "yieldsLeftovers": false,
+    "servingsBase": 4,
+    "ingredients": [
+      {
+        "ingredientId": "dinde-escalope",
+        "qty": 4,
+        "unit": "piece"
+      },
+      {
+        "ingredientId": "champignon",
+        "qty": 400,
+        "unit": "g",
+        "note": "émincés"
+      },
+      {
+        "ingredientId": "echalote",
+        "qty": 1,
+        "unit": "piece"
+      },
+      {
+        "ingredientId": "creme-fraiche",
+        "qty": 120,
+        "unit": "g"
+      },
+      {
+        "ingredientId": "beurre",
+        "qty": 15,
+        "unit": "g"
+      },
+      {
+        "ingredientId": "riz",
+        "qty": 280,
+        "unit": "g"
+      },
+      {
+        "ingredientId": "persil",
+        "qty": 0.5,
+        "unit": "piece",
+        "note": "haché"
+      },
+      {
+        "ingredientId": "sel",
+        "qty": 1,
+        "unit": "pincee",
+        "note": "au service",
+        "adultOnly": true
+      },
+      {
+        "ingredientId": "poivre",
+        "qty": 1,
+        "unit": "pincee",
+        "note": "au service",
+        "adultOnly": true
+      }
+    ],
+    "steps": [
+      "Fais cuire le riz dans deux fois son volume d'eau, 12 min à couvert.",
+      "Fais dorer les escalopes 3 à 4 min par face dans le beurre, jusqu'à ce qu'elles soient cuites à cœur, puis réserve.",
+      "Dans la même poêle, fais revenir l'échalote et les champignons 8 min.",
+      "Ajoute la crème et un fond d'eau, laisse épaissir 2 min et remets la dinde.",
+      "Parsème de persil, prélève la portion bébé, puis sale et poivre."
+    ],
+    "babyAdaptation": {
+      "when": "Prélever avant de saler et de poivrer",
+      "texture": "dinde hachée finement ou en lamelles fondantes, champignons hachés dans la sauce, riz bien cuit",
+      "amount": "20 g de dinde + 4 c. à soupe de riz et de sauce"
+    },
+    "ironScore": 1,
+    "mainProtein": "poultry",
+    "tags": [
+      "quick"
+    ],
+    "illustration": "champignon",
+    "source": "seed"
+  },
+  {
+    "id": "omelette-champignons-pommes-de-terre",
+    "slug": "omelette-champignons-pommes-de-terre",
+    "title": "Omelette aux champignons et pommes de terre sautées",
+    "description": "Une omelette bien prise, garnie de champignons, avec des pommes de terre dorées à la poêle.",
+    "slots": [
+      "lunch",
+      "dinner"
+    ],
+    "prepMinutes": 10,
+    "cookMinutes": 25,
+    "longCook": false,
+    "prepAhead": false,
+    "prepAheadSteps": [],
+    "yieldsLeftovers": false,
+    "servingsBase": 4,
+    "ingredients": [
+      {
+        "ingredientId": "oeuf",
+        "qty": 8,
+        "unit": "piece"
+      },
+      {
+        "ingredientId": "champignon",
+        "qty": 300,
+        "unit": "g",
+        "note": "émincés"
+      },
+      {
+        "ingredientId": "pomme-de-terre",
+        "qty": 700,
+        "unit": "g",
+        "note": "en cubes"
+      },
+      {
+        "ingredientId": "huile-olive",
+        "qty": 3,
+        "unit": "cs"
+      },
+      {
+        "ingredientId": "beurre",
+        "qty": 10,
+        "unit": "g"
+      },
+      {
+        "ingredientId": "persil",
+        "qty": 1,
+        "unit": "piece",
+        "note": "haché"
+      },
+      {
+        "ingredientId": "mache",
+        "qty": 120,
+        "unit": "g",
+        "note": "en salade",
+        "adultOnly": true
+      },
+      {
+        "ingredientId": "sel",
+        "qty": 1,
+        "unit": "pincee",
+        "note": "au service",
+        "adultOnly": true
+      },
+      {
+        "ingredientId": "poivre",
+        "qty": 1,
+        "unit": "pincee",
+        "note": "au service",
+        "adultOnly": true
+      }
+    ],
+    "steps": [
+      "Fais cuire les pommes de terre en cubes 10 min à l'eau, puis fais-les dorer 10 min dans 2 c. à soupe d'huile.",
+      "Fais revenir les champignons dans le reste d'huile 6 min.",
+      "Bats les œufs avec le persil et verse-les sur les champignons, avec le beurre.",
+      "Cuis à feu doux à couvert 6 à 8 min, jusqu'à ce que l'omelette soit entièrement prise.",
+      "Coupe la part de bébé, puis sale et poivre les grands et sers avec la mâche."
+    ],
+    "babyAdaptation": {
+      "when": "Couper la part de bébé avant de saler",
+      "texture": "omelette bien cuite (pas baveuse) en lamelles, pommes de terre fondantes écrasées",
+      "amount": "1/2 œuf + 3 c. à soupe de pommes de terre",
+      "notes": "Allergène : œuf."
+    },
+    "ironScore": 2,
+    "mainProtein": "egg",
+    "tags": [
+      "quick"
+    ],
+    "illustration": "champignon",
+    "source": "seed"
+  },
+  {
+    "id": "frittata-brocoli-pommes-de-terre",
+    "slug": "frittata-brocoli-pommes-de-terre",
+    "title": "Frittata au brocoli et pommes de terre",
+    "description": "Une grosse omelette au four pleine de légumes, qui se coupe en parts et se mange même froide.",
+    "slots": [
+      "lunch",
+      "dinner"
+    ],
+    "prepMinutes": 15,
+    "cookMinutes": 25,
+    "longCook": false,
+    "prepAhead": false,
+    "prepAheadSteps": [],
+    "yieldsLeftovers": false,
+    "servingsBase": 4,
+    "ingredients": [
+      {
+        "ingredientId": "oeuf",
+        "qty": 8,
+        "unit": "piece"
+      },
+      {
+        "ingredientId": "brocoli",
+        "qty": 400,
+        "unit": "g",
+        "note": "en petites fleurettes"
+      },
+      {
+        "ingredientId": "pomme-de-terre",
+        "qty": 400,
+        "unit": "g",
+        "note": "en rondelles"
+      },
+      {
+        "ingredientId": "oignon",
+        "qty": 1,
+        "unit": "piece"
+      },
+      {
+        "ingredientId": "emmental-rape",
+        "qty": 50,
+        "unit": "g"
+      },
+      {
+        "ingredientId": "huile-olive",
+        "qty": 2,
+        "unit": "cs"
+      },
+      {
+        "ingredientId": "lait",
+        "qty": 50,
+        "unit": "ml"
+      },
+      {
+        "ingredientId": "sel",
+        "qty": 1,
+        "unit": "pincee",
+        "note": "au service",
+        "adultOnly": true
+      },
+      {
+        "ingredientId": "poivre",
+        "qty": 1,
+        "unit": "pincee",
+        "note": "au service",
+        "adultOnly": true
+      }
+    ],
+    "steps": [
+      "Préchauffe le four à 180 °C. Fais cuire pommes de terre et brocoli 8 min à la vapeur.",
+      "Fais fondre l'oignon dans l'huile dans une poêle allant au four.",
+      "Ajoute les légumes, puis les œufs battus avec le lait et l'emmental.",
+      "Laisse prendre 3 min sur le feu, puis enfourne 15 à 18 min, jusqu'à ce que le centre soit bien ferme.",
+      "Coupe la part de bébé, puis sale et poivre les parts des grands."
+    ],
+    "babyAdaptation": {
+      "when": "Couper la part de bébé à la sortie du four",
+      "texture": "bâtonnets moelleux de frittata bien prise, à tenir à la main",
+      "amount": "1 part fine (environ 1/2 œuf)",
+      "notes": "Fer du jaune d'œuf et du brocoli, vitamine C du brocoli. Allergènes : œuf, lait."
+    },
+    "ironScore": 2,
+    "mainProtein": "egg",
+    "tags": [
+      "oven",
+      "finger-food"
+    ],
+    "illustration": "brocoli",
+    "source": "seed"
+  },
+  {
+    "id": "oeufs-durs-florentine",
+    "slug": "oeufs-durs-florentine",
+    "title": "Œufs durs à la florentine",
+    "description": "Des œufs durs gratinés sur une béchamel aux épinards : un plat de grand-mère, doux et nourrissant.",
+    "slots": [
+      "lunch",
+      "dinner"
+    ],
+    "prepMinutes": 15,
+    "cookMinutes": 25,
+    "longCook": false,
+    "prepAhead": false,
+    "prepAheadSteps": [],
+    "yieldsLeftovers": false,
+    "servingsBase": 4,
+    "ingredients": [
+      {
+        "ingredientId": "oeuf",
+        "qty": 8,
+        "unit": "piece"
+      },
+      {
+        "ingredientId": "epinard-surgele",
+        "qty": 600,
+        "unit": "g"
+      },
+      {
+        "ingredientId": "lait",
+        "qty": 500,
+        "unit": "ml"
+      },
+      {
+        "ingredientId": "farine",
+        "qty": 30,
+        "unit": "g"
+      },
+      {
+        "ingredientId": "beurre",
+        "qty": 30,
+        "unit": "g"
+      },
+      {
+        "ingredientId": "emmental-rape",
+        "qty": 50,
+        "unit": "g"
+      },
+      {
+        "ingredientId": "muscade",
+        "qty": 1,
+        "unit": "pincee"
+      },
+      {
+        "ingredientId": "pomme-de-terre",
+        "qty": 800,
+        "unit": "g",
+        "note": "à la vapeur"
+      },
+      {
+        "ingredientId": "citron",
+        "qty": 0.5,
+        "unit": "piece",
+        "note": "jus"
+      },
+      {
+        "ingredientId": "sel",
+        "qty": 1,
+        "unit": "pincee",
+        "note": "au service",
+        "adultOnly": true
+      },
+      {
+        "ingredientId": "poivre",
+        "qty": 1,
+        "unit": "pincee",
+        "note": "au service",
+        "adultOnly": true
+      }
+    ],
+    "steps": [
+      "Fais cuire les œufs 10 min dans l'eau bouillante, refroidis-les et écale-les.",
+      "Fais cuire les pommes de terre à la vapeur et les épinards 5 min à la poêle.",
+      "Prépare la béchamel : beurre fondu, farine, puis le lait petit à petit en fouettant jusqu'à épaississement, et la muscade.",
+      "Mélange la moitié de la béchamel aux épinards avec le jus de citron et étale dans un plat.",
+      "Pose les œufs coupés en deux, nappe du reste de béchamel, parsème d'emmental et gratine 10 min à 220 °C.",
+      "Prélève la portion bébé, puis sale et poivre."
+    ],
+    "babyAdaptation": {
+      "when": "Prélever avant de saler et de poivrer",
+      "texture": "œuf dur écrasé dans les épinards à la béchamel, pommes de terre écrasées",
+      "amount": "1/2 œuf + 4 c. à soupe d'épinards et de pommes de terre",
+      "notes": "Œufs cuits durs. La béchamel de bébé peut être faite au lait infantile. Allergènes : œuf, lait, gluten."
+    },
+    "ironScore": 2,
+    "mainProtein": "egg",
+    "tags": [
+      "gratin",
+      "oven"
+    ],
+    "illustration": "epinard",
+    "source": "seed"
+  },
+  {
+    "id": "galettes-sarrasin-completes",
+    "slug": "galettes-sarrasin-completes",
+    "title": "Galettes complètes",
+    "description": "Les galettes de sarrasin du soir : œuf bien cuit, fromage et champignons, jambon pour les grands.",
+    "slots": [
+      "lunch",
+      "dinner"
+    ],
+    "prepMinutes": 15,
+    "cookMinutes": 25,
+    "longCook": false,
+    "prepAhead": false,
+    "prepAheadSteps": [],
+    "yieldsLeftovers": false,
+    "servingsBase": 4,
+    "ingredients": [
+      {
+        "ingredientId": "farine-sarrasin",
+        "qty": 250,
+        "unit": "g"
+      },
+      {
+        "ingredientId": "oeuf",
+        "qty": 5,
+        "unit": "piece",
+        "note": "1 pour la pâte, 4 pour garnir"
+      },
+      {
+        "ingredientId": "emmental-rape",
+        "qty": 120,
+        "unit": "g"
+      },
+      {
+        "ingredientId": "champignon",
+        "qty": 300,
+        "unit": "g",
+        "note": "émincés"
+      },
+      {
+        "ingredientId": "beurre",
+        "qty": 30,
+        "unit": "g"
+      },
+      {
+        "ingredientId": "persil",
+        "qty": 0.5,
+        "unit": "piece",
+        "note": "haché"
+      },
+      {
+        "ingredientId": "jambon-blanc",
+        "qty": 4,
+        "unit": "piece",
+        "note": "1 tranche par galette des grands",
+        "adultOnly": true
+      },
+      {
+        "ingredientId": "sel",
+        "qty": 1,
+        "unit": "pincee",
+        "note": "au service",
+        "adultOnly": true
+      },
+      {
+        "ingredientId": "poivre",
+        "qty": 1,
+        "unit": "pincee",
+        "note": "au service",
+        "adultOnly": true
+      }
+    ],
+    "steps": [
+      "Fouette la farine de sarrasin avec 1 œuf et 600 ml d'eau ; laisse reposer le temps de préparer la garniture.",
+      "Fais revenir les champignons dans un peu de beurre 6 min.",
+      "Beurre une grande poêle, verse une louche de pâte et étale-la ; cuis 2 min.",
+      "Casse un œuf au centre, brouille légèrement le blanc et couvre 3 à 4 min, jusqu'à ce que blanc et jaune soient bien pris.",
+      "Ajoute emmental, champignons et persil (et le jambon pour les grands), replie les bords.",
+      "Garde une galette sans jambon pour bébé, puis sale et poivre les autres."
+    ],
+    "babyAdaptation": {
+      "when": "Préparer une galette sans jambon et sans sel",
+      "texture": "galette coupée en petits carrés moelleux avec l'œuf bien cuit et les champignons hachés",
+      "amount": "1/2 galette (environ 1/2 œuf)",
+      "notes": "Pas de jambon avant 3 ans. Le sarrasin est sans gluten. Allergènes : œuf, lait."
+    },
+    "ironScore": 2,
+    "mainProtein": "egg",
+    "tags": [],
+    "illustration": "oeuf",
+    "source": "seed"
+  },
+  {
+    "id": "quiche-lorraine-adaptee",
+    "slug": "quiche-lorraine-adaptee",
+    "title": "Quiche lorraine (lardons côté grands)",
+    "description": "La vraie quiche du dimanche soir, avec les lardons seulement sur la moitié des grands.",
+    "slots": [
+      "lunch",
+      "dinner"
+    ],
+    "prepMinutes": 15,
+    "cookMinutes": 35,
+    "longCook": false,
+    "prepAhead": false,
+    "prepAheadSteps": [],
+    "yieldsLeftovers": false,
+    "servingsBase": 4,
+    "ingredients": [
+      {
+        "ingredientId": "pate-brisee",
+        "qty": 1,
+        "unit": "piece"
+      },
+      {
+        "ingredientId": "oeuf",
+        "qty": 4,
+        "unit": "piece"
+      },
+      {
+        "ingredientId": "creme-liquide",
+        "qty": 200,
+        "unit": "ml"
+      },
+      {
+        "ingredientId": "lait",
+        "qty": 100,
+        "unit": "ml"
+      },
+      {
+        "ingredientId": "emmental-rape",
+        "qty": 70,
+        "unit": "g"
+      },
+      {
+        "ingredientId": "muscade",
+        "qty": 1,
+        "unit": "pincee"
+      },
+      {
+        "ingredientId": "lardons",
+        "qty": 150,
+        "unit": "g",
+        "note": "sur la moitié de la quiche",
+        "adultOnly": true
+      },
+      {
+        "ingredientId": "mache",
+        "qty": 150,
+        "unit": "g",
+        "note": "en salade",
+        "adultOnly": true
+      },
+      {
+        "ingredientId": "poivre",
+        "qty": 1,
+        "unit": "pincee",
+        "note": "au service",
+        "adultOnly": true
+      }
+    ],
+    "steps": [
+      "Préchauffe le four à 180 °C. Étale la pâte dans un moule et pique le fond.",
+      "Fais dorer les lardons à sec 5 min.",
+      "Bats les œufs avec la crème, le lait, la muscade et l'emmental.",
+      "Verse dans le moule et répartis les lardons sur une moitié seulement.",
+      "Enfourne 35 min, jusqu'à ce que la garniture soit bien prise et dorée.",
+      "Coupe la part de bébé côté sans lardons, puis poivre les parts des grands et sers avec la mâche."
+    ],
+    "babyAdaptation": {
+      "when": "Couper la part de bébé du côté sans lardons",
+      "texture": "quiche bien prise en petits morceaux, pâte ramollie dans un peu de garniture",
+      "amount": "1 petite part (environ 1/2 œuf)",
+      "notes": "Accompagne la part de bébé de quelques légumes cuits de la veille. Pas de lardons avant 3 ans. Allergènes : œuf, lait, gluten."
+    },
+    "ironScore": 1,
+    "mainProtein": "egg",
+    "tags": [
+      "oven"
+    ],
+    "illustration": "oeuf",
+    "source": "seed"
+  },
+  {
+    "id": "quiche-saumon-epinards",
+    "slug": "quiche-saumon-epinards",
+    "title": "Quiche au saumon et aux épinards",
+    "description": "Une quiche généreuse au saumon frais et aux épinards, parfumée au citron.",
+    "slots": [
+      "lunch",
+      "dinner"
+    ],
+    "prepMinutes": 15,
+    "cookMinutes": 35,
+    "longCook": false,
+    "prepAhead": false,
+    "prepAheadSteps": [],
+    "yieldsLeftovers": false,
+    "servingsBase": 4,
+    "ingredients": [
+      {
+        "ingredientId": "pate-brisee",
+        "qty": 1,
+        "unit": "piece"
+      },
+      {
+        "ingredientId": "saumon",
+        "qty": 300,
+        "unit": "g",
+        "note": "sans peau, en dés"
+      },
+      {
+        "ingredientId": "epinard-surgele",
+        "qty": 300,
+        "unit": "g"
+      },
+      {
+        "ingredientId": "oeuf",
+        "qty": 3,
+        "unit": "piece"
+      },
+      {
+        "ingredientId": "creme-liquide",
+        "qty": 200,
+        "unit": "ml"
+      },
+      {
+        "ingredientId": "lait",
+        "qty": 100,
+        "unit": "ml"
+      },
+      {
+        "ingredientId": "emmental-rape",
+        "qty": 50,
+        "unit": "g"
+      },
+      {
+        "ingredientId": "citron",
+        "qty": 0.5,
+        "unit": "piece",
+        "note": "zeste"
+      },
+      {
+        "ingredientId": "muscade",
+        "qty": 1,
+        "unit": "pincee"
+      },
+      {
+        "ingredientId": "sel",
+        "qty": 1,
+        "unit": "pincee",
+        "note": "au service",
+        "adultOnly": true
+      },
+      {
+        "ingredientId": "poivre",
+        "qty": 1,
+        "unit": "pincee",
+        "note": "au service",
+        "adultOnly": true
+      }
+    ],
+    "steps": [
+      "Préchauffe le four à 180 °C. Étale la pâte dans un moule et pique le fond.",
+      "Fais cuire les épinards 5 min à la poêle et presse-les pour retirer l'eau.",
+      "Bats les œufs avec la crème, le lait, l'emmental, la muscade et le zeste de citron.",
+      "Répartis les épinards et le saumon sur la pâte, verse la garniture.",
+      "Enfourne 35 min, jusqu'à ce que la quiche soit bien prise et le saumon opaque.",
+      "Coupe la part de bébé, puis sale et poivre les parts des grands."
+    ],
+    "babyAdaptation": {
+      "when": "Couper la part de bébé avant de saler",
+      "texture": "quiche bien cuite en petits morceaux fondants, saumon émietté",
+      "amount": "1 petite part (20 g de saumon)",
+      "notes": "Vérifie l'absence d'arêtes. Allergènes : poisson, œuf, lait, gluten."
+    },
+    "ironScore": 2,
+    "mainProtein": "oily-fish",
+    "tags": [
+      "oven"
+    ],
+    "illustration": "epinard",
+    "source": "seed"
+  },
+  {
+    "id": "croque-monsieur-poulet",
+    "slug": "croque-monsieur-poulet",
+    "title": "Croque-monsieur au poulet et salade de carottes",
+    "description": "Des croques gratinés à la béchamel, garnis de poulet plutôt que de jambon pour que tout le monde en mange.",
+    "slots": [
+      "lunch",
+      "dinner"
+    ],
+    "prepMinutes": 15,
+    "cookMinutes": 20,
+    "longCook": false,
+    "prepAhead": false,
+    "prepAheadSteps": [],
+    "yieldsLeftovers": false,
+    "servingsBase": 4,
+    "ingredients": [
+      {
+        "ingredientId": "pain-mie",
+        "qty": 12,
+        "unit": "piece"
+      },
+      {
+        "ingredientId": "poulet-filet",
+        "qty": 300,
+        "unit": "g"
+      },
+      {
+        "ingredientId": "lait",
+        "qty": 250,
+        "unit": "ml"
+      },
+      {
+        "ingredientId": "farine",
+        "qty": 20,
+        "unit": "g"
+      },
+      {
+        "ingredientId": "beurre",
+        "qty": 30,
+        "unit": "g"
+      },
+      {
+        "ingredientId": "emmental-rape",
+        "qty": 100,
+        "unit": "g"
+      },
+      {
+        "ingredientId": "muscade",
+        "qty": 1,
+        "unit": "pincee"
+      },
+      {
+        "ingredientId": "carotte",
+        "qty": 400,
+        "unit": "g",
+        "note": "râpées finement",
+        "form": "grated"
+      },
+      {
+        "ingredientId": "citron",
+        "qty": 0.5,
+        "unit": "piece",
+        "note": "jus"
+      },
+      {
+        "ingredientId": "huile-colza",
+        "qty": 1,
+        "unit": "cs"
+      },
+      {
+        "ingredientId": "sel",
+        "qty": 1,
+        "unit": "pincee",
+        "note": "au service",
+        "adultOnly": true
+      },
+      {
+        "ingredientId": "poivre",
+        "qty": 1,
+        "unit": "pincee",
+        "note": "au service",
+        "adultOnly": true
+      }
+    ],
+    "steps": [
+      "Poche le poulet 12 min dans l'eau frémissante, jusqu'à ce qu'il soit blanc à cœur, puis effiloche-le.",
+      "Prépare une béchamel épaisse avec le beurre, la farine, le lait et la muscade.",
+      "Préchauffe le four à 200 °C. Tartine 6 tranches de pain de béchamel, garnis de poulet et d'emmental, couvre d'une tranche.",
+      "Nappe le dessus du reste de béchamel et d'emmental, enfourne 12 min.",
+      "Assaisonne les carottes râpées avec l'huile et le citron.",
+      "Coupe la part de bébé, puis sale et poivre les grands."
+    ],
+    "babyAdaptation": {
+      "when": "Couper la part de bébé avant de saler",
+      "texture": "croque en petits carrés moelleux, carottes râpées très finement",
+      "amount": "1/2 croque + 2 c. à soupe de carottes",
+      "notes": "Poulet plutôt que jambon : pas de charcuterie avant 3 ans. La béchamel peut se faire au lait infantile. Allergènes : gluten, lait."
+    },
+    "ironScore": 1,
+    "mainProtein": "poultry",
+    "tags": [
+      "oven",
+      "finger-food"
+    ],
+    "illustration": "pain",
+    "source": "seed"
+  },
+  {
+    "id": "wraps-poulet-carottes",
+    "slug": "wraps-poulet-carottes",
+    "title": "Wraps au poulet, carottes râpées et sauce au fromage blanc",
+    "description": "Des wraps roulés minute avec du poulet doré au paprika et une sauce fraîche au persil.",
+    "slots": [
+      "lunch",
+      "dinner"
+    ],
+    "prepMinutes": 15,
+    "cookMinutes": 10,
+    "longCook": false,
+    "prepAhead": false,
+    "prepAheadSteps": [],
+    "yieldsLeftovers": false,
+    "servingsBase": 4,
+    "ingredients": [
+      {
+        "ingredientId": "tortilla-ble",
+        "qty": 8,
+        "unit": "piece"
+      },
+      {
+        "ingredientId": "poulet-filet",
+        "qty": 400,
+        "unit": "g",
+        "note": "en lanières"
+      },
+      {
+        "ingredientId": "paprika",
+        "qty": 1,
+        "unit": "cc"
+      },
+      {
+        "ingredientId": "huile-olive",
+        "qty": 1,
+        "unit": "cs"
+      },
+      {
+        "ingredientId": "carotte",
+        "qty": 300,
+        "unit": "g",
+        "note": "râpées",
+        "form": "grated"
+      },
+      {
+        "ingredientId": "fromage-blanc",
+        "qty": 150,
+        "unit": "g"
+      },
+      {
+        "ingredientId": "persil",
+        "qty": 0.5,
+        "unit": "piece",
+        "note": "ciselée, ou ciboulette"
+      },
+      {
+        "ingredientId": "citron",
+        "qty": 0.5,
+        "unit": "piece",
+        "note": "jus"
+      },
+      {
+        "ingredientId": "mache",
+        "qty": 80,
+        "unit": "g",
+        "adultOnly": true
+      },
+      {
+        "ingredientId": "sel",
+        "qty": 1,
+        "unit": "pincee",
+        "note": "au service",
+        "adultOnly": true
+      },
+      {
+        "ingredientId": "poivre",
+        "qty": 1,
+        "unit": "pincee",
+        "note": "au service",
+        "adultOnly": true
+      }
+    ],
+    "steps": [
+      "Fais dorer le poulet au paprika dans l'huile 6 à 8 min, jusqu'à ce qu'il soit cuit à cœur.",
+      "Mélange le fromage blanc avec le persil et le jus de citron.",
+      "Réchauffe les tortillas 20 secondes à la poêle.",
+      "Tartine-les de sauce, ajoute carottes râpées et poulet, et la mâche pour les grands.",
+      "Roule bien serré et coupe en deux.",
+      "Prépare la part de bébé, puis sale et poivre les grands."
+    ],
+    "babyAdaptation": {
+      "when": "Préparer la part de bébé avant de saler",
+      "texture": "tortilla coupée en lanières, poulet effiloché finement, carottes râpées très finement, sauce à part",
+      "amount": "1/2 wrap (20 g de poulet)",
+      "notes": "Allergènes : gluten, lait."
+    },
+    "ironScore": 1,
+    "mainProtein": "poultry",
+    "tags": [
+      "quick",
+      "finger-food"
+    ],
+    "illustration": "carotte",
+    "source": "seed"
+  },
+  {
+    "id": "gratin-pates-poulet-brocoli",
+    "slug": "gratin-pates-poulet-brocoli",
+    "title": "Gratin de pâtes au poulet et brocoli",
+    "description": "Pâtes, poulet et brocoli liés à la béchamel et gratinés : un plat complet que les enfants adorent.",
+    "slots": [
+      "lunch",
+      "dinner"
+    ],
+    "prepMinutes": 15,
+    "cookMinutes": 30,
+    "longCook": false,
+    "prepAhead": false,
+    "prepAheadSteps": [],
+    "yieldsLeftovers": false,
+    "servingsBase": 4,
+    "ingredients": [
+      {
+        "ingredientId": "pates",
+        "qty": 280,
+        "unit": "g",
+        "note": "penne"
+      },
+      {
+        "ingredientId": "poulet-filet",
+        "qty": 400,
+        "unit": "g",
+        "note": "en dés"
+      },
+      {
+        "ingredientId": "brocoli",
+        "qty": 500,
+        "unit": "g",
+        "note": "en fleurettes"
+      },
+      {
+        "ingredientId": "lait",
+        "qty": 500,
+        "unit": "ml"
+      },
+      {
+        "ingredientId": "farine",
+        "qty": 30,
+        "unit": "g"
+      },
+      {
+        "ingredientId": "beurre",
+        "qty": 30,
+        "unit": "g"
+      },
+      {
+        "ingredientId": "emmental-rape",
+        "qty": 80,
+        "unit": "g"
+      },
+      {
+        "ingredientId": "muscade",
+        "qty": 1,
+        "unit": "pincee"
+      },
+      {
+        "ingredientId": "huile-olive",
+        "qty": 1,
+        "unit": "cs"
+      },
+      {
+        "ingredientId": "sel",
+        "qty": 1,
+        "unit": "pincee",
+        "note": "au service",
+        "adultOnly": true
+      },
+      {
+        "ingredientId": "poivre",
+        "qty": 1,
+        "unit": "pincee",
+        "note": "au service",
+        "adultOnly": true
+      }
+    ],
+    "steps": [
+      "Préchauffe le four à 200 °C. Fais cuire les pâtes 2 min de moins qu'indiqué, en ajoutant le brocoli les 5 dernières minutes.",
+      "Fais dorer le poulet 6 min dans l'huile, jusqu'à ce qu'il soit cuit à cœur.",
+      "Prépare la béchamel : beurre fondu, farine, puis le lait petit à petit jusqu'à épaississement, et la muscade.",
+      "Mélange pâtes, brocoli, poulet et béchamel dans un plat, parsème d'emmental.",
+      "Enfourne 15 min, jusqu'à ce que le dessus soit doré.",
+      "Prélève la portion bébé, puis sale et poivre."
+    ],
+    "babyAdaptation": {
+      "when": "Prélever avant de saler et de poivrer",
+      "texture": "pâtes et brocoli bien tendres coupés en petits morceaux, poulet haché",
+      "amount": "5 c. à soupe dont 20 g de poulet",
+      "notes": "La béchamel de bébé peut se faire au lait infantile. Allergènes : gluten, lait."
+    },
+    "ironScore": 2,
+    "mainProtein": "poultry",
+    "tags": [
+      "gratin",
+      "oven"
+    ],
+    "illustration": "brocoli",
+    "source": "seed"
+  },
+  {
+    "id": "pates-pesto-maison",
+    "slug": "pates-pesto-maison",
+    "title": "Pâtes au pesto maison et courgettes",
+    "description": "Un pesto au basilic mixé minute, avec le parmesan à part pour les grands.",
+    "slots": [
+      "lunch",
+      "dinner"
+    ],
+    "prepMinutes": 15,
+    "cookMinutes": 12,
+    "longCook": false,
+    "prepAhead": false,
+    "prepAheadSteps": [],
+    "yieldsLeftovers": false,
+    "servingsBase": 4,
+    "ingredients": [
+      {
+        "ingredientId": "pates",
+        "qty": 320,
+        "unit": "g"
+      },
+      {
+        "ingredientId": "basilic",
+        "qty": 2,
+        "unit": "piece",
+        "note": "feuilles"
+      },
+      {
+        "ingredientId": "pignons",
+        "qty": 40,
+        "unit": "g",
+        "note": "mixés finement",
+        "form": "powder"
+      },
+      {
+        "ingredientId": "ail",
+        "qty": 1,
+        "unit": "piece"
+      },
+      {
+        "ingredientId": "huile-olive",
+        "qty": 6,
+        "unit": "cs"
+      },
+      {
+        "ingredientId": "courgette",
+        "qty": 2,
+        "unit": "piece",
+        "note": "en dés"
+      },
+      {
+        "ingredientId": "mozzarella",
+        "qty": 1,
+        "unit": "piece",
+        "note": "en petits dés"
+      },
+      {
+        "ingredientId": "parmesan",
+        "qty": 40,
+        "unit": "g",
+        "note": "râpé",
+        "adultOnly": true
+      },
+      {
+        "ingredientId": "sel",
+        "qty": 1,
+        "unit": "pincee",
+        "note": "au service",
+        "adultOnly": true
+      },
+      {
+        "ingredientId": "poivre",
+        "qty": 1,
+        "unit": "pincee",
+        "note": "au service",
+        "adultOnly": true
+      }
+    ],
+    "steps": [
+      "Fais cuire les pâtes dans une grande casserole d'eau non salée.",
+      "Fais revenir les dés de courgette 8 min dans 1 c. à soupe d'huile.",
+      "Mixe le basilic, les pignons, l'ail et le reste d'huile jusqu'à obtenir une sauce très lisse.",
+      "Mélange pâtes, courgettes et pesto, ajoute la mozzarella.",
+      "Prélève la portion bébé, puis ajoute le parmesan, le sel et le poivre pour les grands."
+    ],
+    "babyAdaptation": {
+      "when": "Prélever avant d'ajouter parmesan, sel et poivre",
+      "texture": "pâtes coupées en petits morceaux, pesto bien lisse, courgettes fondantes",
+      "amount": "4 c. à soupe",
+      "notes": "Pignons uniquement mixés finement. Le parmesan est au lait cru : pas pour bébé. Allergènes : gluten, lait."
+    },
+    "ironScore": 0,
+    "mainProtein": "veggie",
+    "tags": [
+      "quick"
+    ],
+    "illustration": "herbes",
+    "source": "seed"
+  },
+  {
+    "id": "lieu-beurre-citron-puree-potimarron",
+    "slug": "lieu-beurre-citron-puree-potimarron",
+    "title": "Lieu au beurre citronné, purée de potimarron",
+    "description": "Un filet de lieu poêlé, une purée orange toute douce : le poisson de la semaine sans effort.",
+    "slots": [
+      "lunch",
+      "dinner"
+    ],
+    "prepMinutes": 10,
+    "cookMinutes": 20,
+    "longCook": false,
+    "prepAhead": false,
+    "prepAheadSteps": [],
+    "yieldsLeftovers": false,
+    "servingsBase": 4,
+    "ingredients": [
+      {
+        "ingredientId": "lieu",
+        "qty": 600,
+        "unit": "g"
+      },
+      {
+        "ingredientId": "potimarron",
+        "qty": 1000,
+        "unit": "g",
+        "note": "avec la peau, bien lavé"
+      },
+      {
+        "ingredientId": "pomme-de-terre",
+        "qty": 300,
+        "unit": "g"
+      },
+      {
+        "ingredientId": "beurre",
+        "qty": 40,
+        "unit": "g"
+      },
+      {
+        "ingredientId": "citron",
+        "qty": 1,
+        "unit": "piece",
+        "note": "jus"
+      },
+      {
+        "ingredientId": "persil",
+        "qty": 0.5,
+        "unit": "piece",
+        "note": "haché"
+      },
+      {
+        "ingredientId": "sel",
+        "qty": 1,
+        "unit": "pincee",
+        "note": "au service",
+        "adultOnly": true
+      },
+      {
+        "ingredientId": "poivre",
+        "qty": 1,
+        "unit": "pincee",
+        "note": "au service",
+        "adultOnly": true
+      }
+    ],
+    "steps": [
+      "Fais cuire le potimarron et les pommes de terre en morceaux 20 min à la vapeur.",
+      "Écrase-les avec la moitié du beurre.",
+      "Fais cuire le lieu 3 à 4 min par face dans le reste de beurre, jusqu'à ce qu'il s'effeuille.",
+      "Arrose de jus de citron et parsème de persil.",
+      "Prélève la portion bébé, puis sale et poivre."
+    ],
+    "babyAdaptation": {
+      "when": "Prélever avant de saler et de poivrer",
+      "texture": "poisson émietté sans arête mélangé à la purée",
+      "amount": "20 g de poisson + 5 c. à soupe de purée",
+      "notes": "Vérifie l'absence d'arêtes. Allergène : poisson."
+    },
+    "ironScore": 1,
+    "mainProtein": "fish",
+    "tags": [
+      "quick"
+    ],
+    "illustration": "potimarron",
+    "source": "seed"
+  },
+  {
+    "id": "pates-epinards-ricotta",
+    "slug": "pates-epinards-ricotta",
+    "title": "Pâtes aux épinards et à la ricotta",
+    "description": "Une sauce verte crémeuse en dix minutes, avec des épinards et de la ricotta.",
+    "slots": [
+      "lunch",
+      "dinner"
+    ],
+    "prepMinutes": 10,
+    "cookMinutes": 12,
+    "longCook": false,
+    "prepAhead": false,
+    "prepAheadSteps": [],
+    "yieldsLeftovers": false,
+    "servingsBase": 4,
+    "ingredients": [
+      {
+        "ingredientId": "pates",
+        "qty": 320,
+        "unit": "g"
+      },
+      {
+        "ingredientId": "epinard-surgele",
+        "qty": 400,
+        "unit": "g"
+      },
+      {
+        "ingredientId": "ricotta",
+        "qty": 250,
+        "unit": "g"
+      },
+      {
+        "ingredientId": "ail",
+        "qty": 1,
+        "unit": "piece"
+      },
+      {
+        "ingredientId": "huile-olive",
+        "qty": 2,
+        "unit": "cs"
+      },
+      {
+        "ingredientId": "citron",
+        "qty": 0.5,
+        "unit": "piece",
+        "note": "zeste et jus"
+      },
+      {
+        "ingredientId": "muscade",
+        "qty": 1,
+        "unit": "pincee"
+      },
+      {
+        "ingredientId": "parmesan",
+        "qty": 30,
+        "unit": "g",
+        "note": "au service",
+        "adultOnly": true
+      },
+      {
+        "ingredientId": "sel",
+        "qty": 1,
+        "unit": "pincee",
+        "note": "au service",
+        "adultOnly": true
+      },
+      {
+        "ingredientId": "poivre",
+        "qty": 1,
+        "unit": "pincee",
+        "note": "au service",
+        "adultOnly": true
+      }
+    ],
+    "steps": [
+      "Fais cuire les pâtes dans une grande casserole d'eau non salée.",
+      "Fais revenir l'ail dans l'huile, ajoute les épinards et laisse cuire 6 min.",
+      "Hors du feu, ajoute la ricotta, la muscade, le zeste et le jus de citron, et un peu d'eau de cuisson.",
+      "Mélange avec les pâtes égouttées.",
+      "Prélève la portion bébé, puis sale, poivre et ajoute le parmesan pour les grands."
+    ],
+    "babyAdaptation": {
+      "when": "Prélever avant d'ajouter parmesan, sel et poivre",
+      "texture": "pâtes coupées en petits morceaux dans la sauce bien lisse",
+      "amount": "4 à 5 c. à soupe",
+      "notes": "Fer des épinards et vitamine C du citron. Allergènes : gluten, lait."
+    },
+    "ironScore": 2,
+    "mainProtein": "dairy",
+    "tags": [
+      "quick"
+    ],
+    "illustration": "epinard",
+    "source": "seed"
+  },
+  {
+    "id": "pates-tomate-mozzarella",
+    "slug": "pates-tomate-mozzarella",
+    "title": "Pâtes à la tomate et à la mozzarella",
+    "description": "La sauce tomate maison mijotée avec des carottes, et la mozzarella qui file : le plat préféré des petits.",
+    "slots": [
+      "lunch",
+      "dinner"
+    ],
+    "prepMinutes": 10,
+    "cookMinutes": 20,
+    "longCook": false,
+    "prepAhead": false,
+    "prepAheadSteps": [],
+    "yieldsLeftovers": false,
+    "servingsBase": 4,
+    "ingredients": [
+      {
+        "ingredientId": "pates",
+        "qty": 320,
+        "unit": "g"
+      },
+      {
+        "ingredientId": "tomates-concassees",
+        "qty": 800,
+        "unit": "g"
+      },
+      {
+        "ingredientId": "carotte",
+        "qty": 2,
+        "unit": "piece",
+        "note": "râpées",
+        "form": "cooked"
+      },
+      {
+        "ingredientId": "oignon",
+        "qty": 1,
+        "unit": "piece"
+      },
+      {
+        "ingredientId": "ail",
+        "qty": 1,
+        "unit": "piece"
+      },
+      {
+        "ingredientId": "huile-olive",
+        "qty": 2,
+        "unit": "cs"
+      },
+      {
+        "ingredientId": "herbes-provence",
+        "qty": 1,
+        "unit": "cc"
+      },
+      {
+        "ingredientId": "mozzarella",
+        "qty": 2,
+        "unit": "piece",
+        "note": "en dés"
+      },
+      {
+        "ingredientId": "sel",
+        "qty": 1,
+        "unit": "pincee",
+        "note": "au service",
+        "adultOnly": true
+      },
+      {
+        "ingredientId": "poivre",
+        "qty": 1,
+        "unit": "pincee",
+        "note": "au service",
+        "adultOnly": true
+      }
+    ],
+    "steps": [
+      "Fais fondre l'oignon et l'ail dans l'huile, ajoute les carottes râpées.",
+      "Ajoute les tomates et les herbes, laisse mijoter 15 min.",
+      "Fais cuire les pâtes dans une grande casserole d'eau non salée.",
+      "Mélange pâtes et sauce, ajoute la mozzarella hors du feu.",
+      "Prélève la portion bébé, puis sale et poivre."
+    ],
+    "babyAdaptation": {
+      "when": "Prélever avant de saler et de poivrer",
+      "texture": "pâtes coupées en petits morceaux, mozzarella fondue en petits morceaux",
+      "amount": "4 à 5 c. à soupe",
+      "notes": "Allergènes : gluten, lait."
+    },
+    "ironScore": 0,
+    "mainProtein": "dairy",
+    "tags": [
+      "quick"
+    ],
+    "illustration": "tomate",
+    "source": "seed"
+  },
+  {
+    "id": "soupe-legumes-tartines-chevre",
+    "slug": "soupe-legumes-tartines-chevre",
+    "title": "Soupe de légumes maison et tartines au chèvre",
+    "description": "La soupe de légumes du marché, et des tartines grillées au chèvre frais pour caler.",
+    "slots": [
+      "lunch"
+    ],
+    "prepMinutes": 15,
+    "cookMinutes": 30,
+    "longCook": false,
+    "prepAhead": false,
+    "prepAheadSteps": [],
+    "yieldsLeftovers": false,
+    "servingsBase": 4,
+    "ingredients": [
+      {
+        "ingredientId": "poireau",
+        "qty": 2,
+        "unit": "piece"
+      },
+      {
+        "ingredientId": "carotte",
+        "qty": 3,
+        "unit": "piece",
+        "form": "cooked"
+      },
+      {
+        "ingredientId": "pomme-de-terre",
+        "qty": 3,
+        "unit": "piece"
+      },
+      {
+        "ingredientId": "navet",
+        "qty": 1,
+        "unit": "piece"
+      },
+      {
+        "ingredientId": "oignon",
+        "qty": 1,
+        "unit": "piece"
+      },
+      {
+        "ingredientId": "huile-olive",
+        "qty": 2,
+        "unit": "cs"
+      },
+      {
+        "ingredientId": "chevre-frais",
+        "qty": 150,
+        "unit": "g"
+      },
+      {
+        "ingredientId": "pain",
+        "qty": 0.5,
+        "unit": "piece"
+      },
+      {
+        "ingredientId": "persil",
+        "qty": 0.5,
+        "unit": "piece",
+        "note": "ou ciboulette"
+      },
+      {
+        "ingredientId": "sel",
+        "qty": 1,
+        "unit": "pincee",
+        "note": "au service",
+        "adultOnly": true
+      },
+      {
+        "ingredientId": "poivre",
+        "qty": 1,
+        "unit": "pincee",
+        "note": "au service",
+        "adultOnly": true
+      }
+    ],
+    "steps": [
+      "Fais fondre l'oignon et les poireaux émincés dans l'huile 5 min.",
+      "Ajoute carottes, pommes de terre et navet en morceaux, couvre d'eau à hauteur.",
+      "Laisse cuire 25 min, puis mixe.",
+      "Fais griller le pain et tartine-le de chèvre frais et de persil.",
+      "Prélève la portion bébé, puis sale et poivre la soupe des grands."
+    ],
+    "babyAdaptation": {
+      "when": "Prélever avant de saler et de poivrer",
+      "texture": "soupe mixée bien lisse, mouillettes de pain tartinées de chèvre",
+      "amount": "150 ml de soupe + 1 petite tartine",
+      "notes": "Le chèvre frais est pasteurisé. Allergènes : lait, gluten."
+    },
+    "ironScore": 0,
+    "mainProtein": "veggie",
+    "tags": [
+      "soup"
+    ],
+    "illustration": "poireau",
+    "source": "seed"
+  },
+  {
+    "id": "veloute-poireaux-pommes-de-terre",
+    "slug": "veloute-poireaux-pommes-de-terre",
+    "title": "Velouté poireaux-pommes de terre et croque au fromage",
+    "description": "Le velouté le plus réconfortant de l'automne, avec un petit croque au fromage pour tremper.",
+    "slots": [
+      "lunch"
+    ],
+    "prepMinutes": 15,
+    "cookMinutes": 30,
+    "longCook": false,
+    "prepAhead": false,
+    "prepAheadSteps": [],
+    "yieldsLeftovers": false,
+    "servingsBase": 4,
+    "ingredients": [
+      {
+        "ingredientId": "poireau",
+        "qty": 3,
+        "unit": "piece"
+      },
+      {
+        "ingredientId": "pomme-de-terre",
+        "qty": 600,
+        "unit": "g"
+      },
+      {
+        "ingredientId": "oignon",
+        "qty": 1,
+        "unit": "piece"
+      },
+      {
+        "ingredientId": "beurre",
+        "qty": 20,
+        "unit": "g"
+      },
+      {
+        "ingredientId": "creme-fraiche",
+        "qty": 60,
+        "unit": "g"
+      },
+      {
+        "ingredientId": "pain-mie",
+        "qty": 8,
+        "unit": "piece"
+      },
+      {
+        "ingredientId": "emmental-rape",
+        "qty": 80,
+        "unit": "g"
+      },
+      {
+        "ingredientId": "persil",
+        "qty": 0.5,
+        "unit": "piece",
+        "note": "ou ciboulette"
+      },
+      {
+        "ingredientId": "sel",
+        "qty": 1,
+        "unit": "pincee",
+        "note": "au service",
+        "adultOnly": true
+      },
+      {
+        "ingredientId": "poivre",
+        "qty": 1,
+        "unit": "pincee",
+        "note": "au service",
+        "adultOnly": true
+      }
+    ],
+    "steps": [
+      "Fais fondre l'oignon et les poireaux émincés dans le beurre 5 min.",
+      "Ajoute les pommes de terre en morceaux, couvre d'eau et laisse cuire 25 min.",
+      "Mixe avec la crème fraîche.",
+      "Garnis le pain de mie d'emmental, referme et dore les croques 3 min par face à la poêle.",
+      "Prélève la portion bébé, puis sale, poivre et parsème de persil."
+    ],
+    "babyAdaptation": {
+      "when": "Prélever avant de saler et de poivrer",
+      "texture": "velouté bien lisse, croque coupé en mouillettes",
+      "amount": "150 ml de velouté + 1/2 croque",
+      "notes": "Allergènes : lait, gluten."
+    },
+    "ironScore": 0,
+    "mainProtein": "dairy",
+    "tags": [
+      "soup"
+    ],
+    "illustration": "poireau",
+    "source": "seed"
+  },
+  {
+    "id": "riz-saute-oeufs-legumes",
+    "slug": "riz-saute-oeufs-legumes",
+    "title": "Riz sauté aux œufs et légumes",
+    "description": "Le riz sauté du soir pressé : œufs brouillés, petits pois, carottes et chou, sauce soja côté grands.",
+    "slots": [
+      "lunch",
+      "dinner"
+    ],
+    "prepMinutes": 10,
+    "cookMinutes": 15,
+    "longCook": false,
+    "prepAhead": false,
+    "prepAheadSteps": [],
+    "yieldsLeftovers": false,
+    "servingsBase": 4,
+    "ingredients": [
+      {
+        "ingredientId": "riz",
+        "qty": 280,
+        "unit": "g",
+        "note": "cuit la veille si possible"
+      },
+      {
+        "ingredientId": "oeuf",
+        "qty": 6,
+        "unit": "piece"
+      },
+      {
+        "ingredientId": "petits-pois-surgeles",
+        "qty": 300,
+        "unit": "g"
+      },
+      {
+        "ingredientId": "carotte",
+        "qty": 2,
+        "unit": "piece",
+        "note": "en petits dés",
+        "form": "cooked"
+      },
+      {
+        "ingredientId": "chou-vert",
+        "qty": 0.25,
+        "unit": "piece",
+        "note": "émincé finement"
+      },
+      {
+        "ingredientId": "oignon",
+        "qty": 1,
+        "unit": "piece"
+      },
+      {
+        "ingredientId": "gingembre",
+        "qty": 10,
+        "unit": "g"
+      },
+      {
+        "ingredientId": "huile-colza",
+        "qty": 3,
+        "unit": "cs"
+      },
+      {
+        "ingredientId": "sauce-soja",
+        "qty": 2,
+        "unit": "cs",
+        "adultOnly": true
+      }
+    ],
+    "steps": [
+      "Fais cuire le riz s'il n'est pas déjà cuit, puis laisse-le refroidir.",
+      "Brouille les œufs dans 1 c. à soupe d'huile jusqu'à ce qu'ils soient bien pris, réserve.",
+      "Fais sauter l'oignon, le gingembre, les carottes et le chou 6 min dans le reste d'huile avec un fond d'eau.",
+      "Ajoute les petits pois et le riz, fais sauter 5 min.",
+      "Remets les œufs et prélève la portion bébé.",
+      "Ajoute la sauce soja pour les grands."
+    ],
+    "babyAdaptation": {
+      "when": "Prélever avant la sauce soja",
+      "texture": "riz bien tendre, œuf brouillé émietté, petits pois écrasés, chou haché",
+      "amount": "5 c. à soupe (environ 1/2 œuf)",
+      "notes": "Riz de la veille gardé au réfrigérateur et bien réchauffé. Fer des œufs et des petits pois + vitamine C du chou. Allergène : œuf."
+    },
+    "ironScore": 2,
+    "mainProtein": "egg",
+    "tags": [
+      "quick"
+    ],
+    "illustration": "petits-pois",
+    "source": "seed"
+  },
+  {
+    "id": "rostis-oeufs-brouilles",
+    "slug": "rostis-oeufs-brouilles",
+    "title": "Röstis de pommes de terre et œufs brouillés",
+    "description": "Des galettes de pommes de terre râpées bien dorées, avec des œufs brouillés crémeux mais bien pris.",
+    "slots": [
+      "lunch",
+      "dinner"
+    ],
+    "prepMinutes": 20,
+    "cookMinutes": 25,
+    "longCook": false,
+    "prepAhead": false,
+    "prepAheadSteps": [],
+    "yieldsLeftovers": false,
+    "servingsBase": 4,
+    "ingredients": [
+      {
+        "ingredientId": "pomme-de-terre",
+        "qty": 1000,
+        "unit": "g",
+        "note": "râpées"
+      },
+      {
+        "ingredientId": "oignon",
+        "qty": 1,
+        "unit": "piece",
+        "note": "râpé"
+      },
+      {
+        "ingredientId": "oeuf",
+        "qty": 6,
+        "unit": "piece",
+        "note": "2 pour les röstis, 4 brouillés"
+      },
+      {
+        "ingredientId": "farine",
+        "qty": 2,
+        "unit": "cs"
+      },
+      {
+        "ingredientId": "huile-colza",
+        "qty": 4,
+        "unit": "cs"
+      },
+      {
+        "ingredientId": "beurre",
+        "qty": 10,
+        "unit": "g"
+      },
+      {
+        "ingredientId": "persil",
+        "qty": 1,
+        "unit": "piece",
+        "note": "haché"
+      },
+      {
+        "ingredientId": "mache",
+        "qty": 150,
+        "unit": "g",
+        "note": "en salade",
+        "adultOnly": true
+      },
+      {
+        "ingredientId": "sel",
+        "qty": 1,
+        "unit": "pincee",
+        "note": "au service",
+        "adultOnly": true
+      },
+      {
+        "ingredientId": "poivre",
+        "qty": 1,
+        "unit": "pincee",
+        "note": "au service",
+        "adultOnly": true
+      }
+    ],
+    "steps": [
+      "Râpe les pommes de terre et l'oignon, presse-les dans un torchon pour retirer l'eau.",
+      "Mélange avec 2 œufs et la farine.",
+      "Forme des galettes et fais-les dorer 5 à 6 min par face dans l'huile, à feu moyen, jusqu'à ce qu'elles soient tendres à cœur.",
+      "Brouille les 4 œufs restants dans le beurre à feu doux, jusqu'à ce qu'ils soient bien pris, puis ajoute le persil.",
+      "Prélève la part de bébé, puis sale, poivre et sers avec la mâche."
+    ],
+    "babyAdaptation": {
+      "when": "Prélever avant de saler et de poivrer",
+      "texture": "rösti moelleux coupé en bâtonnets, œuf brouillé bien cuit",
+      "amount": "1 petit rösti + 1/2 œuf",
+      "notes": "Œufs brouillés sans partie coulante. Allergènes : œuf, gluten."
+    },
+    "ironScore": 2,
+    "mainProtein": "egg",
+    "tags": [
+      "finger-food"
+    ],
+    "illustration": "pomme-de-terre",
+    "source": "seed"
+  },
+  {
+    "id": "tarte-thon-tomate-moutarde",
+    "slug": "tarte-thon-tomate-moutarde",
+    "title": "Tarte au thon, tomate et moutarde",
+    "description": "La tarte familiale au thon et aux dernières tomates ; la moutarde seulement sur la moitié des grands.",
+    "slots": [
+      "lunch",
+      "dinner"
+    ],
+    "prepMinutes": 15,
+    "cookMinutes": 35,
+    "longCook": false,
+    "prepAhead": false,
+    "prepAheadSteps": [],
+    "yieldsLeftovers": false,
+    "servingsBase": 4,
+    "ingredients": [
+      {
+        "ingredientId": "pate-brisee",
+        "qty": 1,
+        "unit": "piece"
+      },
+      {
+        "ingredientId": "thon-boite",
+        "qty": 2,
+        "unit": "piece",
+        "note": "égoutté"
+      },
+      {
+        "ingredientId": "tomate",
+        "qty": 4,
+        "unit": "piece",
+        "note": "en rondelles"
+      },
+      {
+        "ingredientId": "oeuf",
+        "qty": 2,
+        "unit": "piece"
+      },
+      {
+        "ingredientId": "creme-fraiche",
+        "qty": 100,
+        "unit": "g"
+      },
+      {
+        "ingredientId": "emmental-rape",
+        "qty": 50,
+        "unit": "g"
+      },
+      {
+        "ingredientId": "herbes-provence",
+        "qty": 1,
+        "unit": "cc"
+      },
+      {
+        "ingredientId": "moutarde",
+        "qty": 2,
+        "unit": "cs",
+        "note": "sur la moitié du fond",
+        "adultOnly": true
+      },
+      {
+        "ingredientId": "sel",
+        "qty": 1,
+        "unit": "pincee",
+        "note": "au service",
+        "adultOnly": true
+      },
+      {
+        "ingredientId": "poivre",
+        "qty": 1,
+        "unit": "pincee",
+        "note": "au service",
+        "adultOnly": true
+      }
+    ],
+    "steps": [
+      "Préchauffe le four à 180 °C. Étale la pâte dans un moule et pique le fond.",
+      "Tartine de moutarde la moitié du fond seulement, pour les grands.",
+      "Bats les œufs avec la crème, le thon émietté et l'emmental, verse sur la pâte.",
+      "Couvre de rondelles de tomate et parsème d'herbes.",
+      "Enfourne 35 min, jusqu'à ce que la garniture soit bien prise.",
+      "Coupe la part de bébé côté sans moutarde, puis sale et poivre les grands."
+    ],
+    "babyAdaptation": {
+      "when": "Couper la part de bébé côté sans moutarde",
+      "texture": "tarte bien prise en petits morceaux, tomate sans peau",
+      "amount": "1 petite part (15 g de thon)",
+      "notes": "Thon : une fois par semaine au plus pour bébé. Allergènes : poisson, œuf, lait, gluten."
+    },
+    "ironScore": 1,
+    "mainProtein": "fish",
+    "tags": [
+      "oven"
+    ],
+    "illustration": "tomate",
+    "source": "seed"
+  },
+  {
+    "id": "mac-cheese-butternut",
+    "slug": "mac-cheese-butternut",
+    "title": "Mac and cheese à la butternut",
+    "description": "Des coquillettes nappées d'une sauce fromage à la courge, gratinées : orange, crémeux, adoré des enfants.",
+    "slots": [
+      "lunch",
+      "dinner"
+    ],
+    "prepMinutes": 15,
+    "cookMinutes": 30,
+    "longCook": false,
+    "prepAhead": false,
+    "prepAheadSteps": [],
+    "yieldsLeftovers": false,
+    "servingsBase": 4,
+    "ingredients": [
+      {
+        "ingredientId": "pates",
+        "qty": 320,
+        "unit": "g",
+        "note": "coquillettes"
+      },
+      {
+        "ingredientId": "courge-butternut",
+        "qty": 600,
+        "unit": "g",
+        "note": "en cubes"
+      },
+      {
+        "ingredientId": "lait",
+        "qty": 400,
+        "unit": "ml"
+      },
+      {
+        "ingredientId": "emmental-rape",
+        "qty": 120,
+        "unit": "g"
+      },
+      {
+        "ingredientId": "beurre",
+        "qty": 20,
+        "unit": "g"
+      },
+      {
+        "ingredientId": "muscade",
+        "qty": 1,
+        "unit": "pincee"
+      },
+      {
+        "ingredientId": "persil",
+        "qty": 0.5,
+        "unit": "piece"
+      },
+      {
+        "ingredientId": "sel",
+        "qty": 1,
+        "unit": "pincee",
+        "note": "au service",
+        "adultOnly": true
+      },
+      {
+        "ingredientId": "poivre",
+        "qty": 1,
+        "unit": "pincee",
+        "note": "au service",
+        "adultOnly": true
+      }
+    ],
+    "steps": [
+      "Fais cuire la courge 15 min dans le lait à feu doux, puis mixe avec le beurre, la muscade et 80 g d'emmental.",
+      "Fais cuire les coquillettes 2 min de moins qu'indiqué dans l'eau non salée.",
+      "Préchauffe le four à 200 °C. Mélange pâtes et sauce dans un plat.",
+      "Parsème du reste d'emmental et gratine 12 min.",
+      "Prélève la portion bébé, puis sale, poivre et parsème de persil."
+    ],
+    "babyAdaptation": {
+      "when": "Prélever avant de saler et de poivrer",
+      "texture": "coquillettes fondantes dans la sauce lisse",
+      "amount": "5 c. à soupe",
+      "notes": "La sauce de bébé peut se faire au lait infantile. Ajoute 20 g de reste de viande, de poisson ou un œuf dur pour la protéine du jour. Allergènes : gluten, lait."
+    },
+    "ironScore": 0,
+    "mainProtein": "dairy",
+    "tags": [
+      "gratin",
+      "oven",
+      "dairy-heavy"
+    ],
+    "illustration": "courge",
+    "source": "seed"
+  },
+  {
+    "id": "pates-pois-chiches-romaine",
+    "slug": "pates-pois-chiches-romaine",
+    "title": "Pâtes aux pois chiches à la romaine",
+    "description": "La pasta e ceci des familles italiennes : une sauce épaisse aux pois chiches et tomate, prête en 25 minutes.",
+    "slots": [
+      "lunch",
+      "dinner"
+    ],
+    "prepMinutes": 10,
+    "cookMinutes": 25,
+    "longCook": false,
+    "prepAhead": false,
+    "prepAheadSteps": [],
+    "yieldsLeftovers": false,
+    "servingsBase": 4,
+    "ingredients": [
+      {
+        "ingredientId": "petites-pates",
+        "qty": 250,
+        "unit": "g",
+        "note": "ditalini ou coquillettes"
+      },
+      {
+        "ingredientId": "pois-chiches",
+        "qty": 500,
+        "unit": "g",
+        "note": "égouttés"
+      },
+      {
+        "ingredientId": "tomates-concassees",
+        "qty": 400,
+        "unit": "g"
+      },
+      {
+        "ingredientId": "carotte",
+        "qty": 1,
+        "unit": "piece",
+        "note": "en petits dés",
+        "form": "cooked"
+      },
+      {
+        "ingredientId": "oignon",
+        "qty": 1,
+        "unit": "piece"
+      },
+      {
+        "ingredientId": "ail",
+        "qty": 1,
+        "unit": "piece"
+      },
+      {
+        "ingredientId": "thym",
+        "qty": 1,
+        "unit": "cc"
+      },
+      {
+        "ingredientId": "huile-olive",
+        "qty": 3,
+        "unit": "cs"
+      },
+      {
+        "ingredientId": "persil",
+        "qty": 1,
+        "unit": "piece"
+      },
+      {
+        "ingredientId": "parmesan",
+        "qty": 30,
+        "unit": "g",
+        "note": "au service",
+        "adultOnly": true
+      },
+      {
+        "ingredientId": "sel",
+        "qty": 1,
+        "unit": "pincee",
+        "note": "au service",
+        "adultOnly": true
+      },
+      {
+        "ingredientId": "poivre",
+        "qty": 1,
+        "unit": "pincee",
+        "note": "au service",
+        "adultOnly": true
+      }
+    ],
+    "steps": [
+      "Fais revenir oignon, ail et carotte dans l'huile 5 min.",
+      "Ajoute les pois chiches, les tomates, le thym et 800 ml d'eau ; écrase la moitié des pois chiches.",
+      "Laisse mijoter 10 min, ajoute les pâtes et cuis-les dans la sauce, en remuant.",
+      "Ajoute le persil haché.",
+      "Prélève la portion bébé, puis sale, poivre et ajoute le parmesan pour les grands."
+    ],
+    "babyAdaptation": {
+      "when": "Prélever avant d'ajouter sel, poivre et parmesan",
+      "texture": "pâtes fondantes et pois chiches bien écrasés",
+      "amount": "5 c. à soupe",
+      "notes": "Fer des pois chiches + vitamine C du persil. Allergène : gluten."
+    },
+    "ironScore": 2,
+    "mainProtein": "legume",
+    "tags": [
+      "one-pot",
+      "quick"
+    ],
+    "illustration": "pois-chiche",
     "source": "seed"
   }
 ]
