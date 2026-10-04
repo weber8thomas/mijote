@@ -46,3 +46,16 @@ export function Logo({ className, size = "md" }: { className?: string; size?: "s
     </span>
   );
 }
+
+/** Petite cocotte au trait (format des icônes lucide) : l'action « préparer la semaine ». Prend la couleur du texte. */
+export function CocotteIcon({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" className={cn("size-4 shrink-0", className)} aria-hidden>
+      <path d="M12 7.4c-1-1.1.5-1.8-.2-3" />
+      <path d="M12.3 3.6c1.3-.8 2.9-.5 3.5.5-1.3.8-2.8.6-3.5-.5z" />
+      <path d="M5.2 11.3C6.2 9 8.8 8 12 8s5.8 1 6.8 3.3z" />
+      <path d="M4 11.3h16l-1.1 5.6a3.3 3.3 0 0 1-3.2 2.6H8.3a3.3 3.3 0 0 1-3.2-2.6z" />
+      <path d="M4.2 13.6H2.4M19.8 13.6h1.8" />
+    </svg>
+  );
+}

@@ -1,12 +1,13 @@
 import { addDays, dayIron, illustrationOf, INGREDIENTS, MONTHS, prepTasksFor, seasonalProduce, SLOT_LABELS, SLOT_LABELS_LONG, toISODate } from "@mijote/shared";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
-import { ChevronRight, Download, MoonStar, Sparkles } from "lucide-react";
+import { ChevronRight, Download, MoonStar } from "lucide-react";
 import { useState } from "react";
 import { Badge, RecipeRow } from "@/components/cards";
 import { Art, Plate } from "@/components/art";
 import { PrepSheet } from "@/components/prep-sheet";
 import { Disclaimer, EmptyState, IronGauge, PageHeader, tintOf } from "@/components/kit";
+import { CocotteIcon } from "@/components/brand";
 import { Shell } from "@/components/shell";
 import { Button } from "@/components/ui/button";
 import { actions, dayIndex, nextWeek, thisWeek, today, useStore, useWeek } from "@/data/store";
@@ -70,7 +71,7 @@ export function TodayView() {
               go("/semaine");
             }}
           >
-            <Sparkles aria-hidden /> Préparer
+            <CocotteIcon className="size-5" /> Préparer
           </Button>
         </div>
       )}
@@ -113,7 +114,7 @@ export function TodayView() {
                         go("/semaine/choix");
                       }}
                     >
-                      <Sparkles aria-hidden /> Préparer la semaine
+                      <CocotteIcon className="size-5" /> Préparer la semaine
                     </Button>
                   </div>
                 )

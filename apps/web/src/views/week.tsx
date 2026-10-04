@@ -18,12 +18,13 @@ import {
 } from "@mijote/shared";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
-import { AlertTriangle, CalendarPlus, CheckCircle2, ChevronDown, ChevronLeft, Flame, MoonStar, Printer, RefreshCw, RotateCcw, Search, ShoppingBasket, Sparkles, Undo2, X } from "lucide-react";
+import { AlertTriangle, CalendarPlus, CheckCircle2, ChevronDown, ChevronLeft, Flame, MoonStar, Printer, RefreshCw, RotateCcw, Search, ShoppingBasket, Undo2, X } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { Badge, RecipeCard, RecipeTile } from "@/components/cards";
 import { EmptyState, IronGauge, PageHeader, Segmented } from "@/components/kit";
+import { CocotteIcon } from "@/components/brand";
 import { Shell } from "@/components/shell";
 import { SearchDialog } from "@/components/search";
 import { Sheet } from "@/components/sheet";
@@ -199,7 +200,7 @@ export function WeekView() {
           action={
             past ? undefined : (
               <Button size="lg" className="h-14 w-full text-base" onClick={prepare}>
-                <Sparkles aria-hidden /> Préparer la semaine
+                <CocotteIcon className="size-5" /> Préparer la semaine
               </Button>
             )
           }
