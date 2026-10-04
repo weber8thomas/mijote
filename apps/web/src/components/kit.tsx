@@ -2,55 +2,21 @@ import { BABY_DISCLAIMER, costPerPortion, costTier, tierLabel, type Recipe } fro
 import { Baby, Clock, Flame } from "lucide-react";
 import type { ReactNode } from "react";
 import { Art, Plate } from "@/components/art";
+import { metaOf, TONES } from "@/components/illustrations/meta";
 import { ingredientsOf, useStore } from "@/data/store";
 import { cn } from "@/lib/utils";
 
-// Petites briques partagées : visuel aquarelle, pictos, puces, en-têtes, états vides.
+// Petites briques partagées : visuel du plat, pictos, puces, en-têtes, états vides.
 
-/** Teinte de lavis derrière chaque illustration. */
-const TINTS: Record<string, string> = {
-  courge: "#f8e3c6",
-  potiron: "#f8dfc2",
-  carotte: "#f9e1cc",
-  "patate-douce": "#f6dccb",
-  clementine: "#fae2c4",
-  chataigne: "#efe0cf",
-  poireau: "#e5ecd6",
-  chou: "#e1ead3",
-  brocoli: "#dfe9d2",
-  epinard: "#dce7cf",
-  kiwi: "#e6ecd0",
-  celeri: "#ebecd8",
-  lentilles: "#e8e8d0",
-  betterave: "#f1dbe3",
-  raisin: "#ece0ea",
-  figue: "#efdde3",
-  tomate: "#f6dcd3",
-  poivron: "#f6d9d0",
-  pomme: "#f5e0d5",
-  poisson: "#dfe7ec",
-  citron: "#f8eec5",
-  poire: "#eff0cf",
-  coing: "#f6ecc8",
-  oeuf: "#f8ead0",
-  "pois-chiche": "#f5e8cf",
-  avoine: "#f3e8d0",
-  panais: "#f3ead6",
-  "pomme-de-terre": "#f1e5cf",
-  navet: "#efe5ea",
-  oignon: "#f3e3d6",
-  champignon: "#efe5d7",
-  "chou-fleur": "#efede2",
-};
+/** Fond de carte derrière une illustration : version très pâle de la teinte de sa pastille (jetons « -soft » de DESIGN.md). */
+export const tintOf = (key: string) => TONES[metaOf(key).tone].wash;
 
-export const tintOf = (key: string) => TINTS[key] ?? "#efe6d3";
-
-/** Visuel d'une recette : l'assiette aquarelle (protéine, légume, féculent) sur un lavis de couleur. */
+/** Visuel d'une recette : le plat en pastille (protéine, légume, féculent) sur un fond pâle de la même teinte. */
 export function RecipeVisual({ recipe, className, size = "md" }: { recipe: Recipe; className?: string; size?: "sm" | "md" | "lg" }) {
   return (
     <div className={cn("relative grid place-items-center overflow-hidden", className)} style={{ backgroundColor: tintOf(recipe.illustration) }}>
       <div className="absolute inset-0 opacity-70" style={{ backgroundImage: "var(--paper-noise)" }} aria-hidden />
-      <Plate recipe={recipe} className={cn("relative", size === "sm" ? "h-[92%]" : size === "lg" ? "h-[86%] max-h-64" : "h-[88%]")} />
+      <Plate recipe={recipe} className={cn("relative", size === "sm" ? "h-[92%]" : size === "lg" ? "h-[86%] max-h-64" : "h-[96%]")} />
     </div>
   );
 }

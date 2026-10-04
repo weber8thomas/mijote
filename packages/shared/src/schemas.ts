@@ -172,7 +172,7 @@ export const Recipe = z.object({
   ironScore: z.number().int().min(0).max(3),
   mainProtein: MainProtein,
   tags: z.array(RecipeTag).default([]),
-  /** Clé de l'illustration aquarelle (produit vedette). */
+  /** Clé de l'illustration (produit vedette, style « Pastille »). */
   illustration: z.string().min(1),
   photoUrl: z.string().url().optional(),
   photoCreditName: z.string().optional(),

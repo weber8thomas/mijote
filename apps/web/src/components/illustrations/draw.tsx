@@ -16,6 +16,7 @@ export const LEAF_LIGHT = "#94c063";
 export const STEM = "#83703e";
 
 const CutMode = createContext(false);
+const r1 = (n: number) => Math.round(n * 10) / 10;
 export const Cut = ({ children }: { children: ReactNode }) => <CutMode.Provider value>{children}</CutMode.Provider>;
 
 /** Aplat. */
@@ -24,12 +25,14 @@ export function P({ d, f, o }: { d: string; f: string; o?: number }) {
 }
 
 /** Ellipse (rotation `a` en degrés). */
-export function E({ x, y, rx, ry, f, a, o }: { x: number; y: number; rx: number; ry: number; f: string; a?: number; o?: number }) {
-  const t = a ? `rotate(${a} ${x} ${y})` : undefined;
+export function E({ x: x0, y: y0, rx: rx0, ry: ry0, f, a, o }: { x: number; y: number; rx: number; ry: number; f: string; a?: number; o?: number }) {
+  const [x, y, rx, ry] = [r1(x0), r1(y0), r1(rx0), r1(ry0)];
+  const t = a ? `rotate(${r1(a)} ${x} ${y})` : undefined;
   return useContext(CutMode) ? <ellipse cx={x} cy={y} rx={rx} ry={ry} transform={t} /> : <ellipse cx={x} cy={y} rx={rx} ry={ry} fill={f} transform={t} opacity={o} />;
 }
 
-export function C({ x, y, r, f, o }: { x: number; y: number; r: number; f: string; o?: number }) {
+export function C({ x: x0, y: y0, r: r0, f, o }: { x: number; y: number; r: number; f: string; o?: number }) {
+  const [x, y, r] = [r1(x0), r1(y0), r1(r0)];
   return useContext(CutMode) ? <circle cx={x} cy={y} r={r} /> : <circle cx={x} cy={y} r={r} fill={f} opacity={o} />;
 }
 
@@ -51,7 +54,9 @@ export const f1 = (n: number) => String(Math.round(n * 10) / 10);
 const pt = (p: Pt) => `${f1(p[0])} ${f1(p[1])}`;
 
 /** Plusieurs petits disques en un seul chemin (graines, grains, pépins). */
-export const dots = (pts: Pt[], r: number) => pts.map(([x, y]) => `M${f1(x - r)} ${f1(y)}a${r} ${r} 0 1 0 ${f1(2 * r)} 0a${r} ${r} 0 1 0 ${f1(-2 * r)} 0`).join("");
+export const dots = (pts: Pt[], r: number) => pts.map(([x, y]) => `M${f1(x - r)} ${f1(y)}a${f1(r)} ${f1(r)} 0 1 0 ${f1(2 * r)} 0a${f1(r)} ${f1(r)} 0 1 0 ${f1(-2 * r)} 0`).join("");
+/** Disques de rayons différents [x, y, r] en un seul chemin. */
+export const discs = (ds: [number, number, number][]) => ds.map(([x, y, r]) => dots([[x, y]], r)).join("");
 
 /** Courbe fermée lisse passant par les points (Catmull-Rom → Bézier). */
 export function smooth(pts: Pt[]): string {
@@ -104,4 +109,49 @@ export function cube(x: number, y: number, s: number, h = s): { top: string; lef
     left: `M${f1(x - a)} ${f1(y)}l${f1(a)} ${f1(b)}v${f1(h)}l${f1(-a)} ${f1(-b)}Z`,
     right: `M${f1(x)} ${f1(y + b)}l${f1(a)} ${f1(-b)}v${f1(h)}l${f1(-a)} ${f1(b)}Z`,
   };
+}
+
+/** Racine (carotte, panais) : bout arrondi en A, pointe en B. `shade` donne la bande ombrée du côté gauche. */
+export function root(ax: number, ay: number, bx: number, by: number, w: number, shade = false): string {
+  const dx = bx - ax;
+  const dy = by - ay;
+  const len = Math.hypot(dx, dy) || 1;
+  const [ux, uy, nx, ny] = [dx / len, dy / len, -dy / len, dx / len];
+  const p = (t: number, m: number): Pt => [ax + ux * len * t + nx * m, ay + uy * len * t + ny * m];
+  const B: Pt = [bx, by];
+  if (shade) return `M${pt(p(0, -w))}C${pt(p(0.4, -w * 1.05))} ${pt(p(0.85, -w * 0.35))} ${pt(B)}C${pt(p(0.8, -w * 0.05))} ${pt(p(0.4, -w * 0.45))} ${pt(p(0, -w * 0.5))}Z`;
+  const cap = (q: Pt): Pt => [q[0] - ux * w * 1.33, q[1] - uy * w * 1.33];
+  const r0 = p(0, w);
+  const l0 = p(0, -w);
+  return `M${pt(r0)}C${pt(p(0.4, w * 1.05))} ${pt(p(0.85, w * 0.35))} ${pt(B)}C${pt(p(0.85, -w * 0.35))} ${pt(p(0.4, -w * 1.05))} ${pt(l0)}C${pt(cap(l0))} ${pt(cap(r0))} ${pt(r0)}Z`;
+}
+
+/** Point le long de A→B (t de 0 à 1), décalé de m perpendiculairement. */
+export function along(ax: number, ay: number, bx: number, by: number, t: number, m = 0): Pt {
+  const dx = bx - ax;
+  const dy = by - ay;
+  const len = Math.hypot(dx, dy) || 1;
+  return [ax + dx * t - (dy / len) * m, ay + dy * t + (dx / len) * m];
+}
+
+/** Petits traits en travers d'une racine (cernes), du côté droit. */
+export function rings(ax: number, ay: number, bx: number, by: number, w: number, ts: number[]): string {
+  return ts
+    .map((t) => {
+      const a = along(ax, ay, bx, by, t, w * (1 - t) * 0.95);
+      const b = along(ax, ay, bx, by, t + 0.03, w * (1 - t) * 0.3);
+      return `M${pt(a)}L${pt(b)}`;
+    })
+    .join("");
+}
+
+/** Tas (lentilles, semoule) : dôme à bord bosselé posé sur y = base. */
+export function heap(cx: number, base: number, rx: number, ry: number, n = 14, bump = 2): string {
+  const pts: Pt[] = [[cx + rx, base], [cx, base + 3], [cx - rx, base]];
+  for (let i = 1; i < n; i++) {
+    const t = Math.PI - (i / n) * Math.PI;
+    const k = i % 2 ? bump : -bump * 0.4;
+    pts.push([cx + Math.cos(t) * (rx + k * 0.5), base - Math.sin(t) * (ry + k)]);
+  }
+  return smooth(pts);
 }

@@ -1,6 +1,6 @@
 # Mijoté — Design
 
-Univers **botanique illustré** : fruits et légumes à l'aquarelle, papier crème légèrement texturé, chaleur d'un carnet de recettes familial. Jamais enfantin, jamais chargé.
+Univers **botanique illustré** : fruits et légumes en pastilles d'aplats nets (style « Pastille »), papier crème légèrement texturé, chaleur d'un carnet de recettes familial. Jamais enfantin, jamais chargé.
 
 ## Principes
 - **Mobile d'abord** (390 px), puis tablette (2 colonnes de jours) et desktop (rail latéral + tableau 7 × 4).
@@ -32,12 +32,20 @@ Pas de thème sombre en v1, mais tout passe par les jetons.
 ## Formes
 Rayon de base 1 rem ; cartes 1,5–2 rem ; puces et boutons en pilule. Ombre `--shadow-card` douce et chaude, `--shadow-float` pour les aperçus et feuilles.
 
-## Illustrations
-32 produits en SVG (`apps/web/src/components/illustrations`), lavis superposés + filtres partagés (`<WatercolorDefs/>` monté une fois) : `wc-wash` (bords organiques, pigment qui s'accumule), `wc-soft`, `wc-ink` (trait tremblé), `wc-grain`. Chaque recette choisit son produit vedette (`illustration`) ; fond de lavis assorti (`tintOf`). < 2 Ko par illustration.
+## Illustrations — style « Pastille »
+Choisi sur la planche d'icônes v2 (style c). Objectif : net sur iPhone à toutes les tailles, lisible à 40 px, charmant à 120 px.
 
-## Pictos
-- **Fer** : anneau en trois arcs prune autour de « Fe » (`IronGauge`), comme un objectif du jour à compléter.
-- **Assiette** : la vignette d'un plat superpose protéine, légume et féculent (2 ou 3 illustrations), le dessert garde son fruit.
+- **Dessin** : aplats francs + **une seule ombre plate** plus foncée (côté droit / bas), un reflet clair en haut à gauche. Pas de contour d'encre. **Aucun `<filter>`, flou, masque, `feTurbulence`/`feDisplacementMap` ni image matricielle** : l'export échoue s'il en trouve un.
+- **Autocollant** (`public/illustrations/<clé>.svg`, composant `Art`) : pastille ronde teintée (jetons `-soft`), anneau crème `#fffaf1`, disque d'ombre décalé (3,5 ; 4,5) dans la même teinte plus soutenue, puis l'aliment avec une **découpe crème** (sa silhouette épaissie de 8) et l'ombre de cette découpe. Sert aux produits seuls : saison, placard, courses, états vides, recherche.
+- **Teintes de pastille** (`components/illustrations/meta.ts`, `TONES`) : sauge `#e4ead6`, terracotta `#f5ddd0`, ocre `#f8ebcc`, prune `#f2dfe6` ; ombre `#c9d5b3 / #e7bfa9 / #ead2a0 / #e0bfcd` ; fond de carte (`tintOf`) encore plus pâle. Chaque produit prend la teinte qui le fait ressortir : orange sur sauge, vert sur terracotta ou ocre, rouge et violet sur ocre ou sauge, crème et beige sur prune ou terracotta.
+- **Lisibilité** : une silhouette franche par produit, et les cousins se distinguent par la forme autant que par la couleur — carotte (orange, fanes) / panais (ivoire, sens inverse) / patate douce (couchée, rouge, coupée) ; butternut (poire beige) / potiron (côtelé, aplati) / potimarron (goutte rouge, sans côtes) ; chou vert / chou rouge (violet, demi-chou marbré) ; clémentine (feuilles) / orange (demi-tranche) ; poisson entier (produit) / pavé de saumon (assiette).
+- **Deux formes par aliment** : `product` (entier, iconique) et, au besoin, `plated` (cuisiné : rondelles, dés, purée, quartiers, tranches, fleurettes, dôme de riz ou de semoule, penne…). Exports : `food/<clé>.svg` = forme cuisinée nue, posée sur y = 104 avec une ombre de contact ; `food/whole/<clé>.svg` = produit entier nu (ce qui dépasse derrière un bol).
+- **Contenants** : `food/_badge-<teinte>.svg`, `_plate.svg` (assiette crème vue de trois quarts), `_bowl-terracotta|sage.svg` (bol à liseré crème), `_soup-<couleur>.svg` (surface : orange, vert, rouge, jaune, beige, brun, crème, violet + feuille de persil).
+- **Assiette composée** (`Plate`, `components/art.tsx`) : une seule pastille par plat, teinte du produit vedette. Calques `<img>` superposés : pastille → assiette → aliments de l'arrière vers l'avant. Créneaux : **protéine au fond à droite**, l'accompagnement **le plus haut** (`height` dans `meta.ts`) **au fond à gauche**, le plus plat **devant**. Deux aliments : le plus haut au fond à gauche, l'autre devant à droite.
+- **Bol plutôt qu'assiette** : plat avec le tag `soup` ou dont le titre contient soupe, velouté, potage, dahl, curry, chili, harira, minestrone, mafé, potée ; dessert dont le titre contient compote, yaourt, petits-suisses, riz au lait, semoule, crème, flan. Surface = couleur du légume (`soup` dans `meta.ts`), crème pour les desserts lactés, brun pour le chocolat, couleur du fruit pour une compote. Les produits entiers (légume à gauche, protéine à droite, ou le fruit du dessert) dépassent derrière le bol. Bol sauge sur pastille terracotta ou prune, terracotta sinon (jamais une soupe verte dans un bol vert).
+- **Dessert sans bol** : l'autocollant du produit vedette.
+- **Poids** : 55 produits + brin de repli ; autocollants 1,2–4,3 Ko (≈ 115 Ko au total), aliments nus 0,5–3,7 Ko. Planche : `design/screens/icons-v2-sheet.png`.
+- **Ajouter un produit** : une clé dans `packages/shared/src/illustrations.ts`, ses métadonnées dans `meta.ts`, son dessin (`product`, éventuellement `plated`) dans le fichier de famille (`squash`, `roots`, `greens`, `garden`, `fruits`, `pantry`), son nom dans `LABELS` (`index.tsx`). Primitives : `draw.tsx` (`P`, `E`, `C`, `L`, `In` pour les détails absents de la découpe).
 
 ## Logo
 Direction « Carnet » : une cocotte dessinée à l'encre (couvercle terracotta) sur un lavis rond terracotta pâle ; la vapeur monte en tige et devient une feuille sauge. Mot-symbole « mijoté » en minuscules, Young Serif, l'accent du é en terracotta. Versions : couleur, monochrome (`LogoMark mono`), favicon (cocotte crème sur carré terracotta). Planche : https://claude.ai/artifact/LHRP6HfmYnyKZckmmshNpH `public/logo.svg`, favicon, icônes PWA 192/512/maskable et apple-touch générées par `npm run icons -w @mijote/web`.

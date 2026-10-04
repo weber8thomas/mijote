@@ -1,214 +1,338 @@
-// Garde-manger : châtaigne, légumineuses, poisson, œuf, avoine.
-import { Frame, Hi, Ink, LEAF_LIGHT, LG, RG, W, blob, ell, leaf, polar, rng, url } from "./primitives";
-import type { IllustrationProps } from "./primitives";
+// Protéines et féculents : lentilles, pois chiches, haricots, poisson, œuf, viande, poulet, tofu, pâtes, riz, céréales, pain, avoine.
+import type { IllustrationKey } from "@mijote/shared";
+import { C, cube, dots, E, G, heap, In, L, leaf, LEAF, P } from "./draw";
+import type { Pt } from "./draw";
+import type { Food } from "./food";
 
-const NUT = "M0 -27C-6 -26 -20 -12 -22 2C-24 16 -18 26 -4 27C10 28 20 24 22 12C24 -2 10 -20 3 -26C2 -27 1 -27 0 -27Z";
-const NUT_BASE = "M-21 14C-17 23 -9 28 0 28C10 28 18 25 21 18C14 22 4 24 -4 23C-12 22 -18 19 -21 14Z";
-function Nut({ t }: { t: string }) {
-  return (
-    <g transform={t}>
-      <W d={NUT} f={url("chataigne-a")} o={0.92} />
-      <W d="M10 -18C20 -6 24 8 18 20C12 26 4 27 -2 27C12 18 18 2 10 -18Z" f="#3f2414" o={0.4} />
-      <Hi d="M-6 -18C-12 -10 -16 -2 -16 6C-13 -2 -9 -10 -3 -16Z" o={0.6} />
-      <W d={NUT_BASE} f="#dcc7a4" o={0.9} />
-      <Ink o={0.55}>
-        <path d="M0 -27L-1 -33M1 -27L3 -32M-1 -27L-4 -31" />
-        <path d="M-19 15C-14 20 -6 23 0 23C8 23 14 21 20 17" />
-      </Ink>
-      <Ink o={0.25} w={1}>
-        <path d="M0 -22C-6 -10 -10 4 -10 20M4 -22C6 -8 6 6 4 22" />
-      </Ink>
-    </g>
-  );
-}
-export function Chataigne({ className }: IllustrationProps) {
-  return (
-    <Frame className={className}>
-      <defs>
-        <RG id="chataigne-a" c={["#a26c46", "#7a4a2e", "#55311e"]} cx={0.36} cy={0.3} />
-      </defs>
-      <W d={leaf(16, 104, 104, 20, 9, 4)} f={LEAF_LIGHT} o={0.5} />
-      <Nut t="translate(40 62) rotate(-14)" />
-      <Nut t="translate(80 58) rotate(16) scale(.94)" />
-      <Nut t="translate(61 86) rotate(3) scale(.86)" />
-    </Frame>
-  );
-}
+// ---------- Légumineuses ----------
+const MOUND = heap(60, 102, 46, 40, 16, 2.4);
+const lentils = () => (
+  <>
+    <P d={MOUND} f="#8e8b4c" />
+    <In>
+      <P d="M70 64C88 70 104 84 106 102C98 104 90 105 82 105C90 92 86 76 70 64Z" f="#706d38" />
+      <P d={dots([[34, 86], [46, 76], [58, 68], [70, 74], [52, 90], [40, 96], [66, 88], [78, 84], [28, 96], [60, 98], [48, 82], [56, 78]], 2.6)} f="#b8b571" />
+      <P d={dots([[40, 86], [52, 72], [64, 80], [72, 94], [58, 92], [34, 94], [76, 70], [88, 88], [86, 98]], 2.4)} f="#5d5b2c" />
+    </In>
+  </>
+);
 
-const LENS = (() => {
-  const r = rng(21);
-  const a: string[] = [];
-  const b: string[] = [];
-  const hi: string[] = [];
-  const lines: string[] = [];
-  let row = 0;
-  for (let y = 93; y > 52; y -= 4.4, row++) {
-    for (let x = 14 + (row % 2) * 3.6; x < 107; x += 7.4) {
-      const top = 54 + ((x - 60) / 44) ** 2 * 40;
-      if (y < top + 1.5) continue;
-      const cx = x + (r() - 0.5) * 2.4;
-      const cy = y + (r() - 0.5) * 1.6;
-      const p = ell(cx, cy, 3.7, 2.6, (r() - 0.5) * 1.1);
-      (r() > 0.45 ? a : b).push(p);
-      hi.push(ell(cx - 1.2, cy - 0.9, 1.3, 0.7, -0.2));
-      if (r() > 0.5) lines.push(p);
-    }
-  }
-  const loose: [number, number, number][] = [[14, 103, 0.3], [27, 106, -0.4], [93, 105, 0.6], [106, 101, -0.2], [78, 109, 0.1], [44, 109, -0.6]];
-  for (const [x, y, t] of loose) {
-    const p = ell(x, y, 3.7, 2.6, t);
-    a.push(p);
-    lines.push(p);
-  }
-  return { a: a.join(""), b: b.join(""), hi: hi.join(""), lines: lines.join("") };
-})();
-export function Lentilles({ className }: IllustrationProps) {
-  return (
-    <Frame className={className}>
-      <defs>
-        <LG id="lentilles-a" c={["#9da262", "#80854a", "#666a3c"]} />
-      </defs>
-      <W d="M12 95C22 72 40 54 60 52C80 54 98 72 108 95C94 100 26 100 12 95Z" f={url("lentilles-a")} o={0.6} />
-      <W d={LENS.b} f="#a3a766" o={0.88} />
-      <W d={LENS.a} f="#7d8245" o={0.85} />
-      <W d="M80 60C94 70 102 82 107 95C98 98 86 99 76 99C88 88 88 74 80 60Z" f="#4f5230" o={0.3} />
-      <path d={LENS.hi} fill="#f3f0d0" opacity={0.45} />
-      <Ink o={0.4} w={0.7}>
-        <path d={LENS.lines} />
-      </Ink>
-    </Frame>
-  );
-}
+const CHICKPEAS: Pt[] = [[28, 93], [49, 95], [70, 95], [91, 93], [38, 77], [59, 78], [80, 77], [49, 61], [70, 61]];
+const chickpea = ([x, y]: Pt, i: number) => (
+  <g key={i}>
+    <C x={x} y={y} r={11} f="#e6c27f" />
+    <In>
+      <P d={`M${x - 10} ${y + 4}C${x - 6} ${y + 12} ${x + 8} ${y + 12} ${x + 11} ${y}C${x + 6} ${y + 6} ${x - 4} ${y + 8} ${x - 10} ${y + 4}Z`} f="#c99e57" />
+      <L d={`M${x - 2} ${y - 10}C${x - 4} ${y - 4} ${x - 2} ${y + 2} ${x + 2} ${y + 6}`} c="#d4ad68" w={1.6} />
+      <C x={x - 5} y={y - 4} r={2.4} f="#f4dca6" />
+    </In>
+  </g>
+);
 
-type Pea = [number, number, number, number];
-const PEAS: Pea[] = [
-  [40, 50, 12, -2.3],
-  [64, 44, 12.5, -1.2],
-  [87, 56, 11.5, -0.4],
-  [32, 74, 11.5, 2.7],
-  [57, 70, 13, -1.9],
-  [82, 80, 12, 0.3],
-  [54, 96, 11.5, 1.1],
-];
-const chick = ([cx, cy, r, a]: Pea, k: number, s = 1) =>
-  polar(cx, cy, (t) => {
-    const d = Math.atan2(Math.sin(t - a), Math.cos(t - a));
-    return s * r * (1 + 0.045 * Math.sin(3 * t + k) + 0.02 * Math.cos(5 * t + k) + 0.15 * Math.exp(-(d * d) / 0.07));
-  }, 24);
-const crease = ([cx, cy, r, a]: Pea) => {
-  const P = (m: number, t: number) => `${(cx + Math.cos(a + t) * r * m).toFixed(1)} ${(cy + Math.sin(a + t) * r * m).toFixed(1)}`;
-  return `M${P(1.08, 0)}Q${P(0.62, 0.4)} ${P(0.55, 1.1)}`;
-};
-export function PoisChiche({ className }: IllustrationProps) {
-  const back = PEAS.slice(0, 3);
-  const front = PEAS.slice(3);
-  return (
-    <Frame className={className}>
-      <defs>
-        <RG id="pois-chiche-a" c={["#f3dfae", "#e3c387", "#c9a262"]} cx={0.38} cy={0.35} />
-      </defs>
-      <W d={back.map((p, i) => chick(p, i)).join("")} f={url("pois-chiche-a")} o={0.9} />
-      <W d={front.map((p, i) => chick(p, i + 3)).join("")} f={url("pois-chiche-a")} o={0.92} />
-      <W d={PEAS.map(([x, y, r, a], i) => chick([x + 3, y + 3.5, r * 0.62, a], i)).join("")} f="#b38846" o={0.38} />
-      <Hi d={PEAS.map(([x, y, r, a], i) => chick([x - 3.5, y - 4, r * 0.3, a], i)).join("")} o={0.6} />
-      <Ink o={0.45} w={1}>
-        <path d={PEAS.map(crease).join("")} />
-      </Ink>
-    </Frame>
-  );
-}
+const BEANS: [number, number, number][] = [[32, 94, -10], [58, 97, 8], [84, 94, -6], [44, 79, 14], [70, 80, -12], [58, 64, -4], [92, 78, 24]];
+const bean = ([x, y, a]: [number, number, number], i: number) => (
+  <G key={i} t={`translate(${x} ${y}) rotate(${a})`}>
+    <P d="M-15 0C-15-9-7-12-1-8C5-12 15-10 15-1C15 8 7 11 0 11C-7 11-15 8-15 0Z" f="#9c3b2e" />
+    <In>
+      <P d="M-13 3C-10 9-4 10 0 10C7 10 13 7 14 0C10 5 4 7-1 7C-6 7-10 6-13 3Z" f="#762a20" />
+      <L d="M-8-4C-6-6-3-6-1-5" c="#cf7a63" w={2} />
+    </In>
+  </G>
+);
 
-export function Poisson({ className }: IllustrationProps) {
-  return (
-    <Frame className={className}>
-      <defs>
-        <LG id="poisson-a" c={[["#56707f", 0], ["#7c93a3", 0.4], ["#c3ced2", 0.62], ["#eceee8", 1]]} />
-      </defs>
-      <g transform="rotate(-10 60 62)">
-        <W d="M60 44C64 36 70 33 77 35C75 39 73 42 72 46Z" f="#6d8494" o={0.6} />
-        <W d="M98 59C102 54 108 47 114 42C112 51 110 57 110 62C110 66 112 72 114 82C108 78 102 71 98 66Z" f="#6d8494" o={0.75} />
-        <W d="M12 62C24 47 48 41 72 44C84 46 93 52 99 59C99 62 99 64 99 66C93 73 84 78 72 80C48 84 24 78 12 62Z" f={url("poisson-a")} o={0.9} />
-        <W d="M28 52C40 46 56 44 72 46C84 48 92 53 97 60C88 56 74 54 60 54C48 54 36 56 28 52Z" f="#8fa898" o={0.35} soft />
-        <Hi d="M26 66C40 64 60 64 92 64C76 68 50 70 30 68Z" o={0.75} />
-        <W d="M40 66C46 63 53 65 57 70C51 72 45 70 40 66Z" f="#7c93a3" o={0.6} />
-        <W d={blob(25, 59, 3.8, 3.6, 1, 0.03)} f="#f4eedc" o={0.95} />
-        <circle cx={25.3} cy={59} r={1.9} fill="#2e2a24" opacity={0.85} />
-        <Ink c="#3e5260" o={0.55} w={1.4}>
-          <path d="M42 50c1 3 3 4 5 3M50 47c0 3 2 5 4 5M58 46c1 3 0 5-2 7M66 46c2 2 2 5 1 7M74 47c1 3 3 4 5 4M82 50c0 2 1 4 3 5M90 54c0 2 1 3 2 4M62 53c2 0 4 1 5 3" />
-        </Ink>
-        <Ink o={0.6}>
-          <path d="M36 51C40 56 40 65 35 72M12 62C15 63 18 63 21 62" />
-          <path d="M12 62C24 78 48 84 72 80C84 78 93 73 99 66" />
-          <path d="M104 56L109 62L104 69" />
-        </Ink>
-        <Ink o={0.3} w={1}>
-          <path d="M40 62C56 61 76 61 96 62" />
-        </Ink>
-      </g>
-    </Frame>
-  );
-}
+// ---------- Poisson, œuf, viande, volaille ----------
+const FILLET = "M-22-12C-19-20 8-23 21-17C24-14 23-9 19-7C7-3-13-3-20-5C-23-7-23-10-22-12Z";
+const salmon = () => (
+  <G t="translate(60 102) scale(2.3)">
+    <G t="translate(0 5)">
+      <P d={FILLET} f="#cc5f3d" />
+    </G>
+    <P d={FILLET} f="#f48c6b" />
+    <In>
+      <L d="M-12-16C-14-12-14-9-12-5.5M-3-18C-5-14-5-10-3-5M6-18.5C4-15 4-10 6-6M14-17C12-14 12-10 14-7.5" c="#ffd9c8" w={1.7} />
+    </In>
+  </G>
+);
 
-export function Oeuf({ className }: IllustrationProps) {
-  return (
-    <Frame className={className}>
-      <defs>
-        <LG id="oeuf-a" c={["#f8eeda", "#efdfbf", "#d8bf92"]} x2={1} y2={0.5} />
-        <RG id="oeuf-b" c={["#f9cf68", "#f2b33d", "#de9325"]} cx={0.42} cy={0.4} />
-      </defs>
-      <W d={blob(60, 100, 44, 6, 1, 0.05)} f="#d9ccae" o={0.35} soft />
-      <W d="M48 20C34 20 24 44 24 62C24 82 34 94 48 94C62 94 72 82 72 62C72 44 62 20 48 20Z" f={url("oeuf-a")} o={0.92} />
-      <W d="M62 34C70 46 72 66 68 78C64 88 56 94 48 94C62 84 68 64 62 34Z" f="#c7a978" o={0.42} />
-      <Hi d="M38 34C33 42 31 52 31 60C34 52 37 44 42 37Z" o={0.75} />
-      <W d={blob(84, 86, 26, 16, 2, 0.03, -0.05)} f="#e5dac4" o={0.9} />
-      <W d={blob(84, 85, 23.5, 13.5, 3, 0.03, -0.05)} f="#fcf8ef" o={0.95} />
-      <W d={blob(84, 85, 11, 9, 4, 0.05)} f={url("oeuf-b")} o={0.95} />
-      <Hi d={blob(80, 82, 3.5, 2.4, 1)} o={0.65} />
-      <Ink o={0.55}>
-        <path d="M72 62C72 82 62 94 48 94M24 62C24 44 34 20 48 20" />
-        <path d="M58 86C60 96 72 102 86 102C98 102 108 96 110 88" />
-      </Ink>
-      <Ink o={0.25} w={1.5}>
-        <path d="M44 48h.1M56 58h.1M40 72h.1M58 76h.1M50 40h.1" />
-      </Ink>
-    </Frame>
-  );
-}
+const halfEgg = (x: number, y: number) => (
+  <>
+    <E x={x} y={y + 4} rx={21} ry={12.5} f="#e8decc" />
+    <E x={x} y={y} rx={21} ry={12.5} f="#ffffff" />
+    <E x={x} y={y + 0.5} rx={10} ry={6.8} f="#f7b62a" />
+    <In>
+      <P d={`M${x - 10} ${y + 1.5}C${x - 8} ${y + 6} ${x + 8} ${y + 6} ${x + 10} ${y + 1.5}C${x + 8} ${y + 4} ${x - 8} ${y + 4} ${x - 10} ${y + 1.5}Z`} f="#d99520" />
+      <E x={x - 3} y={y - 1.5} rx={3.6} ry={2} f="#ffffff" o={0.6} />
+    </In>
+  </>
+);
 
-const OAT: [number, number, number, number, number, number][] = [
-  [52, 58, 38, 62, 34, 78],
-  [53, 52, 66, 57, 70, 73],
-  [54, 46, 40, 47, 36, 63],
-  [56, 39, 70, 40, 74, 56],
-  [59, 31, 46, 31, 42, 47],
-  [61, 26, 74, 25, 78, 41],
-  [64, 20, 54, 17, 50, 32],
-  [66, 16, 76, 12, 81, 26],
-];
-const OAT_SPIKES = OAT.map(([, , ax, ay, tx, ty]) => leaf(ax, ay, tx, ty, 3.8)).join("");
-const OAT_MID = OAT.map(([, , ax, ay, tx, ty]) => `M${ax} ${ay + 2}L${(ax + (tx - ax) * 0.8).toFixed(1)} ${(ay + (ty - ay) * 0.8).toFixed(1)}`).join("");
-const OAT_STALKS = OAT.map(([sx, sy, ax, ay]) => `M${sx} ${sy}Q${(sx + ax) / 2} ${Math.min(sy, ay) - 4} ${ax} ${ay}`).join("");
-const FLAKES = [blob(80, 100, 9, 5.5, 1, 0.12, 0.3), blob(96, 96, 8, 5, 2, 0.12, -0.4), blob(102, 106, 7.5, 4.5, 3, 0.12, 0.2), blob(88, 108, 8, 4.5, 4, 0.12, -0.1), blob(70, 110, 7, 4, 5, 0.12, 0.5)];
-export function Avoine({ className }: IllustrationProps) {
-  return (
-    <Frame className={className}>
-      <W d={leaf(47, 108, 24, 70, 3.5, 3)} f={LEAF_LIGHT} o={0.65} />
-      <Ink c="#b59a5e" o={0.9} w={1.8}>
-        <path d="M47 112C46 92 48 68 53 48C56 34 61 22 67 12" />
-      </Ink>
-      <Ink c="#b59a5e" o={0.85} w={1}>
-        <path d={OAT_STALKS} />
-      </Ink>
-      <W d={OAT_SPIKES} f="#dcc58e" o={0.88} />
-      <W d={OAT.map(([, , ax, ay, tx, ty]) => leaf(ax + 1, ay + 3, tx + 0.5, ty, 1.8)).join("")} f="#b99c5e" o={0.45} />
-      <Ink o={0.45} w={0.9}>
-        <path d={OAT_MID} />
-      </Ink>
-      <W d={FLAKES.join("")} f="#ead7a6" o={0.92} />
-      <W d={FLAKES.map((_, i) => blob([82, 98, 103, 90, 72][i] ?? 0, [102, 98, 107, 109, 111][i] ?? 0, 5, 2.6, i)).join("")} f="#c7a96a" o={0.35} />
-      <Ink o={0.45} w={1}>
-        <path d="M72 98C76 96 82 95 87 97M90 93C94 91 99 91 103 93M96 104C99 103 103 103 106 105M81 106C84 105 89 105 93 107M64 108C67 107 71 107 74 109" />
-      </Ink>
-    </Frame>
-  );
-}
+const DRUM_MEAT = "M-20 0C-21-11-10-14 0-11C6-9 9-5 12-2V2C9 5 6 9 0 11C-10 14-21 11-20 0Z";
+const DRUM_BONE = "M9-2.5H19C19-6 25-7.5 26.5-4.5C27.5-2.5 26-0.5 25 0C26 .5 27.5 2.5 26.5 4.5C25 7.5 19 6 19 2.5H9Z";
+const drumstick = (t: string) => (
+  <G t={t}>
+    <P d={DRUM_BONE} f="#fff8ea" />
+    <P d={DRUM_MEAT} f="#e0913f" />
+    <In>
+      <P d="M-20 1C-18 10-8 12 0 9.5C5 7.5 9 4.5 12 2C6 5-7 8-20 1Z" f="#b86a2a" />
+      <P d="M3 2.5H19C19 4.5 21 6.5 24 6C21 8 18 6.5 18 4.5H9Z" f="#e6d6b6" />
+      <L d="M-15-5C-11-9-5-9-1-8" c="#f3bd7a" w={2.4} />
+    </In>
+  </G>
+);
+
+const STEAK = "M18 62C16 44 40 38 60 42C80 38 104 46 102 64C100 82 80 90 60 88C38 92 20 80 18 62Z";
+
+// ---------- Féculents ----------
+const DOME = "M-19 0C-20-12-11-21 0-21C11-21 20-12 19 0C12 4-12 4-19 0Z";
+const rice = (t: string) => (
+  <G t={t}>
+    <P d={DOME} f="#ffffff" />
+    <In>
+      <P d="M5-20C13-17 20-10 19 0C14 3 8 3 3 3C10-3 11-13 5-20Z" f="#e8dfcd" />
+      <L d="M-10-12l2.4-.8M-2-17l2.4-.8M4-10l2.4-.8M-7-5l2.4-.8M-14-6l2-.8" c="#c7b99f" w={1.3} />
+    </In>
+  </G>
+);
+
+// Penne : tube à bouts biseautés, stries, trou sombre.
+const PENNE: [number, number, number][] = [[34, 94, -8], [66, 97, 10], [88, 88, -30], [44, 78, 24], [72, 78, -14], [56, 63, 6]];
+const penne = ([x, y, a]: [number, number, number], i: number) => (
+  <G key={i} t={`translate(${x} ${y}) rotate(${a})`}>
+    <P d="M-18-6.5H11L18 6.5H-11Z" f="#f2c75c" />
+    <In>
+      <P d="M-11 6.5H18L16.4 3.5H-12.6Z" f="#d9a838" />
+      <L d="M-9-2.5H8M-6 1.5H11" c="#f9e3a0" w={1.6} />
+    </In>
+    <E x={14.5} y={0} rx={2.6} ry={6.5} a={-28} f="#c08e26" />
+  </G>
+);
+
+const WHEAT: [number, number, number][] = [[61, 30, 0], [58, 40, -1], [64, 40, 1], [56, 51, -1], [66, 51, 1], [55, 62, -1], [67, 62, 1], [55, 73, -1], [66, 73, 1]];
+const OAT: Pt[] = [[32, 28], [26, 42], [40, 40], [86, 28], [94, 42], [80, 40]];
+
+export const PANTRY = {
+  lentilles: { product: () => <G t="translate(0 -18)">{lentils()}</G>, plated: lentils },
+  "pois-chiche": { product: () => <G t="translate(0 -16)">{CHICKPEAS.map(chickpea)}</G>, plated: () => <>{CHICKPEAS.map(chickpea)}</> },
+  haricot: { product: () => <G t="translate(0 -16)">{BEANS.map(bean)}</G>, plated: () => <>{BEANS.map(bean)}</> },
+  poisson: {
+    product: () => (
+      <>
+        <P d="M54 44C58 34 70 32 80 40C72 40 64 42 58 48Z" f="#4d6a80" />
+        <P d="M86 62L106 42C109 54 109 70 106 84L86 64Z" f="#4d6a80" />
+        <P d="M14 63C26 44 62 38 88 60V66C62 88 26 84 14 63Z" f="#5f7f96" />
+        <In>
+          <P d="M14 63C26 74 58 80 88 66C62 88 26 84 14 63Z" f="#dae4e4" />
+          <L d="M30 61C46 58 66 59 84 63" c="#9fb6c4" w={1.8} />
+          <L d="M34 52C38 58 38 68 34 74" c="#4d6a80" w={2} />
+          <C x={25} y={59} r={3.6} f="#ffffff" />
+          <C x={24.4} y={59} r={2} f="#2f2a24" />
+        </In>
+        <P d="M44 78C48 86 56 88 62 84C56 82 50 80 44 78Z" f="#4d6a80" />
+      </>
+    ),
+    plated: salmon,
+  },
+  oeuf: {
+    product: () => (
+      <>
+        <P d="M46 16C32 16 24 42 24 60C24 78 34 90 46 90C58 90 68 78 68 60C68 42 60 16 46 16Z" f="#ecc58f" />
+        <In>
+          <P d="M56 22C64 32 68 48 68 60C68 78 58 90 46 90C58 84 64 72 64 58C64 44 61 30 56 22Z" f="#cfa067" />
+          <P d="M33 42C35 33 39 27 44 25C40 32 38 39 37 48C35 47 33 45 33 42Z" f="#ffffff" o={0.55} />
+        </In>
+        {halfEgg(80, 87)}
+      </>
+    ),
+    plated: () => (
+      <>
+        {halfEgg(42, 84)}
+        {halfEgg(78, 90)}
+      </>
+    ),
+  },
+  viande: {
+    product: () => (
+      <>
+        <G t="translate(0 7)">
+          <P d={STEAK} f="#8f2b25" />
+        </G>
+        <P d={STEAK} f="#f3dfc8" />
+        <P d="M24 64C22 50 42 46 60 49C78 46 96 52 95 64C94 78 78 84 60 82C40 86 26 76 24 64Z" f="#c8443c" />
+        <In>
+          <P d="M24 66C28 78 42 84 60 82C78 84 94 78 95 66C88 74 74 78 60 76C44 78 30 74 24 66Z" f="#a3342e" />
+          <L d="M36 58C44 54 50 60 58 56M62 66C70 62 76 68 84 62M42 70C48 68 52 72 58 70" c="#e8857b" w={2} />
+        </In>
+      </>
+    ),
+    // Tranches saisies, marques du gril.
+    plated: () => (
+      <>
+        {(
+          [
+            [46, 82],
+            [74, 90],
+          ] as Pt[]
+        ).map(([x, y], i) => (
+          <g key={i}>
+            <E x={x} y={y + 5} rx={30} ry={14} f="#6e3a20" />
+            <E x={x} y={y} rx={30} ry={14} f="#9a5a35" />
+            <In>
+              <L d={`M${x - 16} ${y + 6}l10-14M${x - 4} ${y + 8}l10-14M${x + 8} ${y + 8}l10-14`} c="#64341b" w={2.6} />
+              <L d={`M${x - 22} ${y - 4}C${x - 12} ${y - 10} ${x + 4} ${y - 12} ${x + 14} ${y - 10}`} c="#c07e52" w={2} />
+            </In>
+          </g>
+        ))}
+      </>
+    ),
+  },
+  poulet: {
+    product: () => drumstick("translate(54 64) scale(2.15) rotate(-30)"),
+    plated: () => drumstick("translate(52 86) scale(2) rotate(-18)"),
+  },
+  tofu: {
+    product: () => {
+      const big = cube(54, 48, 32, 30);
+      const small = cube(92, 84, 12, 11);
+      return (
+        <>
+          <P d={big.left} f="#e9dfc4" />
+          <P d={big.right} f="#d6c8a5" />
+          <P d={big.top} f="#fbf6e6" />
+          <P d={small.left} f="#e9dfc4" />
+          <P d={small.right} f="#d6c8a5" />
+          <P d={small.top} f="#fbf6e6" />
+          <In>
+            <P d={dots([[40, 70], [46, 82], [34, 82], [68, 78], [76, 70], [62, 88]], 1.3)} f="#cbbd98" />
+          </In>
+        </>
+      );
+    },
+    plated: () => (
+      <>
+        {(
+          [
+            [48, 74],
+            [74, 74],
+            [36, 88],
+            [62, 88],
+            [86, 86],
+          ] as Pt[]
+        ).map(([x, y], i) => {
+          const c = cube(x, y, 12, 10);
+          return (
+            <g key={i}>
+              <P d={c.left} f="#e1ac4f" />
+              <P d={c.right} f="#c88b36" />
+              <P d={c.top} f="#f3cf7a" />
+            </g>
+          );
+        })}
+      </>
+    ),
+  },
+  pates: { product: () => <G t="translate(-3 -20) scale(1.05)">{PENNE.map(penne)}</G>, plated: () => <>{PENNE.map(penne)}</> },
+  riz: {
+    product: () => (
+      <>
+        {rice("translate(60 70) scale(2)")}
+        <P d="M20 66C20 90 38 104 60 104C82 104 100 90 100 66Z" f="#7fa65a" />
+        <In>
+          <P d="M82 99C94 90 100 80 100 66H92C92 80 89 91 82 99Z" f="#5f8a40" />
+          <L d="M25 80C40 88 80 88 95 80" c="#e9f0dc" w={2.6} />
+        </In>
+        <E x={60} y={66} rx={40} ry={7} f="#5f8a40" />
+        <P d="M22 66C30 60 46 58 60 58C74 58 90 60 98 66C86 70 34 70 22 66Z" f="#ffffff" />
+      </>
+    ),
+    plated: () => rice("translate(60 104) scale(2.3)"),
+  },
+  cereales: {
+    product: () => (
+      <>
+        <L d="M56 110C58 90 60 60 61 22" c="#c99a3c" w={2.6} />
+        <P d={leaf(58, 96, 30, 76, 5, 2)} f="#b6a35a" />
+        <L d={WHEAT.map(([x, y, s]) => `M${x} ${y - 6}l${s * 6} -14`).join("")} c="#d9a640" w={1.4} />
+        {WHEAT.map(([x, y, s], i) => (
+          <G key={i} t={`rotate(${s * 22} ${x} ${y})`}>
+            <E x={x} y={y} rx={5.5} ry={8} f="#e7b54d" />
+            <In>
+              <P d={`M${x + 1} ${y - 7}C${x + 6} ${y - 4} ${x + 6} ${y + 4} ${x + 1} ${y + 8}C${x + 3} ${y + 3} ${x + 3} ${y - 3} ${x + 1} ${y - 7}Z`} f="#c58f2c" />
+            </In>
+          </G>
+        ))}
+      </>
+    ),
+    // Dôme de semoule.
+    plated: () => (
+      <>
+        <P d="M16 102C20 82 38 66 60 66C82 66 100 82 104 102C80 108 40 108 16 102Z" f="#f2d07a" />
+        <In>
+          <P d="M66 67C86 70 100 82 104 102C96 104 88 105 80 106C88 92 84 78 66 67Z" f="#dcb252" />
+          <P d={dots([[36, 90], [48, 80], [58, 72], [70, 80], [52, 96], [64, 92], [82, 92], [42, 100], [30, 98]], 1.3)} f="#c99a3c" />
+          <P d={dots([[40, 86], [54, 86], [62, 76], [46, 92]], 1.4)} f="#fbe6a8" />
+        </In>
+        <P d={leaf(64, 70, 80, 58, 4.5)} f={LEAF} />
+      </>
+    ),
+  },
+  pain: {
+    product: () => (
+      <G t="rotate(-24 60 64)">
+        <E x={60} y={68} rx={46} ry={23} f="#b06f2e" />
+        <E x={60} y={62} rx={46} ry={22} f="#d9944a" />
+        <In>
+          <E x={40} y={60} rx={9} ry={4} a={-50} f="#f0c27e" />
+          <E x={60} y={58} rx={9} ry={4} a={-50} f="#f0c27e" />
+          <E x={80} y={58} rx={9} ry={4} a={-50} f="#f0c27e" />
+          <L d="M26 66C36 74 70 78 96 70" c="#e8ad62" w={2} />
+        </In>
+      </G>
+    ),
+    plated: () => (
+      <>
+        {(
+          [
+            [-14, -6],
+            [12, 0],
+          ] as Pt[]
+        ).map(([dx, dy], i) => (
+          <G key={i} t={`translate(${dx} ${dy})`}>
+            <P d="M38 104V68C30 66 30 50 42 48C46 40 74 40 78 48C90 50 90 66 82 68V104Z" f="#c98642" />
+            <P d="M42 100V65C36 62 36 54 44 52C48 46 72 46 76 52C84 54 84 62 78 65V100Z" f="#f6dfae" />
+            <In>
+              <P d={dots([[52, 70], [64, 62], [68, 80], [54, 88], [60, 76]], 1.3)} f="#e6c88c" />
+            </In>
+          </G>
+        ))}
+      </>
+    ),
+  },
+  // Tas de flocons, deux épillets d'avoine retombants derrière.
+  avoine: {
+    product: () => (
+      <>
+        <L d="M50 70C46 50 40 36 30 24M70 70C74 50 80 36 90 24" c="#c9a55a" w={2.4} />
+        {OAT.map(([x, y], i) => (
+          <P key={i} d={leaf(x, y, x + (x < 60 ? -3 : 3), y + 17, 5.5)} f={i % 2 ? "#d4ae5c" : "#e6c378"} />
+        ))}
+        <P d={heap(60, 100, 44, 32, 12, 3)} f="#e9d29d" />
+        <In>
+          <P d="M68 70C86 74 100 86 104 100C96 103 88 104 80 104C86 92 82 80 68 70Z" f="#d4b878" />
+          {(
+            [
+              [36, 92, -10],
+              [52, 86, 15],
+              [66, 92, -20],
+              [80, 88, 10],
+              [46, 98, 5],
+              [60, 76, -5],
+              [88, 97, 25],
+            ] as const
+          ).map(([x, y, a], i) => (
+            <E key={i} x={x} y={y} rx={7} ry={4.5} a={a} f={i % 2 ? "#f6e6bf" : "#d9bd82"} />
+          ))}
+        </In>
+      </>
+    ),
+  },
+} satisfies Partial<Record<IllustrationKey, Food>>;

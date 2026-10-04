@@ -1,4 +1,4 @@
-// Clés des illustrations aquarelle (apps/web/src/components/illustrations). Chaque recette en choisit une : son produit vedette.
+// Clés des illustrations « Pastille » (apps/web/src/components/illustrations). Chaque recette en choisit une : son produit vedette.
 export const ILLUSTRATION_KEYS = [
   "courge",
   "potiron",

@@ -1,263 +1,292 @@
-// Fruits : poire, pomme, raisin, figue, coing, kiwi, agrumes.
-import { BARK, Frame, Hi, Ink, LEAF, LEAF_DARK, LG, RG, W, blob, leaf, polar, rng, url, veins } from "./primitives";
-import type { IllustrationProps } from "./primitives";
+// Fruits : pomme, poire, coing, raisin, figue, kiwi, clémentine, orange, citron, châtaigne, quetsche, fruits rouges, banane.
+import type { IllustrationKey } from "@mijote/shared";
+import { C, discs, dots, E, G, In, L, leaf, LEAF, LEAF_DARK, P } from "./draw";
+import type { Pt } from "./draw";
+import type { Food } from "./food";
 
-export function Poire({ className }: IllustrationProps) {
-  return (
-    <Frame className={className}>
-      <defs>
-        <LG id="poire-a" c={["#e2dc8c", "#c9c46a", "#a39c4a"]} x2={1} y2={0.4} />
-      </defs>
-      <W d={leaf(64, 20, 90, 12, 7, -2)} f={LEAF} o={0.82} />
-      <W d="M58 28C52 28 50 36 50 44C50 53 40 59 34 71C26 87 36 105 58 105C80 105 92 89 86 73C82 61 70 54 68 44C66 36 64 28 58 28Z" f={url("poire-a")} o={0.9} />
-      <W d="M70 74C80 72 86 82 82 92C78 98 70 102 62 102C74 94 76 84 70 74Z" f="#c97a4c" o={0.4} />
-      <W d="M70 50C76 58 86 66 86 80C86 92 76 102 64 104C78 94 82 78 74 64C72 60 70 56 70 50Z" f="#8f8a3e" o={0.42} />
-      <Hi d="M53 44C50 52 44 58 40 66C38 72 38 78 39 84C42 74 46 66 52 58C55 54 56 48 56 44Z" o={0.6} />
-      <Ink c={BARK} o={0.9} w={2.4}>
-        <path d="M59 30C59 23 61 17 66 12" />
-      </Ink>
-      <Ink o={0.5} w={1}>
-        <path d={veins(64, 20, 90, 12, 3, 7)} />
-      </Ink>
-      <Ink>
-        <path d="M86 73C92 89 80 105 58 105M50 44C50 53 40 59 34 71" />
-      </Ink>
-      <Ink o={0.35} w={1.6}>
-        <path d="M48 76h.1M62 66h.1M70 86h.1M56 92h.1M44 92h.1M76 78h.1" />
-      </Ink>
-    </Frame>
-  );
-}
+const BROWN = "#74502f";
 
-export function Pomme({ className }: IllustrationProps) {
-  return (
-    <Frame className={className}>
-      <defs>
-        <RG id="pomme-a" c={["#e08566", "#c8553d", "#9e3a2a"]} cx={0.45} cy={0.42} r={0.7} />
-      </defs>
-      <W d={leaf(64, 26, 90, 16, 8, -2)} f={LEAF} o={0.85} />
-      <W d="M60 34C52 28 40 28 32 36C22 46 22 66 28 80C34 94 46 104 58 100C60 99 62 99 64 100C76 104 88 94 94 80C100 66 98 46 88 36C80 28 68 28 60 34Z" f={url("pomme-a")} o={0.88} />
-      <W d="M56 36C48 31 38 32 32 40C26 48 26 60 30 70C36 66 42 60 46 52C50 46 54 40 56 36Z" f="#d3c46a" o={0.55} soft />
-      <W d="M86 42C96 54 96 72 90 84C84 94 74 100 66 100C80 90 90 72 86 42Z" f="#86301f" o={0.45} />
-      <Hi d="M38 44C34 50 32 58 33 66C36 58 38 52 43 46Z" o={0.65} />
-      <Ink c={BARK} o={0.9} w={2.4}>
-        <path d="M61 37C60 30 62 24 66 19" />
-      </Ink>
-      <Ink o={0.5} w={1}>
-        <path d={veins(64, 26, 90, 16, 3, 8)} />
-      </Ink>
-      <Ink>
-        <path d="M52 37C56 40 64 40 69 37M94 80C88 94 76 104 64 100" />
-      </Ink>
-      <Ink o={0.3} w={1}>
-        <path d="M72 50C74 60 74 70 72 80M80 48C83 58 83 68 81 78M64 60C65 68 64 76 62 84" />
-      </Ink>
-    </Frame>
-  );
-}
-
-const GRAPE_ROWS: [number, number[]][] = [
-  [44, [36, 50, 64, 78]],
-  [56, [43, 57, 71, 85]],
-  [68, [48, 62, 76]],
-  [80, [55, 69]],
-  [92, [62]],
+const GRAPES: [number, number][] = [
+  [42, 48], [60, 46], [78, 48],
+  [34, 64], [52, 62], [70, 62], [86, 64],
+  [44, 78], [62, 78], [78, 78],
+  [52, 92], [70, 92],
+  [60, 104],
 ];
-const grapeRow = (y: number, xs: number[], k: number, s = 1, dx = 0, dy = 0) => xs.map((x, i) => blob(x + dx, y + dy, 8 * s, 8.5 * s, k + i, 0.04)).join("");
-const LEAF_GRAPE = polar(84, 22, (t) => 15 * (0.72 + 0.28 * Math.abs(Math.cos(2.5 * (t + 0.3)))), 30);
-export function Raisin({ className }: IllustrationProps) {
-  return (
-    <Frame className={className}>
-      <W d={LEAF_GRAPE} f={LEAF} o={0.78} />
-      <Ink o={0.5} w={1}>
-        <path d="M80 30L84 22M80 30L74 16M80 30L92 15M80 30L98 26M80 30L70 28" />
-      </Ink>
-      <Ink c={BARK} o={0.9} w={2.4}>
-        <path d="M58 40C58 32 62 26 70 24C74 23 78 26 80 30" />
-      </Ink>
-      {GRAPE_ROWS.map(([y, xs], i) => (
-        <W key={y} d={grapeRow(y, xs, i * 3)} f={i % 2 ? "#8b6890" : "#765380"} o={0.88} />
-      ))}
-      <W d={GRAPE_ROWS.map(([y, xs], i) => grapeRow(y, xs, i, 0.55, 2.8, 3)).join("")} f="#4f3157" o={0.4} />
-      <Hi d={GRAPE_ROWS.map(([y, xs], i) => grapeRow(y, xs, i, 0.22, -3, -3.5)).join("")} o={0.7} />
-      <Ink o={0.4}>
-        <path d="M46 34C44 30 46 26 50 26C52 28 50 32 48 32" />
-      </Ink>
-    </Frame>
-  );
-}
 
-const FIG_SEEDS = (() => {
-  const r = rng(7);
-  let d = "";
-  for (let i = 0; i < 26; i++) {
-    const a = r() * Math.PI * 2;
-    const m = 3 + r() * 9;
-    d += `M${(84 + Math.cos(a) * m * 0.9).toFixed(1)} ${(85 + Math.sin(a) * m).toFixed(1)}h.1`;
-  }
-  return d;
-})();
-const FIG_HALF = "M84 54C81 54 80 58 80 62C80 68 70 72 66 80C60 92 66 105 84 105C102 105 108 92 102 80C98 72 88 68 88 62C88 58 87 54 84 54Z";
-export function Figue({ className }: IllustrationProps) {
-  return (
-    <Frame className={className}>
-      <defs>
-        <RG id="figue-a" c={["#9c5a7c", "#6e3b5a", "#4a2440"]} cx={0.4} cy={0.55} />
-        <RG id="figue-b" c={["#e8899a", "#cf5f73", "#a8425a"]} cx={0.5} cy={0.6} r={0.6} />
-      </defs>
-      <W d="M44 16C40 16 39 22 39 28C39 38 26 44 20 56C12 72 20 92 42 94C64 94 74 76 68 58C64 46 50 38 49 28C49 22 48 16 44 16Z" f={url("figue-a")} o={0.9} />
-      <W d="M44 18C40 18 40 24 40 30C40 36 36 40 32 44C40 42 50 42 56 44C52 40 48 36 48 30C48 24 47 18 44 18Z" f="#8a8f4e" o={0.55} soft />
-      <W d="M62 50C72 62 72 80 62 88C56 92 48 94 42 94C58 86 66 72 62 50Z" f="#3e1c34" o={0.45} />
-      <Hi d="M30 58C26 64 25 72 27 78C29 70 31 64 35 59Z" o={0.4} />
-      <W d={FIG_HALF} f="#6e3b5a" o={0.9} />
-      <g transform="translate(84 86) scale(.86) translate(-84 -86)">
-        <W d={FIG_HALF} f="#f1e2c4" o={0.95} />
-      </g>
-      <g transform="translate(84 88) scale(.64) translate(-84 -88)">
-        <W d={FIG_HALF} f={url("figue-b")} o={0.92} />
-      </g>
-      <Ink c="#f6e3b4" o={0.9} w={1.6}>
-        <path d={FIG_SEEDS} />
-      </Ink>
-      <Ink o={0.5}>
-        <path d="M44 16C44 12 45 9 47 7M84 54C84 51 85 49 86 47" />
-        <path d="M42 94C64 94 74 76 68 58" />
-      </Ink>
-    </Frame>
-  );
-}
+const BERRIES: Pt[] = [
+  [76, 58], [84, 62], [80, 70], [88, 70], [72, 66], [76, 76], [86, 78], [80, 84], [70, 74],
+];
 
-export function Coing({ className }: IllustrationProps) {
-  return (
-    <Frame className={className}>
-      <defs>
-        <RG id="coing-a" c={["#f6dc6e", "#e7bd42", "#c4972c"]} cx={0.38} cy={0.35} />
-      </defs>
-      <W d={leaf(58, 32, 26, 12, 10, 3)} f={LEAF} o={0.82} />
-      <W d={leaf(62, 30, 94, 16, 8, -2)} f={LEAF_DARK} o={0.75} />
-      <W d="M56 32C46 30 34 36 29 48C23 60 24 76 31 88C39 101 53 106 65 103C81 101 95 90 96 74C98 62 93 50 84 42C78 34 70 36 64 34C61 32 59 32 56 32Z" f={url("coing-a")} o={0.9} />
-      <W d="M84 46C96 58 98 76 88 90C80 99 70 103 62 104C80 94 92 76 84 46Z" f="#b77f22" o={0.45} />
-      <W d={blob(48, 46, 14, 8, 1, 0.08, -0.4)} f="#e5dcbc" o={0.4} soft />
-      <Hi d="M38 52C34 60 33 70 35 78C38 68 40 60 44 54Z" o={0.55} />
-      <Ink o={0.5} w={1}>
-        <path d={veins(58, 32, 26, 12, 3, 10) + veins(62, 30, 94, 16, 3, 8)} />
-      </Ink>
-      <Ink>
-        <path d="M60 33C60 28 60 25 61 22" />
-        <path d="M58 101l2-3 2 3M56 99l4 1 4-1" />
-        <path d="M96 74C95 90 81 101 65 103" />
-      </Ink>
-      <Ink o={0.3} w={1.6}>
-        <path d="M46 70h.1M62 58h.1M74 74h.1M56 86h.1M82 62h.1M40 84h.1" />
-      </Ink>
-    </Frame>
-  );
-}
+export const FRUITS = {
+  pomme: {
+    product: () => (
+      <>
+        <L d="M60 39C60 32 61 26 64 21" c={BROWN} w={3.2} />
+        <P d="M63 30C68 21 78 19 85 23C79 31 70 33 63 30Z" f="#78a64d" />
+        <P d="M60 38C48 30 26 34 26 60C26 84 42 102 56 100C58 99 62 99 64 100C78 102 94 84 94 60C94 34 72 30 60 38Z" f="#d6432e" />
+        <In>
+          <P d="M70 36C84 40 94 50 94 62C94 84 78 101 64 100C78 92 86 76 84 60C83 50 78 42 70 36Z" f="#ab3121" />
+          <P d="M37 52C39 44 45 40 51 40C45 46 41 52 40 60C38 58 36 55 37 52Z" f="#f08a6c" />
+          <L d="M65 28C71 26 77 24 82 24" c="#5a8738" w={1.2} />
+        </In>
+      </>
+    ),
+  },
+  poire: {
+    product: () => (
+      <>
+        <L d="M60 32C60 24 62 18 66 14" c={BROWN} w={3} />
+        <P d={leaf(64, 22, 86, 14, 6, -1)} f={LEAF} />
+        <P d="M60 30C52 30 50 40 48 50C46 60 30 66 30 84C30 98 44 106 60 106C76 106 90 98 90 84C90 66 74 60 72 50C70 40 68 30 60 30Z" f="#bcc84e" />
+        <In>
+          <P d="M66 32C70 38 70 48 74 56C82 66 92 74 90 88C88 100 76 106 64 106C80 98 84 86 80 74C76 64 68 56 68 46C68 40 68 36 66 32Z" f="#93a033" />
+          <E x={44} y={86} rx={9} ry={7} f="#e2a157" o={0.75} />
+          <P d="M50 50C50 44 52 38 56 35C54 42 53 48 53 56C52 54 50 52 50 50Z" f="#e0e69a" />
+        </In>
+      </>
+    ),
+  },
+  coing: {
+    product: () => (
+      <>
+        <P d={leaf(64, 34, 98, 20, 11, -2)} f="#7d9b5c" />
+        <In>
+          <L d="M66 33L94 22" c="#a9bf86" w={1.4} />
+        </In>
+        <P d="M58 34C48 30 36 34 30 46C22 58 22 76 28 88C36 102 50 106 62 105C74 104 88 98 93 84C98 70 96 52 88 44C82 38 74 38 68 36C66 32 62 32 58 34Z" f="#f0c43a" />
+        <In>
+          <P d="M74 40C86 44 94 54 94 68C94 84 84 100 66 104C80 94 88 80 86 64C85 54 80 46 74 40Z" f="#d39f1f" />
+          <P d="M36 56C38 48 44 42 50 41C46 47 42 54 41 62C39 61 36 59 36 56Z" f="#f8df80" />
+          <E x={50} y={70} rx={10} ry={7} f="#f7e3a6" o={0.6} />
+          <P d="M56 102C58 99 64 99 66 102C64 104 58 104 56 102Z" f="#8a6a2e" />
+        </In>
+        <P d="M57 36C56 30 58 27 61 25C63 27 64 31 63 36Z" f={BROWN} />
+      </>
+    ),
+  },
+  raisin: {
+    product: () => (
+      <>
+        <L d="M60 40C60 30 62 24 66 18" c={BROWN} w={3} />
+        <P d="M66 26C70 14 86 10 98 16C100 26 94 38 80 40C74 40 68 34 66 26Z" f={LEAF} />
+        <In>
+          <L d="M68 28L94 16M80 22L82 34M86 19L92 30" c="#a6cf74" w={1.4} />
+        </In>
+        {GRAPES.map(([x, y], i) => (
+          <C key={i} x={x} y={y} r={10} f={i % 3 === 1 ? "#6b3570" : "#7a3f7e"} />
+        ))}
+        <In>
+          <P d={dots(GRAPES.map(([x, y]) => [x + 3, y + 3]), 5.5)} f="#5c2d61" o={0.6} />
+          <P d={dots(GRAPES.map(([x, y]) => [x - 3.5, y - 3.5]), 2.2)} f="#b07aac" />
+        </In>
+      </>
+    ),
+  },
+  figue: {
+    product: () => (
+      <>
+        <G t="rotate(-14 44 66)">
+          <L d="M44 22V14" c="#6d6a3a" w={4} />
+          <P d="M44 22C36 22 34 34 30 44C24 56 18 66 18 78C18 94 30 104 44 104C58 104 70 94 70 78C70 66 64 56 58 44C54 34 52 22 44 22Z" f="#6e3a63" />
+          <In>
+            <P d="M52 30C56 42 66 56 69 70C72 88 62 102 46 104C62 96 66 82 62 68C58 56 52 44 52 30Z" f="#4e2846" />
+            <P d="M30 62C32 54 36 48 40 44C38 52 36 58 35 66C33 65 31 64 30 62Z" f="#9a6b8f" />
+          </In>
+        </G>
+        <P d="M84 46C78 46 76 56 72 64C68 72 62 78 62 88C62 98 72 106 84 106C96 106 106 98 106 88C106 78 100 72 96 64C92 56 90 46 84 46Z" f="#6e3a63" />
+        <P d="M84 52C80 52 79 60 76 67C73 74 67 80 67 88C67 96 75 101 84 101C93 101 101 96 101 88C101 80 95 74 92 67C89 60 88 52 84 52Z" f="#f4e2bd" />
+        <P d="M84 60C81 64 78 72 76 78C74 84 74 92 84 94C94 92 94 84 92 78C90 72 87 64 84 60Z" f="#d6475f" />
+        <In>
+          <P d={dots([[80, 74], [86, 72], [82, 82], [88, 82], [79, 88], [85, 89], [84, 66]], 1.1)} f="#f6d77e" />
+        </In>
+      </>
+    ),
+  },
+  kiwi: {
+    product: () => (
+      <>
+        <E x={46} y={62} rx={30} ry={24} a={-20} f="#9a7448" />
+        <In>
+          <P d="M24 76C34 90 60 92 74 76C70 64 66 58 70 46C78 58 80 72 70 82C58 90 36 88 24 76Z" f="#7a5a35" />
+          <P d={dots([[34, 54], [44, 48], [54, 46], [30, 64], [62, 52]], 1.1)} f="#c9a678" />
+        </In>
+        <E x={76} y={80} rx={28} ry={24} f="#7a5a35" />
+        <E x={76} y={79} rx={25} ry={21} f="#8dbb3e" />
+        <In>
+          <E x={76} y={79} rx={15} ry={12.5} f="#b5d46a" />
+          <P
+            d={dots(
+              Array.from({ length: 12 }, (_, i): Pt => {
+                const t = (i / 12) * Math.PI * 2;
+                return [76 + Math.cos(t) * 12, 79 + Math.sin(t) * 10];
+              }),
+              1.4,
+            )}
+            f="#2f2a24"
+          />
+          <E x={76} y={79} rx={6} ry={5} f="#f3f1d0" />
+        </In>
+      </>
+    ),
+  },
+  clementine: {
+    product: () => (
+      <>
+        <C x={60} y={70} r={33} f="#f08a24" />
+        <In>
+          <P d="M78 44C90 52 96 66 92 80C88 94 76 103 60 103C80 96 90 78 86 62C85 54 82 48 78 44Z" f="#cf6c12" />
+          <P d="M38 58C40 50 46 44 52 42C47 48 43 55 42 64C40 62 38 60 38 58Z" f="#f8b066" />
+          <P d={dots([[50, 70], [58, 62], [66, 76], [74, 66], [56, 86], [72, 88], [46, 82]], 1.2)} f="#d9761a" />
+        </In>
+        <L d="M60 38V32" c={BROWN} w={3} />
+        <P d={leaf(60, 34, 34, 24, 8, 2)} f={LEAF_DARK} />
+        <P d={leaf(60, 34, 84, 20, 8, -2)} f={LEAF} />
+        <In>
+          <L d="M60 34L38 25M60 34L80 22" c="#a6cf74" w={1.3} />
+        </In>
+      </>
+    ),
+  },
+  orange: {
+    product: () => (
+      <>
+        <C x={46} y={56} r={30} f="#f39a1e" />
+        <In>
+          <P d="M62 31C74 40 79 56 74 70C69 82 58 88 46 86C62 80 72 66 70 50C69 42 66 36 62 31Z" f="#d27a0f" />
+          <P d={dots([[36, 48], [46, 42], [32, 60], [54, 52]], 1.2)} f="#d9840f" />
+          <P d="M28 48C30 40 36 34 42 32C37 38 33 44 32 52C30 51 28 50 28 48Z" f="#f9c06a" />
+        </In>
+        <E x={76} y={86} rx={29} ry={19} f="#e0820f" />
+        <E x={76} y={84} rx={26.5} ry={17} f="#fdebc4" />
+        <E x={76} y={84} rx={23} ry={14.5} f="#f6a630" />
+        <In>
+          <L
+            d={Array.from({ length: 8 }, (_, i) => {
+              const t = (i / 8) * Math.PI * 2;
+              return `M76 84L${(76 + Math.cos(t) * 23).toFixed(1)} ${(84 + Math.sin(t) * 14.5).toFixed(1)}`;
+            }).join("")}
+            c="#fdebc4"
+            w={1.8}
+          />
+          <E x={76} y={84} rx={3.5} ry={2.5} f="#fdebc4" />
+        </In>
+      </>
+    ),
+  },
+  citron: {
+    product: () => (
+      <>
+        <P d="M14 58C18 52 22 50 26 48C34 34 70 30 84 44C88 46 92 48 96 54C92 56 90 60 88 64C82 82 46 88 30 74C24 70 18 64 14 58Z" f="#f5d33a" />
+        <In>
+          <P d="M30 74C46 86 82 82 88 64C84 74 70 80 54 80C44 80 36 78 30 74Z" f="#d6ad17" />
+          <P d="M34 50C42 42 56 40 66 42C56 44 44 48 38 56C36 54 34 52 34 50Z" f="#fbe98a" />
+        </In>
+        <E x={76} y={88} rx={25} ry={16} f="#e3bc1f" />
+        <E x={76} y={86} rx={22.5} ry={14} f="#fff6c9" />
+        <E x={76} y={86} rx={19} ry={11.5} f="#f9e06a" />
+        <In>
+          <L
+            d={Array.from({ length: 8 }, (_, i) => {
+              const t = (i / 8) * Math.PI * 2;
+              return `M76 86L${(76 + Math.cos(t) * 19).toFixed(1)} ${(86 + Math.sin(t) * 11.5).toFixed(1)}`;
+            }).join("")}
+            c="#fff6c9"
+            w={1.6}
+          />
+        </In>
+      </>
+    ),
+  },
+  chataigne: {
+    product: () => (
+      <>
+        <P d="M20 70C14 52 30 34 52 32C72 30 92 38 98 54C88 50 76 52 66 58C54 50 34 54 20 70Z" f="#a9b64e" />
+        <In>
+          <L d="M24 58l-6-4M30 48l-4-6M40 40l-2-7M52 36v-7M64 35l2-7M76 37l4-6M88 43l6-4M94 50l6-2" c="#c6d27a" w={2} />
+        </In>
+        {(
+          [
+            [42, 74, -10],
+            [76, 76, 12],
+          ] as const
+        ).map(([x, y, a], i) => (
+          <G key={i} t={`rotate(${a} ${x} ${y})`}>
+            <P d={`M${x} ${y - 26}C${x + 8} ${y - 18} ${x + 22} ${y - 8} ${x + 22} ${y + 8}C${x + 22} ${y + 22} ${x + 10} ${y + 28} ${x} ${y + 28}C${x - 10} ${y + 28} ${x - 22} ${y + 22} ${x - 22} ${y + 8}C${x - 22} ${y - 8} ${x - 8} ${y - 18} ${x} ${y - 26}Z`} f="#8a4b2a" />
+            <In>
+              <P d={`M${x - 20} ${y + 14}C${x - 14} ${y + 26} ${x + 14} ${y + 26} ${x + 20} ${y + 14}C${x + 12} ${y + 18} ${x - 12} ${y + 18} ${x - 20} ${y + 14}Z`} f="#e5c99a" />
+              <P d={`M${x + 6} ${y - 16}C${x + 16} ${y - 8} ${x + 20} ${y + 2} ${x + 18} ${y + 12}C${x + 14} ${y + 2} ${x + 10} ${y - 8} ${x + 6} ${y - 16}Z`} f="#6b3720" />
+              <P d={`M${x - 12} ${y - 6}C${x - 10} ${y - 12} ${x - 6} ${y - 16} ${x - 2} ${y - 18}C${x - 5} ${y - 12} ${x - 8} ${y - 6} ${x - 9} ${y}Z`} f="#b8754a" />
+            </In>
+            <L d={`M${x} ${y - 26}V${y - 30}`} c="#5e3a22" w={2.5} />
+          </G>
+        ))}
+      </>
+    ),
+  },
+  quetsche: {
+    product: () => (
+      <>
+        <L d="M44 32C44 26 46 22 50 18" c={BROWN} w={2.6} />
+        <E x={44} y={60} rx={22} ry={28} a={-12} f="#4f3f7f" />
+        <In>
+          <P d="M56 38C66 48 68 66 62 78C56 88 46 90 38 88C54 82 62 64 56 38Z" f="#3a2e60" />
+          <L d="M44 34C40 46 38 62 42 86" c="#3a2e60" w={1.6} />
+          <P d="M30 52C32 44 36 40 40 38C37 44 35 50 34 58C32 56 30 54 30 52Z" f="#8e82bb" />
+        </In>
+        <E x={78} y={86} rx={22} ry={18} a={8} f="#4f3f7f" />
+        <E x={78} y={84} rx={19} ry={15} a={8} f="#e7c44c" />
+        <In>
+          <E x={79} y={84} rx={7} ry={9} a={30} f="#a8642c" />
+          <E x={77} y={81} rx={2} ry={3} a={30} f="#c88648" />
+        </In>
+      </>
+    ),
+  },
+  "fruits-rouges": {
+    product: () => (
+      <>
+        <P d={discs(BERRIES.map(([x, y]) => [x, y - 8, 7]))} f="#d8395f" />
+        <In>
+          <P d={dots(BERRIES.map(([x, y]) => [x - 2, y - 10]), 2)} f="#f07b98" />
+        </In>
+        <P d="M20 56C20 46 32 42 42 48C52 42 64 46 64 56C64 74 50 92 42 100C34 92 20 74 20 56Z" f="#e0402f" />
+        <In>
+          <P d="M50 46C60 48 64 54 64 60C62 74 50 90 42 100C52 86 58 70 50 46Z" f="#b52f22" />
+          <P d={dots([[32, 60], [42, 58], [52, 60], [36, 72], [48, 72], [42, 84], [28, 52], [56, 52]], 1.2)} f="#f9d56b" />
+        </In>
+        <P d="M30 48C34 40 38 38 42 42C46 38 50 40 54 48C48 46 46 48 42 46C38 48 36 46 30 48Z" f={LEAF} />
+        <L d="M42 42V34" c={LEAF_DARK} w={2.4} />
+        {(
+          [
+            [62, 96],
+            [80, 98],
+            [96, 92],
+          ] as Pt[]
+        ).map(([x, y], i) => (
+          <g key={i}>
+            <C x={x} y={y} r={9} f="#3f4f8f" />
+            <In>
+              <P d={`M${x - 2.5} ${y - 4}h5v2h-5Z`} f="#2b3768" />
+              <C x={x - 4} y={y + 1} r={2} f="#7e8cc4" />
+            </In>
+          </g>
+        ))}
+      </>
+    ),
+  },
+  banane: {
+    product: () => (
+      <>
+        <P d="M22 40C18 66 34 92 70 96C86 98 98 92 104 86C90 90 74 88 60 80C42 70 32 56 30 40Z" f="#e9b92a" />
+        <P d="M28 36C26 62 42 82 70 86C84 88 96 86 104 82C102 76 96 74 90 76C74 78 58 72 46 60C38 50 34 42 34 34Z" f="#f5d03c" />
+        <In>
+          <P d="M30 50C34 64 48 78 70 82C56 82 40 72 34 60C32 56 30 54 30 50Z" f="#fbe58c" />
+        </In>
+        <P d="M27 38L26 26L34 24L35 35Z" f="#8a6a2e" />
+        <P d="M102 76L110 80L106 86L100 83Z" f="#5c4420" />
+      </>
+    ),
+  },
+} satisfies Partial<Record<IllustrationKey, Food>>;
 
-const KIWI_SEEDS = Array.from({ length: 22 }, (_, i) => {
-  const a = (i / 22) * Math.PI * 2;
-  const r = i % 2 ? 9.5 : 11;
-  const x = 78 + Math.cos(a) * r;
-  const y = 77 + Math.sin(a) * r * 0.92;
-  return leaf(x, y, x + Math.cos(a) * 3, y + Math.sin(a) * 3, 1);
-}).join("");
-const KIWI_RAYS = Array.from({ length: 16 }, (_, i) => {
-  const a = (i / 16) * Math.PI * 2 + 0.1;
-  return `M${(78 + Math.cos(a) * 6).toFixed(1)} ${(77 + Math.sin(a) * 5.5).toFixed(1)}L${(78 + Math.cos(a) * 18).toFixed(1)} ${(77 + Math.sin(a) * 16.5).toFixed(1)}`;
-}).join("");
-const KIWI_FUZZ = Array.from({ length: 30 }, (_, i) => {
-  const a = Math.PI * 0.55 + (i / 30) * Math.PI * 1.45;
-  const x = 48 + Math.cos(a) * 31.5;
-  const y = 58 + Math.sin(a) * 26.5;
-  return `M${x.toFixed(1)} ${y.toFixed(1)}l${(Math.cos(a + 0.4) * 1.6).toFixed(1)} ${(Math.sin(a + 0.4) * 1.6).toFixed(1)}`;
-}).join("");
-export function Kiwi({ className }: IllustrationProps) {
-  return (
-    <Frame className={className}>
-      <defs>
-        <RG id="kiwi-a" c={["#b48c60", "#9a744a", "#7a5838"]} cx={0.4} cy={0.35} />
-        <RG id="kiwi-b" c={[["#f2f2cf", 0], ["#c4d670", 0.35], ["#9cb84a", 0.75], ["#7f9c38", 1]]} cx={0.5} cy={0.5} r={0.5} />
-      </defs>
-      <W d="M16 56C16 40 32 29 50 31C68 33 82 45 80 61C78 77 62 87 44 85C28 83 16 72 16 56Z" f={url("kiwi-a")} o={0.9} />
-      <W d="M70 40C80 50 82 66 74 76C68 82 58 86 48 86C64 78 74 62 70 40Z" f="#5f4228" o={0.42} />
-      <Hi d="M28 46C34 40 42 37 50 37C42 40 36 44 32 50Z" o={0.45} />
-      <W d={blob(78, 77, 25, 23, 1, 0.03)} f="#8a6440" o={0.92} />
-      <W d={blob(78, 77, 22.5, 20.5, 2, 0.03)} f={url("kiwi-b")} o={0.96} />
-      <Ink c="#f4f1d6" o={0.5} w={0.8}>
-        <path d={KIWI_RAYS} />
-      </Ink>
-      <W d={blob(78, 77, 5.5, 4.8, 3, 0.05)} f="#f7f4dc" o={0.95} soft />
-      <path d={KIWI_SEEDS} fill="#2e2a24" opacity={0.85} />
-      <Ink o={0.3} w={0.7}>
-        <path d={KIWI_FUZZ} />
-      </Ink>
-    </Frame>
-  );
-}
-
-const CLEM_DOTS = (() => {
-  const r = rng(3);
-  let d = "";
-  for (let i = 0; i < 28; i++) {
-    const a = r() * Math.PI * 2;
-    const m = Math.sqrt(r()) * 24;
-    d += `M${(55 + Math.cos(a) * m).toFixed(1)} ${(68 + Math.sin(a) * m * 0.92).toFixed(1)}h.1`;
-  }
-  return d;
-})();
-export function Clementine({ className }: IllustrationProps) {
-  return (
-    <Frame className={className}>
-      <defs>
-        <RG id="clementine-a" c={["#f8b866", "#ee9134", "#cd6f22"]} cx={0.38} cy={0.35} />
-      </defs>
-      <W d={blob(58, 68, 32, 30, 2, 0.035)} f={url("clementine-a")} o={0.9} />
-      <W d="M78 48C90 60 90 80 80 90C72 98 60 100 52 98C70 92 84 78 78 48Z" f="#b75a1c" o={0.42} />
-      <Hi d="M36 52C40 46 46 43 52 42C46 46 42 50 40 56Z" o={0.65} />
-      <Ink o={0.28} w={1.6}>
-        <path d={CLEM_DOTS} />
-      </Ink>
-      <W d={leaf(56, 40, 88, 22, 9, -2)} f={LEAF_DARK} o={0.88} />
-      <W d={leaf(55, 40, 36, 16, 7, 2)} f={LEAF} o={0.82} />
-      <Ink o={0.5} w={1}>
-        <path d={veins(56, 40, 88, 22, 3, 9) + veins(55, 40, 36, 16, 3, 7)} />
-      </Ink>
-      <Ink c={BARK} o={0.9} w={2}>
-        <path d="M56 41C56 36 55 33 53 30" />
-      </Ink>
-    </Frame>
-  );
-}
-
-const LEMON_SEGS = Array.from({ length: 8 }, (_, i) => {
-  const a = (i / 8) * Math.PI * 2 + 0.2;
-  return `M86 92L${(86 + Math.cos(a) * 12).toFixed(1)} ${(92 + Math.sin(a) * 12).toFixed(1)}`;
-}).join("");
-export function Citron({ className }: IllustrationProps) {
-  return (
-    <Frame className={className}>
-      <defs>
-        <RG id="citron-a" c={["#fbe486", "#f2cf4a", "#d6ac2e"]} cx={0.4} cy={0.35} />
-      </defs>
-      <W d={leaf(62, 32, 88, 12, 8, -2)} f={LEAF} o={0.82} />
-      <W d="M14 56C16 52 20 50 24 48C32 34 48 28 64 30C78 32 90 40 94 48C98 50 102 52 104 54C102 58 98 60 94 60C88 74 72 82 56 80C40 78 28 70 24 62C20 62 16 60 14 56Z" f={url("citron-a")} o={0.9} />
-      <W d="M86 46C96 56 92 70 80 76C72 80 62 81 54 80C70 76 86 64 86 46Z" f="#c4961e" o={0.42} />
-      <Hi d="M32 46C40 38 50 35 60 35C50 39 42 44 36 52Z" o={0.65} />
-      <Ink o={0.5} w={1}>
-        <path d={veins(62, 32, 88, 12, 3, 8)} />
-      </Ink>
-      <Ink o={0.28} w={1.6}>
-        <path d="M40 56h.1M52 48h.1M66 44h.1M58 62h.1M74 58h.1M46 68h.1M80 50h.1M34 60h.1" />
-      </Ink>
-      <W d={blob(86, 92, 17, 16, 1, 0.03)} f="#f0c843" o={0.92} />
-      <W d={blob(86, 92, 14.5, 13.5, 2, 0.03)} f="#faf1cc" o={0.95} />
-      <W d={blob(86, 92, 12.5, 11.8, 3, 0.03)} f="#f6e07e" o={0.9} />
-      <Ink c="#fdf8e6" o={0.95} w={1.2}>
-        <path d={LEMON_SEGS} />
-      </Ink>
-      <Ink o={0.5}>
-        <path d="M14 56C16 52 20 50 24 48M104 54C102 58 98 60 94 60" />
-      </Ink>
-    </Frame>
-  );
-}

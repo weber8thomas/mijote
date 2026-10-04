@@ -1,51 +1,130 @@
 import { ILLUSTRATION_KEYS, ingredientMap, plateOf, type Recipe } from "@mijote/shared";
+import { metaOf, type Soup, type Tone } from "@/components/illustrations/meta";
 import { cn } from "@/lib/utils";
 
-// Illustrations servies en images (public/illustrations, générées par scripts/illustrations.ts) :
-// rastérisées une fois par le navigateur, elles restent fluides pendant les animations et le défilement.
+// Illustrations « Pastille » servies en images (public/illustrations, générées par scripts/illustrations.ts) :
+// SVG en aplats, sans filtre, rastérisés une fois par le navigateur → nets sur iPhone et fluides en animation.
 
 const KNOWN = new Set<string>(ILLUSTRATION_KEYS);
-const src = (name: string) => `${import.meta.env.BASE_URL}illustrations/${KNOWN.has(name) ? name : "sprig"}.svg`;
+const BASE = `${import.meta.env.BASE_URL}illustrations/`;
+const keyOf = (name: string) => (KNOWN.has(name) ? name : "sprig");
 
+/** Produit seul, en autocollant sur sa pastille (listes, placard, états vides, produits de saison). */
 export function Art({ name, className, title }: { name: string; className?: string; title?: string }) {
-  return <img src={src(name)} alt={title ?? ""} aria-hidden={title ? undefined : true} draggable={false} decoding="async" className={cn("pointer-events-none select-none", className)} />;
+  return <img src={`${BASE}${keyOf(name)}.svg`} alt={title ?? ""} aria-hidden={title ? undefined : true} draggable={false} decoding="async" className={cn("pointer-events-none select-none", className)} />;
 }
 
-/** Positions des éléments d'une assiette : protéine devant, légume et féculent derrière. */
-const LAYOUTS: Record<number, { w: string; left: string; top: string; z: number }[]> = {
-  1: [{ w: "80%", left: "10%", top: "10%", z: 1 }],
-  2: [
-    { w: "64%", left: "4%", top: "30%", z: 2 },
-    { w: "62%", left: "36%", top: "4%", z: 1 },
-  ],
-  3: [
-    { w: "60%", left: "22%", top: "38%", z: 3 },
-    { w: "56%", left: "44%", top: "0%", z: 2 },
-    { w: "54%", left: "0%", top: "4%", z: 1 },
-  ],
-};
+// ---------- Assiette composée ----------
+// Tout se passe dans une boîte 120 × 120 (celle des SVG) : pastille → contenant → aliments, de l'arrière vers l'avant.
+// Chaque aliment (food/<clé>.svg) est dessiné posé sur y = 104 de sa propre boîte : on le place par son point de pose.
+
+/** Un aliment placé : centre x, point de pose y, largeur de son image (unités de la boîte 120). */
+type Item = { key: string; x: number; y: number; w: number; whole?: boolean };
+type Dish =
+  | { kind: "single"; key: string }
+  | { kind: "plate"; tone: Tone; items: Item[] }
+  | { kind: "bowl"; tone: Tone; items: Item[]; soup: Soup; bowl: "terracotta" | "sage" };
+
+const GROUND = 104 / 120;
+
+/**
+ * Bol plutôt qu'assiette :
+ * - plat (déjeuner, dîner) : tag `soup`, ou un titre de plat en sauce mangé à la cuillère (soupe, velouté, dahl, curry, chili…) ;
+ * - dessert : un titre crémeux (compote, yaourt, petits-suisses, riz/semoule au lait, crème, flan).
+ */
+const SPOON_DISH = /soupe|velouté|potage|dahl|curry|chili|harira|minestrone|mafé|potée/i;
+const CREAMY_DESSERT = /compote|yaourt|petits-suisses|riz au lait|semoule|crème|flan/i;
+
+const isMain = (r: Recipe) => r.slots.some((s) => s === "lunch" || s === "dinner");
+export const isBowlDish = (r: Recipe) => (isMain(r) ? r.tags.includes("soup") || SPOON_DISH.test(r.title) : CREAMY_DESSERT.test(r.title));
+
+/** Créneaux de l'assiette : protéine au fond à droite, l'accompagnement le plus haut au fond à gauche, le plus plat devant. */
+const SLOT = { backLeft: [37, 68], backRight: [83, 66], front: [60, 99] } as const;
+const W = 64;
+
+function plateItems(keys: string[]): Item[] {
+  const at = (key: string, [x, y]: readonly [number, number], w = W): Item => ({ key, x, y, w: w * (metaOf(key).size ?? 1) });
+  if (keys.length === 1) return [at(keys[0], [60, 94], 76)];
+  const protein = keys.find((k) => metaOf(k).kind === "protein");
+  const sides = keys.filter((k) => k !== protein).sort((a, b) => metaOf(b).height - metaOf(a).height);
+  if (protein && sides.length >= 2) return [at(sides[0], SLOT.backLeft), at(protein, SLOT.backRight), at(sides[1], SLOT.front)];
+  // Deux aliments : le plus haut au fond à gauche, l'autre devant à droite.
+  const [back, front] = [...keys].sort((a, b) => metaOf(b).height - metaOf(a).height);
+  return [at(back, [42, 74], 68), at(front, [78, 98], 64)];
+}
+
+/** Bol : les produits entiers du plat dépassent derrière le bol (légume à gauche, protéine à droite). */
+function bowlItems(keys: string[]): Item[] {
+  const protein = keys.find((k) => metaOf(k).kind === "protein");
+  const veg = keys.find((k) => metaOf(k).kind === "veg" || metaOf(k).kind === "fruit");
+  if (veg && protein) return [{ key: veg, x: 36, y: 64, w: 54, whole: true }, { key: protein, x: 84, y: 62, w: 50, whole: true }];
+  const only = veg ?? protein ?? keys[0];
+  return only ? [{ key: only, x: 78, y: 57, w: 60, whole: true }] : [];
+}
+
+function soupOf(r: Recipe, keys: string[]): Soup {
+  if (!isMain(r)) return /chocolat/i.test(r.title) ? "brown" : /compote/i.test(r.title) ? metaOf(r.illustration).soup : "cream";
+  const veg = keys.find((k) => metaOf(k).kind === "veg");
+  return metaOf(veg ?? keys[0] ?? r.illustration).soup;
+}
+
+function dishOf(recipe: Recipe): Dish {
+  const keys = plateOf(recipe, INGREDIENTS);
+  const tone = metaOf(recipe.illustration).tone;
+  if (isBowlDish(recipe)) {
+    const items = isMain(recipe) ? bowlItems(keys) : [{ key: recipe.illustration, x: 78, y: 57, w: 60, whole: true }];
+    const soup = soupOf(recipe, keys);
+    // Bol sauge sur pastille rosée, terracotta sinon ; jamais une soupe verte dans un bol vert.
+    return { kind: "bowl", tone, items, soup, bowl: (tone === "terracotta" || tone === "plum") && soup !== "green" ? "sage" : "terracotta" };
+  }
+  if (!isMain(recipe) && keys.length === 1) return { kind: "single", key: keys[0] };
+  return { kind: "plate", tone, items: plateItems(keys).sort((a, b) => a.y - b.y) };
+}
 
 /** Composition calculée une fois par recette (les ingrédients d'une recette ne changent pas). */
 // Les prix modifiés par le foyer n'y changent rien : la liste d'ingrédients de base suffit, sans abonnement au store.
 const INGREDIENTS = ingredientMap();
-const plates = new WeakMap<Recipe, string[]>();
-const plateFor = (recipe: Recipe) => {
-  let keys = plates.get(recipe);
-  if (!keys) plates.set(recipe, (keys = plateOf(recipe, INGREDIENTS)));
-  return keys;
+const dishes = new WeakMap<Recipe, Dish>();
+const dishFor = (recipe: Recipe) => {
+  let dish = dishes.get(recipe);
+  if (!dish) dishes.set(recipe, (dish = dishOf(recipe)));
+  return dish;
 };
 
-/** Assiette aquarelle : protéine + légume + féculent de la recette (ou son produit vedette pour un dessert). */
+const pct = (n: number) => `${(n / 1.2).toFixed(2)}%`;
+const Layer = ({ file, item }: { file: string; item?: Item }) => (
+  <img
+    src={`${BASE}${file}.svg`}
+    alt=""
+    draggable={false}
+    decoding="async"
+    className="pointer-events-none absolute max-w-none select-none"
+    style={item ? { left: pct(item.x - item.w / 2), top: pct(item.y - item.w * GROUND), width: pct(item.w) } : { inset: 0, width: "100%", height: "100%" }}
+  />
+);
+
+/** Le plat d'une recette dans une seule pastille : assiette ou bol, puis protéine, légume, féculent (ou le produit du dessert). */
 export function Plate({ recipe, className }: { recipe: Recipe; className?: string }) {
-  const keys = plateFor(recipe);
-  const layout = LAYOUTS[keys.length];
+  const dish = dishFor(recipe);
   return (
     <span className={cn("relative block aspect-square", className)} aria-hidden>
-      {keys.map((k, i) => (
-        <span key={k} className="absolute" style={{ width: layout[i].w, left: layout[i].left, top: layout[i].top, zIndex: layout[i].z }}>
-          <Art name={k} className="aspect-square w-full drop-shadow-[0_2px_2px_rgb(80_60_30_/_0.1)]" />
-        </span>
-      ))}
+      {dish.kind === "single" ? (
+        <Layer file={keyOf(dish.key)} />
+      ) : (
+        <>
+          <Layer file={`food/_badge-${dish.tone}`} />
+          {dish.kind === "plate" && <Layer file="food/_plate" />}
+          {dish.items.map((it) => (
+            <Layer key={it.key} file={`food/${it.whole ? "whole/" : ""}${keyOf(it.key)}`} item={it} />
+          ))}
+          {dish.kind === "bowl" && (
+            <>
+              <Layer file={`food/_bowl-${dish.bowl}`} />
+              <Layer file={`food/_soup-${dish.soup}`} />
+            </>
+          )}
+        </>
+      )}
     </span>
   );
 }
