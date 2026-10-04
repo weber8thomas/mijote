@@ -7,4 +7,6 @@ export * from "./dates";
 export * from "./labels";
 export * from "./planner";
 export * from "./shopping";
+export * from "./illustrations";
 export type * from "./basket-provider";
+export * from "./content";

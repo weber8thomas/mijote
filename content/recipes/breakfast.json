@@ -1,1 +1,811 @@
-[]
+[
+  {
+    "id": "overnight-oats-pomme-cannelle",
+    "slug": "overnight-oats-pomme-cannelle",
+    "title": "Overnight oats pomme-cannelle",
+    "description": "Des flocons gonflés toute la nuit avec de la pomme râpée et une pointe de cannelle, prêts au réveil.",
+    "slots": [
+      "breakfast"
+    ],
+    "prepMinutes": 10,
+    "cookMinutes": 0,
+    "longCook": false,
+    "prepAhead": true,
+    "prepAheadSteps": [
+      "Râper la pomme et mélanger avec les flocons, le lait, le yaourt et la cannelle, réserver au frais"
+    ],
+    "yieldsLeftovers": false,
+    "servingsBase": 2,
+    "ingredients": [
+      {
+        "ingredientId": "flocons-avoine",
+        "qty": 80,
+        "unit": "g"
+      },
+      {
+        "ingredientId": "lait",
+        "qty": 200,
+        "unit": "ml"
+      },
+      {
+        "ingredientId": "yaourt-nature",
+        "qty": 1,
+        "unit": "piece"
+      },
+      {
+        "ingredientId": "pomme",
+        "qty": 1,
+        "unit": "piece",
+        "form": "grated",
+        "note": "bien mûre, râpée finement"
+      },
+      {
+        "ingredientId": "cannelle",
+        "qty": 1,
+        "unit": "pincee"
+      }
+    ],
+    "steps": [
+      "Râpe la pomme finement avec sa peau ou épluchée.",
+      "Mélange les flocons, le lait, le yaourt, la pomme râpée et la cannelle dans deux bocaux.",
+      "Ferme et laisse gonfler une nuit au réfrigérateur.",
+      "Le matin, remue et ajoute un trait de lait si c'est trop épais."
+    ],
+    "babyAdaptation": {
+      "when": "Prélever un petit bocal le soir, avant de fermer les bocaux",
+      "texture": "Flocons bien gonflés et fondants, à écraser à la fourchette si besoin",
+      "amount": "3 à 4 cuillères à soupe",
+      "notes": "Le lait de vache convient dans une préparation ; la portion bébé peut aussi être faite au lait infantile (2e âge ou croissance)."
+    },
+    "ironScore": 1,
+    "mainProtein": "dairy",
+    "tags": [
+      "overnight"
+    ],
+    "illustration": "avoine",
+    "source": "seed"
+  },
+  {
+    "id": "overnight-oats-poire-noisette",
+    "slug": "overnight-oats-poire-noisette",
+    "title": "Overnight oats poire-noisette",
+    "description": "Poire fondante et noisette en poudre pour un bocal crémeux qui sent bon l'automne.",
+    "slots": [
+      "breakfast"
+    ],
+    "prepMinutes": 10,
+    "cookMinutes": 0,
+    "longCook": false,
+    "prepAhead": true,
+    "prepAheadSteps": [
+      "Râper la poire et mélanger avec les flocons, le lait, la vanille et la poudre de noisette, réserver au frais"
+    ],
+    "yieldsLeftovers": false,
+    "servingsBase": 2,
+    "ingredients": [
+      {
+        "ingredientId": "flocons-avoine",
+        "qty": 80,
+        "unit": "g"
+      },
+      {
+        "ingredientId": "lait",
+        "qty": 220,
+        "unit": "ml"
+      },
+      {
+        "ingredientId": "poire",
+        "qty": 1,
+        "unit": "piece",
+        "form": "grated",
+        "note": "bien mûre"
+      },
+      {
+        "ingredientId": "poudre-noisette",
+        "qty": 2,
+        "unit": "cs",
+        "form": "powder"
+      },
+      {
+        "ingredientId": "vanille",
+        "qty": 1,
+        "unit": "cc"
+      }
+    ],
+    "steps": [
+      "Râpe ou écrase la poire bien mûre.",
+      "Mélange les flocons, le lait, la vanille et la poudre de noisette.",
+      "Ajoute la poire, répartis dans deux bocaux et laisse une nuit au frais.",
+      "Le matin, remue avant de servir."
+    ],
+    "babyAdaptation": {
+      "when": "Prélever la portion bébé le soir, après le mélange",
+      "texture": "Bouillie épaisse et lisse, flocons bien gonflés",
+      "amount": "3 à 4 cuillères à soupe",
+      "notes": "Noisette uniquement en poudre fine pour bébé. Le lait de vache convient dans une préparation ; la portion bébé peut aussi être faite au lait infantile (2e âge ou croissance)."
+    },
+    "ironScore": 1,
+    "mainProtein": "dairy",
+    "tags": [
+      "overnight"
+    ],
+    "illustration": "poire",
+    "source": "seed"
+  },
+  {
+    "id": "overnight-oats-figue-amande",
+    "slug": "overnight-oats-figue-amande",
+    "title": "Overnight oats figue-amande",
+    "description": "Des figues mûres coupées menu et de l'amande en poudre pour un petit-déjeuner de fin d'été.",
+    "slots": [
+      "breakfast"
+    ],
+    "prepMinutes": 10,
+    "cookMinutes": 0,
+    "longCook": false,
+    "prepAhead": true,
+    "prepAheadSteps": [
+      "Couper les figues et mélanger avec les flocons, le lait, le yaourt et la poudre d'amande, réserver au frais"
+    ],
+    "yieldsLeftovers": false,
+    "servingsBase": 2,
+    "ingredients": [
+      {
+        "ingredientId": "flocons-avoine",
+        "qty": 80,
+        "unit": "g"
+      },
+      {
+        "ingredientId": "lait",
+        "qty": 150,
+        "unit": "ml"
+      },
+      {
+        "ingredientId": "yaourt-nature",
+        "qty": 1,
+        "unit": "piece"
+      },
+      {
+        "ingredientId": "figue",
+        "qty": 3,
+        "unit": "piece",
+        "note": "bien mûres, coupées en petits dés"
+      },
+      {
+        "ingredientId": "poudre-amande",
+        "qty": 2,
+        "unit": "cs",
+        "form": "powder"
+      },
+      {
+        "ingredientId": "cannelle",
+        "qty": 1,
+        "unit": "pincee"
+      }
+    ],
+    "steps": [
+      "Coupe les figues en petits dés.",
+      "Mélange les flocons, le lait, le yaourt, la poudre d'amande et la cannelle.",
+      "Ajoute les figues, répartis dans deux bocaux et laisse une nuit au frais.",
+      "Le matin, remue et sers bien frais."
+    ],
+    "babyAdaptation": {
+      "when": "Prélever la portion bébé le soir, avant d'ajouter les figues en dés",
+      "texture": "Figue mûre écrasée à la fourchette et mélangée aux flocons gonflés",
+      "amount": "3 à 4 cuillères à soupe",
+      "notes": "Amande uniquement en poudre. Le lait de vache convient dans une préparation ; la portion bébé peut aussi être faite au lait infantile (2e âge ou croissance)."
+    },
+    "ironScore": 1,
+    "mainProtein": "dairy",
+    "tags": [
+      "overnight"
+    ],
+    "illustration": "figue",
+    "source": "seed"
+  },
+  {
+    "id": "chia-pudding-pomme-fruits-rouges",
+    "slug": "chia-pudding-pomme-fruits-rouges",
+    "title": "Chia pudding pomme et fruits rouges",
+    "description": "Un pudding de chia gonflé toute la nuit, relevé de fruits rouges et de pomme râpée.",
+    "slots": [
+      "breakfast"
+    ],
+    "prepMinutes": 10,
+    "cookMinutes": 0,
+    "longCook": false,
+    "prepAhead": true,
+    "prepAheadSteps": [
+      "Mélanger les graines de chia, le lait, la vanille et la pomme râpée, réserver au frais",
+      "Mettre les fruits rouges à décongeler au réfrigérateur"
+    ],
+    "yieldsLeftovers": false,
+    "servingsBase": 2,
+    "ingredients": [
+      {
+        "ingredientId": "graines-chia",
+        "qty": 40,
+        "unit": "g"
+      },
+      {
+        "ingredientId": "lait",
+        "qty": 250,
+        "unit": "ml"
+      },
+      {
+        "ingredientId": "fruits-rouges-surgeles",
+        "qty": 150,
+        "unit": "g"
+      },
+      {
+        "ingredientId": "pomme",
+        "qty": 1,
+        "unit": "piece",
+        "form": "grated"
+      },
+      {
+        "ingredientId": "vanille",
+        "qty": 1,
+        "unit": "cc"
+      }
+    ],
+    "steps": [
+      "Mélange les graines de chia, le lait et la vanille, puis remue à nouveau après 5 minutes.",
+      "Ajoute la pomme râpée et répartis dans deux bocaux.",
+      "Sors les fruits rouges du congélateur et dépose-les dans une boîte au réfrigérateur.",
+      "Le matin, écrase les fruits rouges décongelés et verse-les sur le pudding."
+    ],
+    "babyAdaptation": {
+      "when": "Prélever la portion bébé le matin, après une nuit de trempage",
+      "texture": "Pudding bien gonflé, fruits rouges écrasés en coulis",
+      "amount": "3 cuillères à soupe",
+      "notes": "Les graines de chia doivent avoir trempé au moins 8 heures : jamais sèches pour bébé. Le lait de vache convient dans une préparation ; la portion bébé peut aussi être faite au lait infantile (2e âge ou croissance)."
+    },
+    "ironScore": 1,
+    "mainProtein": "dairy",
+    "tags": [
+      "overnight"
+    ],
+    "illustration": "pomme",
+    "source": "seed"
+  },
+  {
+    "id": "chia-pudding-kiwi",
+    "slug": "chia-pudding-kiwi",
+    "title": "Chia pudding au kiwi",
+    "description": "Un pudding vanillé tout doux et du kiwi bien mûr pour un plein de vitamine C.",
+    "slots": [
+      "breakfast"
+    ],
+    "prepMinutes": 10,
+    "cookMinutes": 0,
+    "longCook": false,
+    "prepAhead": true,
+    "prepAheadSteps": [
+      "Mélanger les graines de chia, le lait, le yaourt et la vanille, réserver au frais"
+    ],
+    "yieldsLeftovers": false,
+    "servingsBase": 2,
+    "ingredients": [
+      {
+        "ingredientId": "graines-chia",
+        "qty": 40,
+        "unit": "g"
+      },
+      {
+        "ingredientId": "lait",
+        "qty": 200,
+        "unit": "ml"
+      },
+      {
+        "ingredientId": "yaourt-nature",
+        "qty": 1,
+        "unit": "piece"
+      },
+      {
+        "ingredientId": "vanille",
+        "qty": 1,
+        "unit": "cc"
+      },
+      {
+        "ingredientId": "kiwi",
+        "qty": 2,
+        "unit": "piece",
+        "note": "bien mûrs"
+      }
+    ],
+    "steps": [
+      "Mélange les graines de chia, le lait, le yaourt et la vanille.",
+      "Remue à nouveau après 5 minutes pour éviter les grumeaux, puis répartis dans deux bocaux.",
+      "Laisse gonfler une nuit au réfrigérateur.",
+      "Le matin, épluche les kiwis, coupe-les en dés et dépose-les sur le pudding."
+    ],
+    "babyAdaptation": {
+      "when": "Prélever la portion bébé le matin, après une nuit de trempage",
+      "texture": "Pudding bien gonflé, kiwi écrasé ou en tout petits dés fondants",
+      "amount": "3 cuillères à soupe",
+      "notes": "Chia bien trempé au moins 8 heures. Le lait de vache convient dans une préparation ; la portion bébé peut aussi être faite au lait infantile (2e âge ou croissance)."
+    },
+    "ironScore": 1,
+    "mainProtein": "dairy",
+    "tags": [
+      "overnight"
+    ],
+    "illustration": "kiwi",
+    "source": "seed"
+  },
+  {
+    "id": "bircher-muesli-pomme-raisin",
+    "slug": "bircher-muesli-pomme-raisin",
+    "title": "Bircher muesli pomme-raisin",
+    "description": "Le muesli suisse de la veille : flocons, yaourt, pomme râpée et grains de raisin frais.",
+    "slots": [
+      "breakfast"
+    ],
+    "prepMinutes": 10,
+    "cookMinutes": 0,
+    "longCook": false,
+    "prepAhead": true,
+    "prepAheadSteps": [
+      "Râper la pomme et mélanger avec les yaourts, les flocons et le lait, réserver au frais"
+    ],
+    "yieldsLeftovers": false,
+    "servingsBase": 2,
+    "ingredients": [
+      {
+        "ingredientId": "flocons-avoine",
+        "qty": 80,
+        "unit": "g"
+      },
+      {
+        "ingredientId": "yaourt-nature",
+        "qty": 2,
+        "unit": "piece"
+      },
+      {
+        "ingredientId": "lait",
+        "qty": 100,
+        "unit": "ml"
+      },
+      {
+        "ingredientId": "pomme",
+        "qty": 1,
+        "unit": "piece",
+        "form": "grated"
+      },
+      {
+        "ingredientId": "raisin",
+        "qty": 100,
+        "unit": "g",
+        "form": "quartered",
+        "note": "coupés en quatre, épépinés"
+      },
+      {
+        "ingredientId": "cannelle",
+        "qty": 1,
+        "unit": "pincee"
+      }
+    ],
+    "steps": [
+      "Râpe la pomme et mélange-la aussitôt aux yaourts pour qu'elle ne noircisse pas.",
+      "Ajoute les flocons, le lait et la cannelle, puis mélange.",
+      "Couvre et laisse une nuit au réfrigérateur.",
+      "Le matin, coupe les grains de raisin en quatre et ajoute-les sur le dessus."
+    ],
+    "babyAdaptation": {
+      "when": "Prélever la portion bébé le matin, avant d'ajouter le raisin entier",
+      "texture": "Muesli bien gonflé, raisin épépiné, pelé si possible et coupé en quatre",
+      "amount": "3 à 4 cuillères à soupe"
+    },
+    "ironScore": 1,
+    "mainProtein": "dairy",
+    "tags": [
+      "overnight"
+    ],
+    "illustration": "raisin",
+    "source": "seed"
+  },
+  {
+    "id": "tartines-amande-poire",
+    "slug": "tartines-amande-poire",
+    "title": "Tartines amande et poire fondante",
+    "description": "Du bon pain, une fine couche de purée d'amande et des lamelles de poire bien mûre.",
+    "slots": [
+      "breakfast"
+    ],
+    "prepMinutes": 5,
+    "cookMinutes": 0,
+    "longCook": false,
+    "prepAhead": false,
+    "prepAheadSteps": [],
+    "yieldsLeftovers": false,
+    "servingsBase": 2,
+    "ingredients": [
+      {
+        "ingredientId": "pain",
+        "qty": 120,
+        "unit": "g",
+        "note": "4 tranches"
+      },
+      {
+        "ingredientId": "puree-amande",
+        "qty": 2,
+        "unit": "cs",
+        "form": "puree"
+      },
+      {
+        "ingredientId": "poire",
+        "qty": 1,
+        "unit": "piece",
+        "note": "très mûre"
+      }
+    ],
+    "steps": [
+      "Toaste légèrement les tranches de pain.",
+      "Étale une fine couche de purée d'amande.",
+      "Épluche la poire, coupe-la en fines lamelles et dépose-les sur les tartines."
+    ],
+    "babyAdaptation": {
+      "when": "Prélever une demi-tranche avant de couper le reste",
+      "texture": "Pain non grillé en mouillettes, purée d'amande en couche très fine, poire fondante écrasée dessus",
+      "amount": "1/2 tranche et quelques lamelles de poire",
+      "notes": "Purée d'amande lisse uniquement, jamais d'amandes entières."
+    },
+    "ironScore": 0,
+    "mainProtein": "none",
+    "tags": [
+      "quick",
+      "finger-food"
+    ],
+    "illustration": "poire",
+    "source": "seed"
+  },
+  {
+    "id": "yaourt-compote-flocons",
+    "slug": "yaourt-compote-flocons",
+    "title": "Yaourt, compote express et flocons",
+    "description": "Une pomme fondue à la poêle sur un yaourt, avec des flocons pour tenir jusqu'à midi.",
+    "slots": [
+      "breakfast"
+    ],
+    "prepMinutes": 3,
+    "cookMinutes": 5,
+    "longCook": false,
+    "prepAhead": false,
+    "prepAheadSteps": [],
+    "yieldsLeftovers": false,
+    "servingsBase": 2,
+    "ingredients": [
+      {
+        "ingredientId": "yaourt-nature",
+        "qty": 2,
+        "unit": "piece"
+      },
+      {
+        "ingredientId": "pomme",
+        "qty": 1,
+        "unit": "piece",
+        "form": "cooked"
+      },
+      {
+        "ingredientId": "flocons-avoine",
+        "qty": 30,
+        "unit": "g"
+      },
+      {
+        "ingredientId": "cannelle",
+        "qty": 1,
+        "unit": "pincee"
+      }
+    ],
+    "steps": [
+      "Épluche la pomme et coupe-la en petits dés.",
+      "Fais-la fondre 5 minutes à couvert avec 2 cuillères d'eau et la cannelle, puis écrase-la.",
+      "Verse les yaourts dans des bols, ajoute la compote tiède et parsème de flocons."
+    ],
+    "babyAdaptation": {
+      "when": "Prélever la portion bébé après avoir écrasé la pomme",
+      "texture": "Compote lisse mélangée au yaourt, flocons ajoutés 2 minutes avant pour qu'ils ramollissent",
+      "amount": "1/2 yaourt et 2 cuillères à soupe de compote"
+    },
+    "ironScore": 0,
+    "mainProtein": "dairy",
+    "tags": [
+      "quick"
+    ],
+    "illustration": "pomme",
+    "source": "seed"
+  },
+  {
+    "id": "porridge-chaud-banane-vanille",
+    "slug": "porridge-chaud-banane-vanille",
+    "title": "Porridge chaud banane-vanille",
+    "description": "Un porridge crémeux et réconfortant, sucré seulement par la banane bien mûre.",
+    "slots": [
+      "breakfast"
+    ],
+    "prepMinutes": 3,
+    "cookMinutes": 6,
+    "longCook": false,
+    "prepAhead": false,
+    "prepAheadSteps": [],
+    "yieldsLeftovers": false,
+    "servingsBase": 2,
+    "ingredients": [
+      {
+        "ingredientId": "flocons-avoine",
+        "qty": 80,
+        "unit": "g"
+      },
+      {
+        "ingredientId": "lait",
+        "qty": 400,
+        "unit": "ml"
+      },
+      {
+        "ingredientId": "banane",
+        "qty": 1,
+        "unit": "piece",
+        "note": "bien mûre"
+      },
+      {
+        "ingredientId": "vanille",
+        "qty": 1,
+        "unit": "cc"
+      },
+      {
+        "ingredientId": "cannelle",
+        "qty": 1,
+        "unit": "pincee"
+      }
+    ],
+    "steps": [
+      "Verse les flocons, le lait et la vanille dans une casserole.",
+      "Fais cuire 5 à 6 minutes à feu doux en remuant.",
+      "Écrase la moitié de la banane et incorpore-la au porridge.",
+      "Sers avec le reste de la banane en rondelles et la cannelle."
+    ],
+    "babyAdaptation": {
+      "when": "Prélever la portion bébé après avoir incorporé la banane écrasée",
+      "texture": "Porridge onctueux, tiédi, sans morceaux",
+      "amount": "4 cuillères à soupe",
+      "notes": "Bébé peut avoir sa petite casserole au lait infantile : 120 ml pour 15 g de flocons."
+    },
+    "ironScore": 1,
+    "mainProtein": "dairy",
+    "tags": [
+      "quick"
+    ],
+    "illustration": "avoine",
+    "source": "seed"
+  },
+  {
+    "id": "pancakes-banane-avoine",
+    "slug": "pancakes-banane-avoine",
+    "title": "Pancakes banane-avoine",
+    "description": "Des pancakes moelleux sans sucre ni farine blanche, parfaits à attraper avec les doigts.",
+    "slots": [
+      "breakfast"
+    ],
+    "prepMinutes": 10,
+    "cookMinutes": 12,
+    "longCook": false,
+    "prepAhead": false,
+    "prepAheadSteps": [],
+    "yieldsLeftovers": false,
+    "servingsBase": 3,
+    "ingredients": [
+      {
+        "ingredientId": "banane",
+        "qty": 2,
+        "unit": "piece",
+        "note": "très mûres"
+      },
+      {
+        "ingredientId": "oeuf",
+        "qty": 2,
+        "unit": "piece"
+      },
+      {
+        "ingredientId": "flocons-avoine",
+        "qty": 100,
+        "unit": "g"
+      },
+      {
+        "ingredientId": "lait",
+        "qty": 80,
+        "unit": "ml"
+      },
+      {
+        "ingredientId": "levure-chimique",
+        "qty": 1,
+        "unit": "cc"
+      },
+      {
+        "ingredientId": "cannelle",
+        "qty": 1,
+        "unit": "pincee"
+      },
+      {
+        "ingredientId": "huile-colza",
+        "qty": 1,
+        "unit": "cc"
+      }
+    ],
+    "steps": [
+      "Mixe les flocons en poudre fine.",
+      "Ajoute les bananes, les œufs, le lait, la levure et la cannelle, puis mixe en pâte lisse.",
+      "Huile légèrement une poêle chaude et verse de petites louches de pâte.",
+      "Cuis 2 à 3 minutes par face, jusqu'à ce que le cœur soit bien pris."
+    ],
+    "babyAdaptation": {
+      "when": "Prélever un pancake bien cuit à cœur",
+      "texture": "Pancake moelleux coupé en bâtonnets à attraper",
+      "amount": "1 à 2 petits pancakes",
+      "notes": "Vérifie que l'œuf est totalement cuit au centre, sans pâte coulante."
+    },
+    "ironScore": 2,
+    "mainProtein": "egg",
+    "tags": [
+      "finger-food"
+    ],
+    "illustration": "avoine",
+    "source": "seed"
+  },
+  {
+    "id": "pain-perdu-figues",
+    "slug": "pain-perdu-figues",
+    "title": "Pain perdu aux figues rôties",
+    "description": "Le pain rassis du week-end devient doré et fondant, servi avec des figues poêlées.",
+    "slots": [
+      "breakfast"
+    ],
+    "prepMinutes": 10,
+    "cookMinutes": 12,
+    "longCook": false,
+    "prepAhead": false,
+    "prepAheadSteps": [],
+    "yieldsLeftovers": false,
+    "servingsBase": 2,
+    "ingredients": [
+      {
+        "ingredientId": "pain",
+        "qty": 150,
+        "unit": "g",
+        "note": "rassis, 4 tranches"
+      },
+      {
+        "ingredientId": "oeuf",
+        "qty": 2,
+        "unit": "piece"
+      },
+      {
+        "ingredientId": "lait",
+        "qty": 150,
+        "unit": "ml"
+      },
+      {
+        "ingredientId": "vanille",
+        "qty": 1,
+        "unit": "cc"
+      },
+      {
+        "ingredientId": "cannelle",
+        "qty": 1,
+        "unit": "pincee"
+      },
+      {
+        "ingredientId": "beurre",
+        "qty": 15,
+        "unit": "g"
+      },
+      {
+        "ingredientId": "figue",
+        "qty": 4,
+        "unit": "piece",
+        "form": "cooked",
+        "note": "coupées en quartiers"
+      }
+    ],
+    "steps": [
+      "Bats les œufs avec le lait, la vanille et la cannelle.",
+      "Trempe les tranches de pain quelques secondes de chaque côté.",
+      "Fais-les dorer au beurre 3 à 4 minutes par face, à feu moyen, jusqu'à ce qu'elles soient bien prises à cœur.",
+      "Poêle les figues 3 minutes dans la même poêle et sers-les sur le pain perdu."
+    ],
+    "babyAdaptation": {
+      "when": "Prélever une demi-tranche bien cuite à cœur",
+      "texture": "Pain perdu fondant coupé en bâtonnets, figue rôtie écrasée",
+      "amount": "1/2 tranche et 1 quartier de figue",
+      "notes": "Œuf totalement cuit, sans partie baveuse. Le lait de vache convient dans une préparation ; la portion bébé peut aussi être faite au lait infantile (2e âge ou croissance)."
+    },
+    "ironScore": 2,
+    "mainProtein": "egg",
+    "tags": [
+      "finger-food"
+    ],
+    "illustration": "figue",
+    "source": "seed"
+  },
+  {
+    "id": "oeufs-brouilles-tartines-kiwi",
+    "slug": "oeufs-brouilles-tartines-kiwi",
+    "title": "Œufs brouillés, tartines et kiwi",
+    "description": "Le brunch du dimanche : œufs brouillés bien crémeux, mouillettes et kiwi pour la vitamine C.",
+    "slots": [
+      "breakfast"
+    ],
+    "prepMinutes": 5,
+    "cookMinutes": 6,
+    "longCook": false,
+    "prepAhead": false,
+    "prepAheadSteps": [],
+    "yieldsLeftovers": false,
+    "servingsBase": 2,
+    "ingredients": [
+      {
+        "ingredientId": "oeuf",
+        "qty": 4,
+        "unit": "piece"
+      },
+      {
+        "ingredientId": "lait",
+        "qty": 2,
+        "unit": "cs"
+      },
+      {
+        "ingredientId": "beurre",
+        "qty": 10,
+        "unit": "g"
+      },
+      {
+        "ingredientId": "ciboulette",
+        "qty": 0.25,
+        "unit": "piece",
+        "note": "quelques brins ciselés"
+      },
+      {
+        "ingredientId": "pain",
+        "qty": 120,
+        "unit": "g",
+        "note": "4 tranches"
+      },
+      {
+        "ingredientId": "kiwi",
+        "qty": 2,
+        "unit": "piece"
+      },
+      {
+        "ingredientId": "sel",
+        "qty": 1,
+        "unit": "pincee",
+        "adultOnly": true
+      },
+      {
+        "ingredientId": "poivre",
+        "qty": 1,
+        "unit": "pincee",
+        "adultOnly": true
+      }
+    ],
+    "steps": [
+      "Bats les œufs avec le lait.",
+      "Fais-les cuire au beurre à feu doux en remuant sans cesse, jusqu'à ce qu'ils soient entièrement pris.",
+      "Ajoute la ciboulette ciselée, puis sale et poivre les parts adultes.",
+      "Sers avec les tartines et les kiwis épluchés en quartiers."
+    ],
+    "babyAdaptation": {
+      "when": "Prélever la portion bébé avant de saler",
+      "texture": "Œufs bien pris, sans partie baveuse, en petits morceaux ; pain en mouillettes ; kiwi en petits dés",
+      "amount": "1 œuf, 1/2 tranche et 1/2 kiwi",
+      "notes": "Le kiwi aide à absorber le fer de l'œuf."
+    },
+    "ironScore": 2,
+    "mainProtein": "egg",
+    "tags": [
+      "finger-food"
+    ],
+    "illustration": "oeuf",
+    "source": "seed"
+  }
+]

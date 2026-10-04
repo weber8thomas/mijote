@@ -1,3 +1,4 @@
+import { ILLUSTRATION_KEYS } from "./illustrations";
 import type { Ingredient, IngredientTag, Recipe, RecipeTag } from "./schemas";
 
 // Règles de diversification 11-12 mois (v1, fixes). Données + linter : le seed et toute recette IA doivent passer.
@@ -88,6 +89,7 @@ export function lintRecipe(recipe: Recipe, ingredients: Map<string, Ingredient>)
   if (recipe.longCook && recipe.cookMinutes < 60) warn("longCook avec moins d'une heure de cuisson");
   if (recipe.prepAhead && recipe.prepAheadSteps.length === 0) err("prepAhead sans étape de veille (prepAheadSteps)");
   if (recipe.slug !== recipe.id) err("slug et id doivent être identiques");
+  if (!(ILLUSTRATION_KEYS as readonly string[]).includes(recipe.illustration)) err(`Illustration inconnue : ${recipe.illustration}`);
 
   return issues;
 }

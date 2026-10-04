@@ -51,22 +51,48 @@ export function formatQty(qty: number, unit: BaseUnit, ing?: Pick<Ingredient, "n
   return qty >= 1000 ? `${nf(qty / 1000, 2)} L` : `${nf(qty, 0)} ml`;
 }
 
+/** 2,5 → « 2½ », 0,75 → « ¾ » (au quart près). */
+export function fraction(n: number): string {
+  const q = Math.round(n * 4) / 4;
+  const whole = Math.floor(q);
+  const part = { 0: "", 0.25: "¼", 0.5: "½", 0.75: "¾" }[q - whole as 0 | 0.25 | 0.5 | 0.75];
+  return whole ? `${whole}${part}` : part || "0";
+}
+
+/** Arrondi lisible des masses et volumes : 188 g → 190 g. */
+const roundMass = (n: number) => (n < 20 ? Math.round(n) : n < 250 ? Math.round(n / 5) * 5 : Math.round(n / 10) * 10);
+
 /** Affichage d'une quantité de recette dans son unité d'origine. */
 export function formatRecipeQty(qty: number, unit: QtyUnit): string {
-  const n = unit === "g" || unit === "ml" ? Math.round(qty) : Math.round(qty * 4) / 4;
-  const pretty = n === 0.25 ? "¼" : n === 0.5 ? "½" : n === 0.75 ? "¾" : nf(n, 2);
   switch (unit) {
     case "g":
-      return n >= 1000 ? `${nf(n / 1000, 2)} kg` : `${pretty} g`;
-    case "ml":
-      return n >= 1000 ? `${nf(n / 1000, 2)} L` : `${pretty} ml`;
+    case "ml": {
+      const n = roundMass(qty);
+      const big = unit === "g" ? "kg" : "L";
+      return n >= 1000 ? `${nf(n / 1000, 2)} ${big}` : `${n} ${unit}`;
+    }
     case "cs":
-      return `${pretty} c. à soupe`;
+      return `${fraction(qty)} c. à soupe`;
     case "cc":
-      return `${pretty} c. à café`;
+      return `${fraction(qty)} c. à café`;
     case "pincee":
-      return n > 1 ? `${pretty} pincées` : "1 pincée";
+      return qty > 1.5 ? `${Math.round(qty)} pincées` : "1 pincée";
     case "piece":
-      return pretty;
+      return fraction(qty);
   }
+}
+
+/** Arrondi d'affichage d'un nombre de pièces : au demi près, à l'unité supérieure pour les petites pièces (gousse d'ail). */
+export function roundPieces(qty: number, ing?: Pick<Ingredient, "pieceWeight">): number {
+  if (ing?.pieceWeight !== undefined && ing.pieceWeight < 20) return Math.max(1, Math.ceil(qty - 0.1));
+  return Math.max(0.5, Math.round(qty * 2) / 2);
+}
+
+/** « 2 carottes », « 1 gousse d'ail », « 300 g de… » : quantité de recette + nom d'ingrédient accordé. */
+export function ingredientLine(qty: number, unit: QtyUnit, ing: Pick<Ingredient, "name" | "plural" | "pieceName" | "pieceNamePlural" | "pieceWeight">): { qty: string; name: string } {
+  if (unit !== "piece") return { qty: formatRecipeQty(qty, unit), name: ing.name };
+  const n = roundPieces(qty, ing);
+  const many = n > 1;
+  const name = ing.pieceName ? (many ? (ing.pieceNamePlural ?? ing.pieceName) : ing.pieceName) : many ? (ing.plural ?? ing.name) : ing.name;
+  return { qty: fraction(n), name };
 }

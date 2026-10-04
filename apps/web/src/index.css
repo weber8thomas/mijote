@@ -1,0 +1,177 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+@import "@fontsource-variable/fraunces";
+@import "@fontsource-variable/fraunces/wght-italic.css";
+@import "@fontsource-variable/nunito";
+
+/* Identité « botanique illustré » : voir design/DESIGN.md. Contrastes vérifiés WCAG AA. */
+:root {
+  --background: #f7f1e5; /* papier */
+  --paper-deep: #efe6d3;
+  --foreground: #2f2a24; /* encre */
+  --card: #fffaf1;
+  --card-foreground: var(--foreground);
+  --popover: #fffaf1;
+  --popover-foreground: var(--foreground);
+  --primary: #4f6b3f; /* sauge profonde */
+  --primary-hover: #42593a;
+  --primary-foreground: #ffffff;
+  --primary-soft: #e4ead6;
+  --primary-ink: #3f5a33;
+  --secondary: #f0e8d8;
+  --secondary-foreground: var(--foreground);
+  --muted: #f0e8d8;
+  --muted-foreground: #6b6052;
+  --accent: #f0e8d8;
+  --accent-foreground: var(--foreground);
+  --terracotta: #b85532;
+  --terracotta-soft: #f5ddd0;
+  --terracotta-ink: #9a4426;
+  --ochre: #d79a2b;
+  --ochre-soft: #f8ebcc;
+  --ochre-ink: #7a5710;
+  --plum: #8a3b5c;
+  --plum-soft: #f2dfe6;
+  --plum-ink: #7d3452;
+  --destructive: #a8402a;
+  --border: #e5d9c3;
+  --border-strong: #d3c3a6;
+  --input: #d3c3a6;
+  --ring: #4f6b3f;
+  --radius: 1rem;
+  --shadow-card: 0 1px 0 rgb(80 60 30 / 0.04), 0 6px 18px -10px rgb(80 60 30 / 0.28);
+  --shadow-float: 0 18px 50px -18px rgb(60 45 20 / 0.45);
+  /* Bruit papier (SVG en data URI, quelques centaines d'octets). */
+  --paper-noise: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .45 0 0 0 0 .36 0 0 0 0 .22 0 0 0 .07 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+
+  color-scheme: light;
+}
+
+@theme inline {
+  --font-sans: "Nunito Variable", ui-sans-serif, system-ui, sans-serif;
+  --font-heading: "Fraunces Variable", ui-serif, Georgia, serif;
+
+  --color-background: var(--background);
+  --color-paper-deep: var(--paper-deep);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-hover: var(--primary-hover);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary-soft: var(--primary-soft);
+  --color-primary-ink: var(--primary-ink);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-terracotta: var(--terracotta);
+  --color-terracotta-soft: var(--terracotta-soft);
+  --color-terracotta-ink: var(--terracotta-ink);
+  --color-ochre: var(--ochre);
+  --color-ochre-soft: var(--ochre-soft);
+  --color-ochre-ink: var(--ochre-ink);
+  --color-plum: var(--plum);
+  --color-plum-soft: var(--plum-soft);
+  --color-plum-ink: var(--plum-ink);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --radius-sm: calc(var(--radius) * 0.5);
+  --radius-md: calc(var(--radius) * 0.75);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
+  --shadow-card: var(--shadow-card);
+  --shadow-float: var(--shadow-float);
+  --shadow-brand: 0 6px 16px -8px rgb(79 107 63 / 0.6);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  html {
+    -webkit-tap-highlight-color: transparent;
+    text-size-adjust: 100%;
+  }
+  body {
+    @apply bg-background font-sans text-foreground antialiased;
+    background-image: var(--paper-noise);
+    font-feature-settings: "ss01";
+  }
+  h1,
+  h2,
+  h3 {
+    @apply font-heading;
+    font-optical-sizing: auto;
+    letter-spacing: -0.01em;
+  }
+  button,
+  [role="button"] {
+    cursor: pointer;
+  }
+}
+
+@layer utilities {
+  .paper {
+    background-color: var(--card);
+    background-image: var(--paper-noise);
+  }
+  .no-callout {
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    user-select: none;
+  }
+  .pb-safe {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  .pt-safe {
+    padding-top: env(safe-area-inset-top);
+  }
+  .scrollbar-none {
+    scrollbar-width: none;
+  }
+  .scrollbar-none::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Impression : seules les zones .print-only sont imprimées, sans fond papier. */
+.print-only {
+  display: none;
+}
+@media print {
+  body {
+    background: #fff !important;
+  }
+  .no-print,
+  [data-sonner-toaster] {
+    display: none !important;
+  }
+  .print-only {
+    display: block !important;
+  }
+  * {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}

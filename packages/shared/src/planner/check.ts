@@ -27,7 +27,7 @@ export function checkWeek(week: WeekPlan, byId: Map<string, Recipe>, dessertSlot
   for (const e of week.entries) {
     if (e.isLeftover) continue;
     const r = byId.get(e.recipeId)!;
-    if (seen.has(r.id) && !r.tags.includes("repeatable")) out.push({ id: `dup-${e.id}`, message: `« ${r.title} » apparaît deux fois.`, entryIds: [seen.get(r.id)!, e.id] });
+    if (seen.has(r.id) && !r.tags.includes("repeatable") && e.slot !== "breakfast" && e.slot !== "dessert") out.push({ id: `dup-${e.id}`, message: `« ${r.title} » apparaît deux fois.`, entryIds: [seen.get(r.id)!, e.id] });
     seen.set(r.id, e.id);
   }
 

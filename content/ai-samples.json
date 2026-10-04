@@ -1,1 +1,1046 @@
-[]
+[
+  {
+    "id": "porridge-sale-epinards-oeuf-brouille",
+    "slug": "porridge-sale-epinards-oeuf-brouille",
+    "title": "Porridge salé épinards et œuf brouillé",
+    "description": "Un bol d'avoine crémeux aux épinards, coiffé d'un œuf brouillé bien cuit : le petit-déjeuner qui tient au corps.",
+    "slots": [
+      "breakfast"
+    ],
+    "prepMinutes": 5,
+    "cookMinutes": 12,
+    "longCook": false,
+    "prepAhead": false,
+    "prepAheadSteps": [],
+    "yieldsLeftovers": false,
+    "servingsBase": 4,
+    "ingredients": [
+      {
+        "ingredientId": "flocons-avoine",
+        "qty": 160,
+        "unit": "g"
+      },
+      {
+        "ingredientId": "lait",
+        "qty": 400,
+        "unit": "ml"
+      },
+      {
+        "ingredientId": "epinard-surgele",
+        "qty": 150,
+        "unit": "g"
+      },
+      {
+        "ingredientId": "oeuf",
+        "qty": 4,
+        "unit": "piece"
+      },
+      {
+        "ingredientId": "emmental-rape",
+        "qty": 40,
+        "unit": "g"
+      },
+      {
+        "ingredientId": "ciboulette",
+        "qty": 0.5,
+        "unit": "piece",
+        "note": "ciselée"
+      },
+      {
+        "ingredientId": "muscade",
+        "qty": 1,
+        "unit": "pincee"
+      },
+      {
+        "ingredientId": "lait-infantile",
+        "qty": 100,
+        "unit": "ml",
+        "babyPortionOnly": true,
+        "note": "pour la portion bébé"
+      },
+      {
+        "ingredientId": "sel",
+        "qty": 1,
+        "unit": "pincee",
+        "adultOnly": true,
+        "note": "au service"
+      }
+    ],
+    "steps": [
+      "Fais chauffer le lait avec les épinards et la muscade.",
+      "Verse les flocons d'avoine et laisse cuire 5 min à feu doux en remuant.",
+      "Bats les œufs et fais-les brouiller dans une poêle à feu doux jusqu'à ce qu'ils soient bien pris, sans partie baveuse.",
+      "Ajoute l'emmental au porridge et répartis dans les bols.",
+      "Dépose l'œuf brouillé et la ciboulette, puis sale les bols des grands."
+    ],
+    "babyAdaptation": {
+      "when": "Prélever avant de saler ; cuire la part de bébé avec du lait infantile à la place du lait de vache",
+      "texture": "porridge épais et lisse, œuf brouillé bien cuit écrasé dedans",
+      "amount": "4 à 5 c. à soupe de porridge + ½ œuf",
+      "notes": "Fer de l'œuf et des épinards. Allergènes : gluten, œuf, lait."
+    },
+    "ironScore": 2,
+    "mainProtein": "egg",
+    "tags": [
+      "quick"
+    ],
+    "illustration": "epinard",
+    "source": "ai"
+  },
+  {
+    "id": "pancakes-banane-avoine-cannelle",
+    "slug": "pancakes-banane-avoine-cannelle",
+    "title": "Pancakes banane-avoine à la cannelle",
+    "description": "Des petits pancakes moelleux sucrés seulement par la banane, à attraper à pleine main.",
+    "slots": [
+      "breakfast"
+    ],
+    "prepMinutes": 10,
+    "cookMinutes": 15,
+    "longCook": false,
+    "prepAhead": false,
+    "prepAheadSteps": [],
+    "yieldsLeftovers": false,
+    "servingsBase": 4,
+    "ingredients": [
+      {
+        "ingredientId": "banane",
+        "qty": 2,
+        "unit": "piece",
+        "note": "bien mûres"
+      },
+      {
+        "ingredientId": "oeuf",
+        "qty": 2,
+        "unit": "piece"
+      },
+      {
+        "ingredientId": "flocons-avoine",
+        "qty": 120,
+        "unit": "g",
+        "note": "mixés"
+      },
+      {
+        "ingredientId": "lait",
+        "qty": 120,
+        "unit": "ml"
+      },
+      {
+        "ingredientId": "levure-chimique",
+        "qty": 1,
+        "unit": "cc"
+      },
+      {
+        "ingredientId": "cannelle",
+        "qty": 1,
+        "unit": "cc"
+      },
+      {
+        "ingredientId": "huile-colza",
+        "qty": 1,
+        "unit": "cs"
+      },
+      {
+        "ingredientId": "sirop-erable",
+        "qty": 2,
+        "unit": "cs",
+        "adultOnly": true,
+        "note": "pour napper"
+      }
+    ],
+    "steps": [
+      "Écrase les bananes à la fourchette.",
+      "Mélange-les avec les œufs, le lait, les flocons mixés, la levure et la cannelle.",
+      "Fais chauffer une poêle légèrement huilée et verse de petites louches de pâte.",
+      "Cuis 2 min de chaque côté, jusqu'à ce que les pancakes soient dorés et cuits à cœur.",
+      "Sers nature pour bébé, avec un filet de sirop d'érable pour les grands."
+    ],
+    "babyAdaptation": {
+      "when": "Prélever avant de napper de sirop d'érable",
+      "texture": "pancakes moelleux coupés en lanières de la taille d'un doigt",
+      "amount": "1 à 2 petits pancakes",
+      "notes": "Sans sucre ajouté : la banane suffit. Allergènes : œuf, gluten, lait."
+    },
+    "ironScore": 1,
+    "mainProtein": "egg",
+    "tags": [
+      "finger-food"
+    ],
+    "illustration": "avoine",
+    "source": "ai"
+  },
+  {
+    "id": "bircher-pomme-poire-puree-amande",
+    "slug": "bircher-pomme-poire-puree-amande",
+    "title": "Bircher pomme-poire à la purée d'amande",
+    "description": "Des flocons gonflés toute la nuit au yaourt, avec pomme et poire râpées et une touche d'amande.",
+    "slots": [
+      "breakfast"
+    ],
+    "prepMinutes": 10,
+    "cookMinutes": 0,
+    "longCook": false,
+    "prepAhead": true,
+    "prepAheadSteps": [
+      "Mélanger les flocons, le yaourt et le lait, puis laisser gonfler au frais"
+    ],
+    "yieldsLeftovers": false,
+    "servingsBase": 4,
+    "ingredients": [
+      {
+        "ingredientId": "flocons-avoine",
+        "qty": 160,
+        "unit": "g"
+      },
+      {
+        "ingredientId": "yaourt-nature",
+        "qty": 4,
+        "unit": "piece"
+      },
+      {
+        "ingredientId": "lait",
+        "qty": 100,
+        "unit": "ml"
+      },
+      {
+        "ingredientId": "pomme",
+        "qty": 1,
+        "unit": "piece",
+        "form": "grated"
+      },
+      {
+        "ingredientId": "poire",
+        "qty": 1,
+        "unit": "piece",
+        "form": "grated"
+      },
+      {
+        "ingredientId": "puree-amande",
+        "qty": 2,
+        "unit": "cs",
+        "form": "puree"
+      },
+      {
+        "ingredientId": "cannelle",
+        "qty": 1,
+        "unit": "pincee"
+      }
+    ],
+    "steps": [
+      "La veille, mélange les flocons, les yaourts et le lait dans un saladier, couvre et réserve au frais.",
+      "Le matin, râpe finement la pomme et la poire.",
+      "Incorpore les fruits râpés et la cannelle aux flocons.",
+      "Répartis dans les bols et ajoute un filet de purée d'amande délayée."
+    ],
+    "babyAdaptation": {
+      "when": "Prélever au moment de servir, avant d'ajouter des fruits secs ou des graines pour les grands",
+      "texture": "bircher bien gonflé et moelleux, fruits râpés très finement, purée d'amande parfaitement mélangée",
+      "amount": "4 à 5 c. à soupe",
+      "notes": "Purée d'amande lisse uniquement, jamais d'amandes entières. Allergènes : fruits à coque, gluten, lait."
+    },
+    "ironScore": 0,
+    "mainProtein": "none",
+    "tags": [
+      "overnight",
+      "seasonal-fruit"
+    ],
+    "illustration": "poire",
+    "source": "ai"
+  },
+  {
+    "id": "galettes-pois-chiches-potimarron-yaourt-citron",
+    "slug": "galettes-pois-chiches-potimarron-yaourt-citron",
+    "title": "Galettes de pois chiches au potimarron, sauce yaourt-citron",
+    "description": "Des galettes dorées et fondantes à croquer avec les doigts, et une sauce fraîche au citron.",
+    "slots": [
+      "lunch",
+      "dinner"
+    ],
+    "prepMinutes": 20,
+    "cookMinutes": 20,
+    "longCook": false,
+    "prepAhead": false,
+    "prepAheadSteps": [],
+    "yieldsLeftovers": false,
+    "servingsBase": 4,
+    "ingredients": [
+      {
+        "ingredientId": "pois-chiches",
+        "qty": 400,
+        "unit": "g",
+        "note": "cuits, en bocal, rincés"
+      },
+      {
+        "ingredientId": "potimarron",
+        "qty": 400,
+        "unit": "g"
+      },
+      {
+        "ingredientId": "oeuf",
+        "qty": 1,
+        "unit": "piece"
+      },
+      {
+        "ingredientId": "farine",
+        "qty": 60,
+        "unit": "g"
+      },
+      {
+        "ingredientId": "cumin",
+        "qty": 1,
+        "unit": "cc"
+      },
+      {
+        "ingredientId": "persil",
+        "qty": 0.5,
+        "unit": "piece",
+        "note": "haché"
+      },
+      {
+        "ingredientId": "huile-olive",
+        "qty": 3,
+        "unit": "cs"
+      },
+      {
+        "ingredientId": "yaourt-grec",
+        "qty": 150,
+        "unit": "g"
+      },
+      {
+        "ingredientId": "citron",
+        "qty": 1,
+        "unit": "piece",
+        "note": "jus et zeste"
+      },
+      {
+        "ingredientId": "sel",
+        "qty": 1,
+        "unit": "pincee",
+        "adultOnly": true,
+        "note": "au service"
+      }
+    ],
+    "steps": [
+      "Cuis le potimarron en cubes 15 min à la vapeur.",
+      "Écrase-le avec les pois chiches, puis ajoute l'œuf, la farine, le cumin et le persil.",
+      "Forme des galettes de la taille d'une paume.",
+      "Fais-les dorer 3 min de chaque côté dans l'huile, à feu moyen.",
+      "Mélange le yaourt avec le zeste et la moitié du jus de citron, prélève la part de bébé, puis sale les galettes des grands."
+    ],
+    "babyAdaptation": {
+      "when": "Prélever avant de saler",
+      "texture": "galettes moelleuses coupées en bâtonnets, pois chiches entièrement écrasés",
+      "amount": "1 galette + 1 c. à soupe de sauce yaourt",
+      "notes": "Fer des pois chiches + vitamine C du persil et du citron. Allergènes : œuf, gluten, lait."
+    },
+    "ironScore": 2,
+    "mainProtein": "legume",
+    "tags": [
+      "finger-food"
+    ],
+    "illustration": "pois-chiche",
+    "source": "ai"
+  },
+  {
+    "id": "bowl-quinoa-betterave-chevre-mache",
+    "slug": "bowl-quinoa-betterave-chevre-mache",
+    "title": "Bowl de quinoa, betterave et chèvre frais",
+    "description": "Un bowl tiède et coloré : quinoa citronné, betterave fondante, chèvre frais et mâche.",
+    "slots": [
+      "lunch"
+    ],
+    "prepMinutes": 15,
+    "cookMinutes": 15,
+    "longCook": false,
+    "prepAhead": false,
+    "prepAheadSteps": [],
+    "yieldsLeftovers": false,
+    "servingsBase": 4,
+    "ingredients": [
+      {
+        "ingredientId": "quinoa",
+        "qty": 240,
+        "unit": "g"
+      },
+      {
+        "ingredientId": "betterave",
+        "qty": 3,
+        "unit": "piece",
+        "form": "cooked",
+        "note": "cuites"
+      },
+      {
+        "ingredientId": "chevre-frais",
+        "qty": 120,
+        "unit": "g"
+      },
+      {
+        "ingredientId": "mache",
+        "qty": 100,
+        "unit": "g"
+      },
+      {
+        "ingredientId": "citron",
+        "qty": 1,
+        "unit": "piece",
+        "note": "jus"
+      },
+      {
+        "ingredientId": "huile-colza",
+        "qty": 3,
+        "unit": "cs"
+      },
+      {
+        "ingredientId": "persil",
+        "qty": 0.5,
+        "unit": "piece",
+        "note": "ciselé"
+      },
+      {
+        "ingredientId": "cerneaux-noix",
+        "qty": 40,
+        "unit": "g",
+        "adultOnly": true,
+        "note": "concassés, pour les grands"
+      },
+      {
+        "ingredientId": "sel",
+        "qty": 1,
+        "unit": "pincee",
+        "adultOnly": true,
+        "note": "au service"
+      },
+      {
+        "ingredientId": "poivre",
+        "qty": 1,
+        "unit": "pincee",
+        "adultOnly": true,
+        "note": "au service"
+      }
+    ],
+    "steps": [
+      "Rince le quinoa et fais-le cuire 12 min dans deux fois son volume d'eau.",
+      "Assaisonne-le encore chaud avec l'huile de colza, le jus de citron et le persil.",
+      "Coupe les betteraves en petits dés.",
+      "Répartis quinoa, betterave, mâche et chèvre émietté dans les bols.",
+      "Prélève la part de bébé, puis sale, poivre et ajoute les noix concassées pour les grands."
+    ],
+    "babyAdaptation": {
+      "when": "Prélever avant d'ajouter les noix, le sel et le poivre",
+      "texture": "quinoa bien cuit, betterave en petits dés fondants, chèvre écrasé dedans ; mâche hachée très finement ou retirée",
+      "amount": "4 c. à soupe de quinoa + 1 c. à soupe de betterave + 1 c. à café de chèvre",
+      "notes": "Noix entières interdites avant 3 ans (étouffement). Fer du quinoa + vitamine C du citron et du persil."
+    },
+    "ironScore": 2,
+    "mainProtein": "veggie",
+    "tags": [
+      "salad"
+    ],
+    "illustration": "betterave",
+    "source": "ai"
+  },
+  {
+    "id": "croquettes-sardines-patate-douce",
+    "slug": "croquettes-sardines-patate-douce",
+    "title": "Croquettes de sardines à la patate douce",
+    "description": "Des croquettes moelleuses au four, une façon douce de faire aimer le poisson gras.",
+    "slots": [
+      "lunch",
+      "dinner"
+    ],
+    "prepMinutes": 20,
+    "cookMinutes": 30,
+    "longCook": false,
+    "prepAhead": false,
+    "prepAheadSteps": [],
+    "yieldsLeftovers": false,
+    "servingsBase": 4,
+    "ingredients": [
+      {
+        "ingredientId": "sardines-huile",
+        "qty": 3,
+        "unit": "piece",
+        "note": "boîtes"
+      },
+      {
+        "ingredientId": "patate-douce",
+        "qty": 600,
+        "unit": "g"
+      },
+      {
+        "ingredientId": "oeuf",
+        "qty": 1,
+        "unit": "piece"
+      },
+      {
+        "ingredientId": "flocons-avoine",
+        "qty": 50,
+        "unit": "g",
+        "note": "mixés"
+      },
+      {
+        "ingredientId": "persil",
+        "qty": 1,
+        "unit": "piece",
+        "note": "haché"
+      },
+      {
+        "ingredientId": "citron",
+        "qty": 1,
+        "unit": "piece",
+        "note": "zeste et jus"
+      },
+      {
+        "ingredientId": "huile-olive",
+        "qty": 2,
+        "unit": "cs"
+      },
+      {
+        "ingredientId": "poivre",
+        "qty": 1,
+        "unit": "pincee",
+        "adultOnly": true,
+        "note": "au service"
+      }
+    ],
+    "steps": [
+      "Cuis la patate douce en cubes 15 min à la vapeur, puis écrase-la.",
+      "Égoutte les sardines, retire l'arête centrale et émiette-les.",
+      "Mélange patate douce, sardines, œuf, flocons, persil et zeste de citron.",
+      "Forme des croquettes, dépose-les sur une plaque huilée et enfourne 15 min à 200 °C.",
+      "Arrose de jus de citron, prélève la part de bébé, puis poivre les grands."
+    ],
+    "babyAdaptation": {
+      "when": "Prélever avant de poivrer",
+      "texture": "croquettes moelleuses à tenir dans la main ou à écraser à la fourchette",
+      "amount": "1 à 2 croquettes (environ 20 g de sardine)",
+      "notes": "Oméga-3 et fer de la sardine + vitamine C du persil et du citron. Allergènes : poisson, œuf, gluten."
+    },
+    "ironScore": 2,
+    "mainProtein": "oily-fish",
+    "tags": [
+      "oven",
+      "finger-food"
+    ],
+    "illustration": "patate-douce",
+    "source": "ai"
+  },
+  {
+    "id": "mijote-lentilles-corail-chataignes-butternut",
+    "slug": "mijote-lentilles-corail-chataignes-butternut",
+    "title": "Mijoté de lentilles corail, châtaignes et butternut",
+    "description": "Un plat d'automne tout doux, crémeux et légèrement sucré, parfumé au cumin et au curcuma.",
+    "slots": [
+      "dinner",
+      "lunch"
+    ],
+    "prepMinutes": 15,
+    "cookMinutes": 30,
+    "longCook": false,
+    "prepAhead": false,
+    "prepAheadSteps": [],
+    "yieldsLeftovers": false,
+    "servingsBase": 4,
+    "ingredients": [
+      {
+        "ingredientId": "lentilles-corail",
+        "qty": 250,
+        "unit": "g"
+      },
+      {
+        "ingredientId": "chataigne",
+        "qty": 200,
+        "unit": "g",
+        "note": "cuites, sous vide"
+      },
+      {
+        "ingredientId": "courge-butternut",
+        "qty": 600,
+        "unit": "g"
+      },
+      {
+        "ingredientId": "oignon",
+        "qty": 1,
+        "unit": "piece"
+      },
+      {
+        "ingredientId": "ail",
+        "qty": 1,
+        "unit": "piece"
+      },
+      {
+        "ingredientId": "cumin",
+        "qty": 1,
+        "unit": "cc"
+      },
+      {
+        "ingredientId": "curcuma",
+        "qty": 1,
+        "unit": "cc"
+      },
+      {
+        "ingredientId": "lait-coco",
+        "qty": 200,
+        "unit": "ml"
+      },
+      {
+        "ingredientId": "huile-olive",
+        "qty": 2,
+        "unit": "cs"
+      },
+      {
+        "ingredientId": "persil",
+        "qty": 1,
+        "unit": "piece",
+        "note": "haché"
+      },
+      {
+        "ingredientId": "citron",
+        "qty": 0.5,
+        "unit": "piece",
+        "note": "jus"
+      },
+      {
+        "ingredientId": "sel",
+        "qty": 1,
+        "unit": "pincee",
+        "adultOnly": true,
+        "note": "au service"
+      }
+    ],
+    "steps": [
+      "Fais revenir l'oignon et l'ail émincés dans l'huile avec le cumin et le curcuma.",
+      "Ajoute la butternut en cubes, les lentilles rincées et 700 ml d'eau.",
+      "Laisse mijoter 20 min, puis ajoute les châtaignes émiettées et le lait de coco.",
+      "Poursuis 8 min, jusqu'à ce que tout soit fondant.",
+      "Ajoute le jus de citron et le persil, prélève la portion bébé, puis sale."
+    ],
+    "babyAdaptation": {
+      "when": "Prélever avant de saler",
+      "texture": "mijoté écrasé à la fourchette, châtaignes bien émiettées",
+      "amount": "5 à 6 c. à soupe",
+      "notes": "Fer des lentilles + vitamine C du citron et du persil."
+    },
+    "ironScore": 3,
+    "mainProtein": "legume",
+    "tags": [
+      "one-pot",
+      "batch"
+    ],
+    "illustration": "chataigne",
+    "source": "ai"
+  },
+  {
+    "id": "tajine-doux-agneau-coings-semoule",
+    "slug": "tajine-doux-agneau-coings-semoule",
+    "title": "Tajine doux d'agneau aux coings",
+    "description": "Un tajine parfumé à la cannelle où le coing confit fond avec l'agneau, pour un dimanche d'octobre.",
+    "slots": [
+      "dinner",
+      "lunch"
+    ],
+    "prepMinutes": 25,
+    "cookMinutes": 100,
+    "longCook": true,
+    "prepAhead": false,
+    "prepAheadSteps": [],
+    "yieldsLeftovers": false,
+    "servingsBase": 4,
+    "ingredients": [
+      {
+        "ingredientId": "agneau-epaule",
+        "qty": 700,
+        "unit": "g",
+        "note": "en morceaux"
+      },
+      {
+        "ingredientId": "coing",
+        "qty": 2,
+        "unit": "piece"
+      },
+      {
+        "ingredientId": "carotte",
+        "qty": 4,
+        "unit": "piece",
+        "form": "cooked"
+      },
+      {
+        "ingredientId": "oignon",
+        "qty": 2,
+        "unit": "piece"
+      },
+      {
+        "ingredientId": "gingembre",
+        "qty": 10,
+        "unit": "g",
+        "note": "râpé"
+      },
+      {
+        "ingredientId": "cannelle",
+        "qty": 1,
+        "unit": "cc"
+      },
+      {
+        "ingredientId": "cumin",
+        "qty": 1,
+        "unit": "cc"
+      },
+      {
+        "ingredientId": "curcuma",
+        "qty": 0.5,
+        "unit": "cc"
+      },
+      {
+        "ingredientId": "huile-olive",
+        "qty": 2,
+        "unit": "cs"
+      },
+      {
+        "ingredientId": "coriandre",
+        "qty": 1,
+        "unit": "piece",
+        "note": "ciselée"
+      },
+      {
+        "ingredientId": "semoule",
+        "qty": 240,
+        "unit": "g"
+      },
+      {
+        "ingredientId": "sel",
+        "qty": 1,
+        "unit": "pincee",
+        "adultOnly": true,
+        "note": "au service"
+      }
+    ],
+    "steps": [
+      "Fais dorer l'agneau dans l'huile d'une cocotte avec les oignons émincés.",
+      "Ajoute le gingembre, la cannelle, le cumin, le curcuma et 500 ml d'eau, laisse mijoter 1 h à couvert.",
+      "Pèle les coings, coupe-les en quartiers et ajoute-les avec les carottes en rondelles.",
+      "Poursuis 40 min, jusqu'à ce que la viande se défasse et que les coings soient fondants.",
+      "Prépare la semoule, parsème le tajine de coriandre, prélève la portion bébé, puis sale."
+    ],
+    "babyAdaptation": {
+      "when": "Prélever avant de saler",
+      "texture": "agneau effiloché finement, coings et carottes écrasés, semoule bien gonflée",
+      "amount": "20 g d'agneau + 3 c. à soupe de légumes et coings + 2 c. à soupe de semoule",
+      "notes": "Fer de l'agneau + vitamine C de la coriandre. Retirer le gras. Allergène : gluten."
+    },
+    "ironScore": 3,
+    "mainProtein": "red-meat",
+    "tags": [
+      "one-pot"
+    ],
+    "illustration": "coing",
+    "source": "ai"
+  },
+  {
+    "id": "saumon-croute-noisette-puree-panais",
+    "slug": "saumon-croute-noisette-puree-panais",
+    "title": "Saumon en croûte de noisette, purée de panais",
+    "description": "Un pavé de saumon à la croûte dorée de noisette et persil, sur une purée de panais soyeuse.",
+    "slots": [
+      "dinner"
+    ],
+    "prepMinutes": 15,
+    "cookMinutes": 25,
+    "longCook": false,
+    "prepAhead": false,
+    "prepAheadSteps": [],
+    "yieldsLeftovers": false,
+    "servingsBase": 4,
+    "ingredients": [
+      {
+        "ingredientId": "saumon",
+        "qty": 4,
+        "unit": "piece",
+        "note": "pavés sans peau"
+      },
+      {
+        "ingredientId": "poudre-noisette",
+        "qty": 40,
+        "unit": "g",
+        "form": "powder"
+      },
+      {
+        "ingredientId": "persil",
+        "qty": 0.5,
+        "unit": "piece",
+        "note": "haché"
+      },
+      {
+        "ingredientId": "citron",
+        "qty": 1,
+        "unit": "piece",
+        "note": "zeste et jus"
+      },
+      {
+        "ingredientId": "panais",
+        "qty": 600,
+        "unit": "g"
+      },
+      {
+        "ingredientId": "pomme-de-terre",
+        "qty": 300,
+        "unit": "g"
+      },
+      {
+        "ingredientId": "lait",
+        "qty": 100,
+        "unit": "ml"
+      },
+      {
+        "ingredientId": "beurre",
+        "qty": 20,
+        "unit": "g"
+      },
+      {
+        "ingredientId": "huile-olive",
+        "qty": 1,
+        "unit": "cs"
+      },
+      {
+        "ingredientId": "sel",
+        "qty": 1,
+        "unit": "pincee",
+        "adultOnly": true,
+        "note": "au service"
+      },
+      {
+        "ingredientId": "poivre",
+        "qty": 1,
+        "unit": "pincee",
+        "adultOnly": true,
+        "note": "au service"
+      }
+    ],
+    "steps": [
+      "Cuis panais et pommes de terre en morceaux 20 min à l'eau non salée.",
+      "Mélange la poudre de noisette, le persil, le zeste de citron et l'huile.",
+      "Dépose le saumon dans un plat, couvre de croûte et enfourne 12 min à 200 °C, jusqu'à ce qu'il soit opaque à cœur.",
+      "Écrase les légumes avec le lait chaud et le beurre.",
+      "Arrose de jus de citron, prélève la portion bébé, puis sale et poivre."
+    ],
+    "babyAdaptation": {
+      "when": "Prélever avant de saler et de poivrer",
+      "texture": "saumon émietté sans arêtes avec sa croûte, purée lisse",
+      "amount": "20 g de saumon + 4 c. à soupe de purée",
+      "notes": "Noisette en poudre uniquement (jamais de morceaux). Allergènes : poisson, fruits à coque, lait."
+    },
+    "ironScore": 2,
+    "mainProtein": "oily-fish",
+    "tags": [
+      "oven"
+    ],
+    "illustration": "panais",
+    "source": "ai"
+  },
+  {
+    "id": "crumble-poire-noisette-avoine",
+    "slug": "crumble-poire-noisette-avoine",
+    "title": "Crumble poire-noisette à l'avoine, sans sucre",
+    "description": "Des poires fondantes sous un crumble croustillant à l'avoine et à la noisette, sans sucre ajouté.",
+    "slots": [
+      "dessert"
+    ],
+    "prepMinutes": 15,
+    "cookMinutes": 30,
+    "longCook": false,
+    "prepAhead": false,
+    "prepAheadSteps": [],
+    "yieldsLeftovers": false,
+    "servingsBase": 4,
+    "ingredients": [
+      {
+        "ingredientId": "poire",
+        "qty": 6,
+        "unit": "piece",
+        "note": "bien mûres"
+      },
+      {
+        "ingredientId": "flocons-avoine",
+        "qty": 80,
+        "unit": "g"
+      },
+      {
+        "ingredientId": "farine",
+        "qty": 40,
+        "unit": "g"
+      },
+      {
+        "ingredientId": "poudre-noisette",
+        "qty": 40,
+        "unit": "g",
+        "form": "powder"
+      },
+      {
+        "ingredientId": "beurre",
+        "qty": 50,
+        "unit": "g",
+        "note": "froid"
+      },
+      {
+        "ingredientId": "cannelle",
+        "qty": 1,
+        "unit": "cc"
+      }
+    ],
+    "steps": [
+      "Préchauffe le four à 180 °C. Pèle les poires, coupe-les en dés et dépose-les dans un plat avec la cannelle.",
+      "Mélange du bout des doigts les flocons, la farine, la poudre de noisette et le beurre froid en dés.",
+      "Émiette la pâte sur les poires.",
+      "Enfourne 30 min, jusqu'à ce que le dessus soit doré et les poires fondantes."
+    ],
+    "babyAdaptation": {
+      "when": "Prélever une part tiède à la sortie du four",
+      "texture": "poires fondantes écrasées avec un peu de crumble ramolli",
+      "amount": "3 à 4 c. à soupe",
+      "notes": "Sans sucre ajouté. Noisette en poudre uniquement. Allergènes : fruits à coque, gluten, lait."
+    },
+    "ironScore": 0,
+    "mainProtein": "none",
+    "tags": [
+      "oven",
+      "seasonal-fruit"
+    ],
+    "illustration": "poire",
+    "source": "ai"
+  },
+  {
+    "id": "compote-pomme-coing-vanille",
+    "slug": "compote-pomme-coing-vanille",
+    "title": "Compote pomme-coing à la vanille",
+    "description": "Une compote parfumée où le coing apporte son goût de miel, sans une once de sucre.",
+    "slots": [
+      "dessert"
+    ],
+    "prepMinutes": 15,
+    "cookMinutes": 35,
+    "longCook": false,
+    "prepAhead": false,
+    "prepAheadSteps": [],
+    "yieldsLeftovers": false,
+    "servingsBase": 4,
+    "ingredients": [
+      {
+        "ingredientId": "pomme",
+        "qty": 6,
+        "unit": "piece",
+        "form": "cooked"
+      },
+      {
+        "ingredientId": "coing",
+        "qty": 2,
+        "unit": "piece"
+      },
+      {
+        "ingredientId": "vanille",
+        "qty": 1,
+        "unit": "cc"
+      },
+      {
+        "ingredientId": "cannelle",
+        "qty": 1,
+        "unit": "pincee"
+      }
+    ],
+    "steps": [
+      "Pèle les coings, retire le cœur dur et coupe-les en petits morceaux.",
+      "Fais-les cuire 15 min à couvert avec un fond d'eau.",
+      "Ajoute les pommes pelées en morceaux, la vanille et la cannelle, poursuis 20 min.",
+      "Écrase ou mixe selon la texture souhaitée, puis laisse refroidir."
+    ],
+    "babyAdaptation": {
+      "when": "Prélever une fois la compote cuite et tiédie",
+      "texture": "compote lisse ou légèrement écrasée",
+      "amount": "4 à 5 c. à soupe",
+      "notes": "Se garde 4 jours au frais et se congèle en portions."
+    },
+    "ironScore": 0,
+    "mainProtein": "none",
+    "tags": [
+      "batch",
+      "seasonal-fruit"
+    ],
+    "illustration": "coing",
+    "source": "ai"
+  },
+  {
+    "id": "clafoutis-raisin-figue-sans-sucre",
+    "slug": "clafoutis-raisin-figue-sans-sucre",
+    "title": "Clafoutis raisin-figue sans sucre",
+    "description": "Un clafoutis tendre aux derniers raisins et figues de la saison, juste parfumé à la vanille.",
+    "slots": [
+      "dessert"
+    ],
+    "prepMinutes": 15,
+    "cookMinutes": 35,
+    "longCook": false,
+    "prepAhead": false,
+    "prepAheadSteps": [],
+    "yieldsLeftovers": false,
+    "servingsBase": 4,
+    "ingredients": [
+      {
+        "ingredientId": "raisin",
+        "qty": 300,
+        "unit": "g",
+        "form": "quartered",
+        "note": "coupés en quatre et épépinés"
+      },
+      {
+        "ingredientId": "figue",
+        "qty": 4,
+        "unit": "piece"
+      },
+      {
+        "ingredientId": "oeuf",
+        "qty": 3,
+        "unit": "piece"
+      },
+      {
+        "ingredientId": "lait",
+        "qty": 300,
+        "unit": "ml"
+      },
+      {
+        "ingredientId": "farine",
+        "qty": 60,
+        "unit": "g"
+      },
+      {
+        "ingredientId": "vanille",
+        "qty": 1,
+        "unit": "cc"
+      },
+      {
+        "ingredientId": "beurre",
+        "qty": 10,
+        "unit": "g",
+        "note": "pour le moule"
+      }
+    ],
+    "steps": [
+      "Préchauffe le four à 180 °C et beurre un plat.",
+      "Coupe les raisins en quatre en retirant les pépins, et les figues en morceaux.",
+      "Fouette les œufs avec la farine, puis ajoute le lait et la vanille.",
+      "Répartis les fruits dans le plat et verse la pâte.",
+      "Enfourne 35 min, jusqu'à ce que le clafoutis soit bien pris à cœur."
+    ],
+    "babyAdaptation": {
+      "when": "Prélever une part tiède, une fois le clafoutis bien pris",
+      "texture": "petits morceaux fondants, raisins toujours coupés en quatre",
+      "amount": "1 petite part (environ 60 g)",
+      "notes": "La part de bébé peut être faite au lait infantile dans un ramequin à part. Allergènes : œuf, lait, gluten."
+    },
+    "ironScore": 1,
+    "mainProtein": "egg",
+    "tags": [
+      "oven",
+      "seasonal-fruit"
+    ],
+    "illustration": "figue",
+    "source": "ai"
+  }
+]

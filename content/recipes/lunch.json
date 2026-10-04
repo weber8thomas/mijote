@@ -1,1 +1,1397 @@
-[]
+[
+  {
+    "id": "veloute-potimarron-lentilles-corail",
+    "slug": "veloute-potimarron-lentilles-corail",
+    "title": "Velouté de potimarron aux lentilles corail",
+    "description": "Un velouté orange tout doux, rendu rassasiant par les lentilles, prêt en une demi-heure.",
+    "slots": [
+      "lunch",
+      "dinner"
+    ],
+    "prepMinutes": 10,
+    "cookMinutes": 20,
+    "longCook": false,
+    "prepAhead": false,
+    "prepAheadSteps": [],
+    "yieldsLeftovers": false,
+    "servingsBase": 4,
+    "ingredients": [
+      {
+        "ingredientId": "potimarron",
+        "qty": 800,
+        "unit": "g",
+        "note": "avec la peau, bien lavé"
+      },
+      {
+        "ingredientId": "lentilles-corail",
+        "qty": 160,
+        "unit": "g"
+      },
+      {
+        "ingredientId": "carotte",
+        "qty": 2,
+        "unit": "piece",
+        "form": "cooked"
+      },
+      {
+        "ingredientId": "oignon",
+        "qty": 1,
+        "unit": "piece"
+      },
+      {
+        "ingredientId": "huile-olive",
+        "qty": 2,
+        "unit": "cs"
+      },
+      {
+        "ingredientId": "cumin",
+        "qty": 1,
+        "unit": "cc"
+      },
+      {
+        "ingredientId": "citron",
+        "qty": 0.5,
+        "unit": "piece",
+        "note": "jus"
+      },
+      {
+        "ingredientId": "persil",
+        "qty": 0.5,
+        "unit": "piece",
+        "note": "ciselé"
+      },
+      {
+        "ingredientId": "sel",
+        "qty": 1,
+        "unit": "pincee",
+        "adultOnly": true,
+        "note": "au service"
+      },
+      {
+        "ingredientId": "poivre",
+        "qty": 1,
+        "unit": "pincee",
+        "adultOnly": true,
+        "note": "au service"
+      }
+    ],
+    "steps": [
+      "Émince l'oignon et fais-le fondre 3 min dans l'huile d'olive.",
+      "Coupe le potimarron en cubes sans l'éplucher (retire les graines) et les carottes en rondelles.",
+      "Ajoute les légumes, les lentilles rincées et le cumin, puis couvre d'eau à hauteur (environ 1,2 L).",
+      "Laisse cuire 20 min à frémissement, jusqu'à ce que tout soit très tendre.",
+      "Mixe finement avec un filet de jus de citron.",
+      "Prélève la portion bébé, puis sale, poivre et parsème de persil ciselé."
+    ],
+    "babyAdaptation": {
+      "when": "Prélever après mixage, avant d'ajouter le sel et le poivre",
+      "texture": "velouté lisse et épais, à la cuillère",
+      "amount": "150 à 200 ml de velouté (environ 2 à 3 c. à soupe de lentilles cuites)",
+      "notes": "Fer des lentilles + vitamine C du citron et du persil ciselé très fin. Ajouter 1 c. à café d'huile de colza dans l'assiette de bébé."
+    },
+    "ironScore": 3,
+    "mainProtein": "legume",
+    "tags": [
+      "soup",
+      "one-pot"
+    ],
+    "illustration": "courge",
+    "source": "seed"
+  },
+  {
+    "id": "salade-tiede-lentilles-betterave-orange",
+    "slug": "salade-tiede-lentilles-betterave-orange",
+    "title": "Salade tiède de lentilles, betterave et orange",
+    "description": "Des lentilles vertes tièdes, de la betterave fondante et des morceaux d'orange : le plein de fer en hiver.",
+    "slots": [
+      "lunch"
+    ],
+    "prepMinutes": 15,
+    "cookMinutes": 25,
+    "longCook": false,
+    "prepAhead": true,
+    "prepAheadSteps": [
+      "Cuire les lentilles vertes et les garder au frais",
+      "Cuire les betteraves 45 min à l'eau si elles sont crues"
+    ],
+    "yieldsLeftovers": false,
+    "servingsBase": 4,
+    "ingredients": [
+      {
+        "ingredientId": "lentilles-vertes",
+        "qty": 240,
+        "unit": "g"
+      },
+      {
+        "ingredientId": "betterave",
+        "qty": 3,
+        "unit": "piece",
+        "form": "cooked",
+        "note": "cuites"
+      },
+      {
+        "ingredientId": "orange",
+        "qty": 2,
+        "unit": "piece"
+      },
+      {
+        "ingredientId": "laurier",
+        "qty": 1,
+        "unit": "piece"
+      },
+      {
+        "ingredientId": "persil",
+        "qty": 0.5,
+        "unit": "piece",
+        "note": "ciselé"
+      },
+      {
+        "ingredientId": "huile-colza",
+        "qty": 3,
+        "unit": "cs"
+      },
+      {
+        "ingredientId": "citron",
+        "qty": 0.5,
+        "unit": "piece",
+        "note": "jus"
+      },
+      {
+        "ingredientId": "echalote",
+        "qty": 1,
+        "unit": "piece",
+        "adultOnly": true,
+        "note": "ciselée, crue"
+      },
+      {
+        "ingredientId": "moutarde",
+        "qty": 1,
+        "unit": "cc",
+        "adultOnly": true
+      },
+      {
+        "ingredientId": "sel",
+        "qty": 1,
+        "unit": "pincee",
+        "adultOnly": true,
+        "note": "au service"
+      },
+      {
+        "ingredientId": "poivre",
+        "qty": 1,
+        "unit": "pincee",
+        "adultOnly": true,
+        "note": "au service"
+      }
+    ],
+    "steps": [
+      "Rince les lentilles et fais-les cuire 25 min dans trois fois leur volume d'eau non salée, avec le laurier.",
+      "Égoutte-les et arrose-les aussitôt d'huile de colza et de jus de citron.",
+      "Coupe les betteraves cuites en petits dés.",
+      "Pèle les oranges à vif et détaille les quartiers en petits morceaux.",
+      "Mélange lentilles, betteraves, orange et persil ciselé.",
+      "Prélève la portion bébé, puis ajoute l'échalote, la moutarde, le sel et le poivre pour les grands. Sers tiède."
+    ],
+    "babyAdaptation": {
+      "when": "Prélever avant d'ajouter l'échalote crue, la moutarde et le sel",
+      "texture": "lentilles légèrement écrasées à la fourchette, betterave en petits dés fondants, orange en petits morceaux sans membranes",
+      "amount": "3 à 4 c. à soupe de lentilles + 1 c. à soupe de betterave + quelques morceaux d'orange",
+      "notes": "Fer des lentilles + vitamine C de l'orange : le duo idéal. La betterave colore les couches, pas d'inquiétude."
+    },
+    "ironScore": 3,
+    "mainProtein": "legume",
+    "tags": [
+      "salad"
+    ],
+    "illustration": "betterave",
+    "source": "seed"
+  },
+  {
+    "id": "tortilla-pommes-de-terre-epinards",
+    "slug": "tortilla-pommes-de-terre-epinards",
+    "title": "Tortilla aux pommes de terre et épinards",
+    "description": "Une omelette épaisse et moelleuse à couper en bâtonnets, que bébé attrape tout seul.",
+    "slots": [
+      "lunch",
+      "dinner"
+    ],
+    "prepMinutes": 15,
+    "cookMinutes": 25,
+    "longCook": false,
+    "prepAhead": false,
+    "prepAheadSteps": [],
+    "yieldsLeftovers": false,
+    "servingsBase": 4,
+    "ingredients": [
+      {
+        "ingredientId": "oeuf",
+        "qty": 6,
+        "unit": "piece"
+      },
+      {
+        "ingredientId": "pomme-de-terre",
+        "qty": 500,
+        "unit": "g"
+      },
+      {
+        "ingredientId": "epinard",
+        "qty": 200,
+        "unit": "g",
+        "note": "frais ou surgelés"
+      },
+      {
+        "ingredientId": "oignon",
+        "qty": 1,
+        "unit": "piece"
+      },
+      {
+        "ingredientId": "huile-olive",
+        "qty": 3,
+        "unit": "cs"
+      },
+      {
+        "ingredientId": "persil",
+        "qty": 0.5,
+        "unit": "piece",
+        "note": "ciselé"
+      },
+      {
+        "ingredientId": "muscade",
+        "qty": 1,
+        "unit": "pincee"
+      },
+      {
+        "ingredientId": "sel",
+        "qty": 1,
+        "unit": "pincee",
+        "adultOnly": true,
+        "note": "au service"
+      }
+    ],
+    "steps": [
+      "Épluche les pommes de terre, coupe-les en fines lamelles et l'oignon en petits morceaux.",
+      "Fais-les cuire 15 min à feu doux dans l'huile d'olive, à couvert, jusqu'à ce qu'ils soient tendres.",
+      "Ajoute les épinards et laisse-les tomber 2 min.",
+      "Bats les œufs avec la muscade et le persil, puis verse sur les légumes.",
+      "Cuis 8 min à couvert à feu doux, retourne la tortilla sur une assiette et poursuis 3 min : l'œuf doit être bien pris.",
+      "Coupe la part de bébé, puis sale la tortilla des grands au service."
+    ],
+    "babyAdaptation": {
+      "when": "Prélever une part avant de saler, une fois l'œuf parfaitement cuit à cœur",
+      "texture": "bâtonnets moelleux de la taille d'un doigt, ou petits morceaux fondants",
+      "amount": "1 part de la taille de la paume (environ ½ œuf)",
+      "notes": "Œuf bien cuit, jamais baveux. Fer de l'œuf et des épinards + vitamine C du persil. Allergène : œuf."
+    },
+    "ironScore": 2,
+    "mainProtein": "egg",
+    "tags": [
+      "finger-food"
+    ],
+    "illustration": "oeuf",
+    "source": "seed"
+  },
+  {
+    "id": "tarte-poireaux-chevre-frais",
+    "slug": "tarte-poireaux-chevre-frais",
+    "title": "Tarte fondante aux poireaux et chèvre frais",
+    "description": "Une tarte réconfortante aux poireaux fondus, douce et crémeuse sous la dent.",
+    "slots": [
+      "lunch",
+      "dinner"
+    ],
+    "prepMinutes": 20,
+    "cookMinutes": 35,
+    "longCook": false,
+    "prepAhead": false,
+    "prepAheadSteps": [],
+    "yieldsLeftovers": false,
+    "servingsBase": 4,
+    "ingredients": [
+      {
+        "ingredientId": "pate-brisee",
+        "qty": 1,
+        "unit": "piece"
+      },
+      {
+        "ingredientId": "poireau",
+        "qty": 600,
+        "unit": "g"
+      },
+      {
+        "ingredientId": "oeuf",
+        "qty": 3,
+        "unit": "piece"
+      },
+      {
+        "ingredientId": "creme-fraiche",
+        "qty": 100,
+        "unit": "g"
+      },
+      {
+        "ingredientId": "lait",
+        "qty": 100,
+        "unit": "ml"
+      },
+      {
+        "ingredientId": "chevre-frais",
+        "qty": 100,
+        "unit": "g"
+      },
+      {
+        "ingredientId": "beurre",
+        "qty": 15,
+        "unit": "g"
+      },
+      {
+        "ingredientId": "persil",
+        "qty": 0.5,
+        "unit": "piece",
+        "note": "ciselé"
+      },
+      {
+        "ingredientId": "muscade",
+        "qty": 1,
+        "unit": "pincee"
+      },
+      {
+        "ingredientId": "sel",
+        "qty": 1,
+        "unit": "pincee",
+        "adultOnly": true,
+        "note": "au service"
+      },
+      {
+        "ingredientId": "poivre",
+        "qty": 1,
+        "unit": "pincee",
+        "adultOnly": true,
+        "note": "au service"
+      }
+    ],
+    "steps": [
+      "Préchauffe le four à 180 °C. Lave les poireaux et émince-les finement.",
+      "Fais-les fondre 15 min à feu doux dans le beurre avec un fond d'eau, à couvert.",
+      "Bats les œufs avec la crème, le lait, la muscade et le persil, puis ajoute les poireaux et le chèvre émietté.",
+      "Étale la pâte dans un moule, pique le fond et verse la garniture.",
+      "Enfourne 35 min, jusqu'à ce que la garniture soit bien prise et dorée.",
+      "Coupe la part de bébé, puis sale et poivre les parts des grands."
+    ],
+    "babyAdaptation": {
+      "when": "Prélever une part à la sortie du four, avant de saler les parts des grands",
+      "texture": "petits carrés fondants, pâte comprise, ou garniture seule écrasée à la fourchette",
+      "amount": "1 petite part (environ 60 g)",
+      "notes": "Garniture bien prise à cœur. Allergènes : œuf, lait, gluten."
+    },
+    "ironScore": 2,
+    "mainProtein": "egg",
+    "tags": [
+      "oven"
+    ],
+    "illustration": "poireau",
+    "source": "seed"
+  },
+  {
+    "id": "tartines-rillettes-sardines-carottes-rapees",
+    "slug": "tartines-rillettes-sardines-carottes-rapees",
+    "title": "Tartines de rillettes de sardines, carottes râpées au citron",
+    "description": "Des rillettes express de sardines au fromage blanc sur pain grillé, et des carottes râpées acidulées.",
+    "slots": [
+      "lunch"
+    ],
+    "prepMinutes": 15,
+    "cookMinutes": 3,
+    "longCook": false,
+    "prepAhead": false,
+    "prepAheadSteps": [],
+    "yieldsLeftovers": false,
+    "servingsBase": 4,
+    "ingredients": [
+      {
+        "ingredientId": "sardines-huile",
+        "qty": 3,
+        "unit": "piece",
+        "note": "boîtes"
+      },
+      {
+        "ingredientId": "fromage-blanc",
+        "qty": 150,
+        "unit": "g"
+      },
+      {
+        "ingredientId": "citron",
+        "qty": 1,
+        "unit": "piece",
+        "note": "jus"
+      },
+      {
+        "ingredientId": "ciboulette",
+        "qty": 0.5,
+        "unit": "piece",
+        "note": "ciselée"
+      },
+      {
+        "ingredientId": "pain",
+        "qty": 1,
+        "unit": "piece",
+        "note": "pain de campagne en tranches"
+      },
+      {
+        "ingredientId": "carotte",
+        "qty": 400,
+        "unit": "g",
+        "form": "grated",
+        "note": "râpées finement"
+      },
+      {
+        "ingredientId": "huile-olive",
+        "qty": 2,
+        "unit": "cs"
+      },
+      {
+        "ingredientId": "persil",
+        "qty": 0.5,
+        "unit": "piece",
+        "note": "ciselé"
+      },
+      {
+        "ingredientId": "poivre",
+        "qty": 1,
+        "unit": "pincee",
+        "adultOnly": true,
+        "note": "au service"
+      }
+    ],
+    "steps": [
+      "Égoutte les sardines, retire l'arête centrale et écrase-les à la fourchette.",
+      "Mélange-les avec le fromage blanc, le jus d'un demi-citron et la ciboulette.",
+      "Râpe finement les carottes et assaisonne-les avec l'huile d'olive, le reste du jus de citron et le persil.",
+      "Fais griller les tranches de pain et tartine-les de rillettes.",
+      "Prélève la part de bébé, puis poivre les tartines des grands."
+    ],
+    "babyAdaptation": {
+      "when": "Prélever les rillettes et les carottes avant de poivrer",
+      "texture": "rillettes lisses sur des mouillettes de pain grillé ; carottes râpées très finement (ou cuites 5 min à la vapeur)",
+      "amount": "1 à 2 mouillettes tartinées (environ 20 g de sardine) + 2 c. à soupe de carottes",
+      "notes": "Sardine riche en oméga-3 et en fer ; vitamine C du citron. Allergènes : poisson, lait, gluten."
+    },
+    "ironScore": 2,
+    "mainProtein": "oily-fish",
+    "tags": [
+      "quick",
+      "finger-food"
+    ],
+    "illustration": "poisson",
+    "source": "seed"
+  },
+  {
+    "id": "coquillettes-saumon-brocoli-citron",
+    "slug": "coquillettes-saumon-brocoli-citron",
+    "title": "Coquillettes au saumon, brocoli et citron",
+    "description": "Un plat de pâtes express, crémeux et plein d'oméga-3.",
+    "slots": [
+      "lunch",
+      "dinner"
+    ],
+    "prepMinutes": 10,
+    "cookMinutes": 15,
+    "longCook": false,
+    "prepAhead": false,
+    "prepAheadSteps": [],
+    "yieldsLeftovers": false,
+    "servingsBase": 4,
+    "ingredients": [
+      {
+        "ingredientId": "pates",
+        "qty": 280,
+        "unit": "g",
+        "note": "coquillettes"
+      },
+      {
+        "ingredientId": "saumon",
+        "qty": 400,
+        "unit": "g",
+        "note": "pavés sans peau"
+      },
+      {
+        "ingredientId": "brocoli",
+        "qty": 400,
+        "unit": "g"
+      },
+      {
+        "ingredientId": "creme-fraiche",
+        "qty": 100,
+        "unit": "g"
+      },
+      {
+        "ingredientId": "citron",
+        "qty": 1,
+        "unit": "piece",
+        "note": "zeste et jus"
+      },
+      {
+        "ingredientId": "ciboulette",
+        "qty": 0.5,
+        "unit": "piece",
+        "note": "ciselée"
+      },
+      {
+        "ingredientId": "huile-olive",
+        "qty": 1,
+        "unit": "cs"
+      },
+      {
+        "ingredientId": "sel",
+        "qty": 1,
+        "unit": "pincee",
+        "adultOnly": true,
+        "note": "au service"
+      },
+      {
+        "ingredientId": "poivre",
+        "qty": 1,
+        "unit": "pincee",
+        "adultOnly": true,
+        "note": "au service"
+      }
+    ],
+    "steps": [
+      "Fais cuire les coquillettes dans une grande casserole d'eau non salée ; ajoute les fleurettes de brocoli 6 min avant la fin.",
+      "Pendant ce temps, coupe le saumon en cubes et fais-le cuire 5 min à la poêle dans l'huile, jusqu'à ce qu'il soit opaque à cœur.",
+      "Égoutte pâtes et brocoli, ajoute la crème, le zeste et le jus d'un demi-citron.",
+      "Incorpore le saumon et la ciboulette.",
+      "Prélève la portion bébé, puis sale et poivre."
+    ],
+    "babyAdaptation": {
+      "when": "Prélever avant de saler et de poivrer",
+      "texture": "saumon émietté et vérifié sans arêtes, fleurettes de brocoli bien tendres écrasées, pâtes coupées en morceaux",
+      "amount": "3 c. à soupe de pâtes + 2 c. à soupe de brocoli + 20 g de saumon",
+      "notes": "Poisson gras riche en oméga-3 et en fer ; vitamine C du brocoli et du citron. Allergènes : poisson, gluten, lait."
+    },
+    "ironScore": 2,
+    "mainProtein": "oily-fish",
+    "tags": [],
+    "illustration": "brocoli",
+    "source": "seed"
+  },
+  {
+    "id": "salade-quinoa-patate-douce-pois-chiches",
+    "slug": "salade-quinoa-patate-douce-pois-chiches",
+    "title": "Salade de quinoa, patate douce rôtie et pois chiches",
+    "description": "Une salade complète et colorée, préparée la veille pour un déjeuner prêt en 10 minutes.",
+    "slots": [
+      "lunch"
+    ],
+    "prepMinutes": 15,
+    "cookMinutes": 30,
+    "longCook": false,
+    "prepAhead": true,
+    "prepAheadSteps": [
+      "Rôtir les cubes de patate douce et cuire le quinoa",
+      "Garder le tout au frais dans une boîte fermée"
+    ],
+    "yieldsLeftovers": false,
+    "servingsBase": 4,
+    "ingredients": [
+      {
+        "ingredientId": "quinoa",
+        "qty": 200,
+        "unit": "g"
+      },
+      {
+        "ingredientId": "patate-douce",
+        "qty": 600,
+        "unit": "g"
+      },
+      {
+        "ingredientId": "pois-chiches",
+        "qty": 250,
+        "unit": "g",
+        "note": "cuits, en bocal, rincés"
+      },
+      {
+        "ingredientId": "coriandre",
+        "qty": 0.5,
+        "unit": "piece",
+        "note": "ciselée"
+      },
+      {
+        "ingredientId": "citron",
+        "qty": 1,
+        "unit": "piece",
+        "note": "jus"
+      },
+      {
+        "ingredientId": "huile-olive",
+        "qty": 3,
+        "unit": "cs"
+      },
+      {
+        "ingredientId": "cumin",
+        "qty": 1,
+        "unit": "cc"
+      },
+      {
+        "ingredientId": "paprika",
+        "qty": 0.5,
+        "unit": "cc"
+      },
+      {
+        "ingredientId": "sel",
+        "qty": 1,
+        "unit": "pincee",
+        "adultOnly": true,
+        "note": "au service"
+      },
+      {
+        "ingredientId": "poivre",
+        "qty": 1,
+        "unit": "pincee",
+        "adultOnly": true,
+        "note": "au service"
+      }
+    ],
+    "steps": [
+      "Préchauffe le four à 200 °C. Coupe la patate douce en cubes et mélange-la avec 1 c. à soupe d'huile, le cumin et le paprika.",
+      "Rôtis 25 min, jusqu'à ce qu'elle soit fondante.",
+      "Rince le quinoa et fais-le cuire 12 min dans deux fois son volume d'eau, puis laisse-le gonfler à couvert.",
+      "Mélange quinoa, patate douce et pois chiches avec le jus de citron, le reste d'huile et la coriandre.",
+      "Prélève la portion bébé, puis sale et poivre."
+    ],
+    "babyAdaptation": {
+      "when": "Prélever avant de saler et de poivrer",
+      "texture": "pois chiches écrasés à la fourchette (jamais entiers), patate douce en cubes fondants, quinoa bien cuit",
+      "amount": "4 c. à soupe de mélange dont 2 c. à soupe de pois chiches écrasés",
+      "notes": "Fer du quinoa et des pois chiches + vitamine C du citron et de la coriandre. Ajouter 1 c. à café d'huile de colza."
+    },
+    "ironScore": 2,
+    "mainProtein": "legume",
+    "tags": [
+      "salad",
+      "oven"
+    ],
+    "illustration": "patate-douce",
+    "source": "seed"
+  },
+  {
+    "id": "soupe-pois-casses-carottes-cumin",
+    "slug": "soupe-pois-casses-carottes-cumin",
+    "title": "Soupe de pois cassés aux carottes et au cumin",
+    "description": "Une soupe épaisse et veloutée, riche en fer, encore meilleure réchauffée.",
+    "slots": [
+      "lunch",
+      "dinner"
+    ],
+    "prepMinutes": 15,
+    "cookMinutes": 50,
+    "longCook": false,
+    "prepAhead": true,
+    "prepAheadSteps": [
+      "Préparer la soupe de pois cassés et la garder au frais"
+    ],
+    "yieldsLeftovers": false,
+    "servingsBase": 4,
+    "ingredients": [
+      {
+        "ingredientId": "pois-casses",
+        "qty": 300,
+        "unit": "g"
+      },
+      {
+        "ingredientId": "carotte",
+        "qty": 4,
+        "unit": "piece",
+        "form": "cooked"
+      },
+      {
+        "ingredientId": "pomme-de-terre",
+        "qty": 2,
+        "unit": "piece"
+      },
+      {
+        "ingredientId": "oignon",
+        "qty": 1,
+        "unit": "piece"
+      },
+      {
+        "ingredientId": "ail",
+        "qty": 1,
+        "unit": "piece"
+      },
+      {
+        "ingredientId": "cumin",
+        "qty": 1,
+        "unit": "cc"
+      },
+      {
+        "ingredientId": "laurier",
+        "qty": 1,
+        "unit": "piece"
+      },
+      {
+        "ingredientId": "huile-olive",
+        "qty": 2,
+        "unit": "cs"
+      },
+      {
+        "ingredientId": "persil",
+        "qty": 0.5,
+        "unit": "piece",
+        "note": "ciselé"
+      },
+      {
+        "ingredientId": "sel",
+        "qty": 1,
+        "unit": "pincee",
+        "adultOnly": true,
+        "note": "au service"
+      }
+    ],
+    "steps": [
+      "Rince les pois cassés à l'eau froide.",
+      "Fais revenir l'oignon et l'ail émincés dans l'huile, ajoute les carottes et les pommes de terre en morceaux.",
+      "Ajoute les pois cassés, le cumin, le laurier et 1,5 L d'eau.",
+      "Laisse cuire 50 min à petits frémissements, en remuant de temps en temps.",
+      "Retire le laurier, mixe finement et parsème de persil.",
+      "Prélève la portion bébé, puis sale la soupe des grands."
+    ],
+    "babyAdaptation": {
+      "when": "Prélever après mixage, avant de saler",
+      "texture": "soupe lisse et épaisse, à la cuillère",
+      "amount": "150 à 200 ml de soupe",
+      "notes": "Fer des pois cassés + vitamine C du persil ; un kiwi en dessert complète bien. Ajouter 1 c. à café d'huile de colza."
+    },
+    "ironScore": 3,
+    "mainProtein": "legume",
+    "tags": [
+      "soup",
+      "one-pot",
+      "batch"
+    ],
+    "illustration": "lentilles",
+    "source": "seed"
+  },
+  {
+    "id": "gratin-coquillettes-chou-fleur",
+    "slug": "gratin-coquillettes-chou-fleur",
+    "title": "Gratin de coquillettes au chou-fleur",
+    "description": "Le gratin doudou de la semaine : chou-fleur fondant, béchamel douce et emmental doré.",
+    "slots": [
+      "lunch",
+      "dinner"
+    ],
+    "prepMinutes": 15,
+    "cookMinutes": 30,
+    "longCook": false,
+    "prepAhead": false,
+    "prepAheadSteps": [],
+    "yieldsLeftovers": false,
+    "servingsBase": 4,
+    "ingredients": [
+      {
+        "ingredientId": "pates",
+        "qty": 240,
+        "unit": "g",
+        "note": "coquillettes"
+      },
+      {
+        "ingredientId": "chou-fleur",
+        "qty": 1,
+        "unit": "piece"
+      },
+      {
+        "ingredientId": "lait",
+        "qty": 500,
+        "unit": "ml"
+      },
+      {
+        "ingredientId": "beurre",
+        "qty": 30,
+        "unit": "g"
+      },
+      {
+        "ingredientId": "farine",
+        "qty": 30,
+        "unit": "g"
+      },
+      {
+        "ingredientId": "emmental-rape",
+        "qty": 80,
+        "unit": "g"
+      },
+      {
+        "ingredientId": "muscade",
+        "qty": 1,
+        "unit": "pincee"
+      },
+      {
+        "ingredientId": "sel",
+        "qty": 1,
+        "unit": "pincee",
+        "adultOnly": true,
+        "note": "au service"
+      },
+      {
+        "ingredientId": "poivre",
+        "qty": 1,
+        "unit": "pincee",
+        "adultOnly": true,
+        "note": "au service"
+      }
+    ],
+    "steps": [
+      "Préchauffe le four à 200 °C. Cuis les fleurettes de chou-fleur 10 min à l'eau non salée, puis les coquillettes 2 min de moins qu'indiqué.",
+      "Prépare la béchamel : fais fondre le beurre, ajoute la farine, puis le lait petit à petit en fouettant jusqu'à épaississement. Ajoute la muscade.",
+      "Mélange pâtes, chou-fleur et béchamel dans un plat.",
+      "Parsème d'emmental et enfourne 20 min, jusqu'à ce que le dessus soit doré.",
+      "Prélève la portion bébé, puis sale et poivre au service."
+    ],
+    "babyAdaptation": {
+      "when": "Prélever à la sortie du four, avant de saler",
+      "texture": "petits morceaux fondants, chou-fleur écrasé à la fourchette dans la béchamel",
+      "amount": "5 à 6 c. à soupe",
+      "notes": "La béchamel de la portion bébé peut être faite au lait infantile. Plat sans fer : prévoir viande, poisson ou œuf à l'autre repas. Allergènes : lait, gluten."
+    },
+    "ironScore": 0,
+    "mainProtein": "dairy",
+    "tags": [
+      "gratin",
+      "oven",
+      "dairy-heavy"
+    ],
+    "illustration": "chou-fleur",
+    "source": "seed"
+  },
+  {
+    "id": "boulettes-boeuf-persil-sauce-tomate",
+    "slug": "boulettes-boeuf-persil-sauce-tomate",
+    "title": "Boulettes de bœuf au persil, sauce tomate et semoule",
+    "description": "Des boulettes tendres à attraper avec les doigts, mijotées dans une sauce tomate douce aux carottes.",
+    "slots": [
+      "lunch",
+      "dinner"
+    ],
+    "prepMinutes": 20,
+    "cookMinutes": 25,
+    "longCook": false,
+    "prepAhead": false,
+    "prepAheadSteps": [],
+    "yieldsLeftovers": false,
+    "servingsBase": 4,
+    "ingredients": [
+      {
+        "ingredientId": "boeuf-hache",
+        "qty": 500,
+        "unit": "g"
+      },
+      {
+        "ingredientId": "oeuf",
+        "qty": 1,
+        "unit": "piece"
+      },
+      {
+        "ingredientId": "flocons-avoine",
+        "qty": 40,
+        "unit": "g",
+        "note": "mixés, pour lier"
+      },
+      {
+        "ingredientId": "persil",
+        "qty": 1,
+        "unit": "piece",
+        "note": "haché"
+      },
+      {
+        "ingredientId": "oignon",
+        "qty": 1,
+        "unit": "piece"
+      },
+      {
+        "ingredientId": "ail",
+        "qty": 1,
+        "unit": "piece"
+      },
+      {
+        "ingredientId": "tomates-concassees",
+        "qty": 800,
+        "unit": "g"
+      },
+      {
+        "ingredientId": "carotte",
+        "qty": 2,
+        "unit": "piece",
+        "form": "cooked",
+        "note": "râpées, cuites dans la sauce"
+      },
+      {
+        "ingredientId": "herbes-provence",
+        "qty": 1,
+        "unit": "cc"
+      },
+      {
+        "ingredientId": "huile-olive",
+        "qty": 2,
+        "unit": "cs"
+      },
+      {
+        "ingredientId": "semoule",
+        "qty": 240,
+        "unit": "g"
+      },
+      {
+        "ingredientId": "sel",
+        "qty": 1,
+        "unit": "pincee",
+        "adultOnly": true,
+        "note": "au service"
+      },
+      {
+        "ingredientId": "poivre",
+        "qty": 1,
+        "unit": "pincee",
+        "adultOnly": true,
+        "note": "au service"
+      }
+    ],
+    "steps": [
+      "Mélange le bœuf haché avec l'œuf, les flocons d'avoine mixés, la moitié de l'oignon et le persil finement hachés.",
+      "Forme une vingtaine de boulettes de la taille d'une noix.",
+      "Fais revenir le reste d'oignon et l'ail dans l'huile, ajoute les tomates concassées, les carottes râpées et les herbes.",
+      "Dépose les boulettes dans la sauce et laisse mijoter 20 min à couvert : elles doivent être cuites à cœur, sans rose au centre.",
+      "Pendant ce temps, prépare la semoule avec le même volume d'eau bouillante.",
+      "Prélève la portion bébé, puis sale et poivre la sauce des grands."
+    ],
+    "babyAdaptation": {
+      "when": "Prélever avant de saler et de poivrer la sauce",
+      "texture": "boulettes fondantes coupées en deux ou écrasées, à tenir à la main ou à la cuillère",
+      "amount": "1 à 2 boulettes (environ 20 g de viande) + 3 c. à soupe de semoule et de sauce",
+      "notes": "Viande cuite à cœur. Fer du bœuf + vitamine C du persil. Allergènes : œuf, gluten."
+    },
+    "ironScore": 3,
+    "mainProtein": "red-meat",
+    "tags": [
+      "finger-food"
+    ],
+    "illustration": "tomate",
+    "source": "seed"
+  },
+  {
+    "id": "saute-dinde-chou-carottes-gingembre",
+    "slug": "saute-dinde-chou-carottes-gingembre",
+    "title": "Sauté de dinde au chou et aux carottes, riz au gingembre",
+    "description": "Un sauté minute aux légumes fondants, parfumé au gingembre pour les grands comme pour les petits.",
+    "slots": [
+      "lunch",
+      "dinner"
+    ],
+    "prepMinutes": 15,
+    "cookMinutes": 15,
+    "longCook": false,
+    "prepAhead": false,
+    "prepAheadSteps": [],
+    "yieldsLeftovers": false,
+    "servingsBase": 4,
+    "ingredients": [
+      {
+        "ingredientId": "dinde-escalope",
+        "qty": 500,
+        "unit": "g"
+      },
+      {
+        "ingredientId": "chou-vert",
+        "qty": 0.5,
+        "unit": "piece"
+      },
+      {
+        "ingredientId": "carotte",
+        "qty": 3,
+        "unit": "piece",
+        "form": "cooked"
+      },
+      {
+        "ingredientId": "oignon",
+        "qty": 1,
+        "unit": "piece"
+      },
+      {
+        "ingredientId": "gingembre",
+        "qty": 10,
+        "unit": "g",
+        "note": "râpé"
+      },
+      {
+        "ingredientId": "huile-colza",
+        "qty": 2,
+        "unit": "cs"
+      },
+      {
+        "ingredientId": "riz",
+        "qty": 240,
+        "unit": "g"
+      },
+      {
+        "ingredientId": "coriandre",
+        "qty": 0.5,
+        "unit": "piece",
+        "note": "ciselée"
+      },
+      {
+        "ingredientId": "sauce-soja",
+        "qty": 2,
+        "unit": "cs",
+        "adultOnly": true
+      }
+    ],
+    "steps": [
+      "Fais cuire le riz dans deux fois son volume d'eau, 12 min à couvert.",
+      "Émince finement le chou, coupe les carottes en fins bâtonnets et la dinde en lanières.",
+      "Fais dorer la dinde 5 min dans l'huile avec l'oignon et le gingembre, jusqu'à ce qu'elle soit cuite à cœur, puis réserve.",
+      "Fais sauter le chou et les carottes 8 min avec un fond d'eau, à couvert, jusqu'à ce qu'ils soient tendres.",
+      "Remets la dinde, ajoute la coriandre et prélève la portion bébé.",
+      "Ajoute la sauce soja pour les grands et sers avec le riz."
+    ],
+    "babyAdaptation": {
+      "when": "Prélever avant d'ajouter la sauce soja (très salée)",
+      "texture": "dinde hachée finement ou en lamelles très fines, légumes fondants coupés en petits morceaux",
+      "amount": "3 c. à soupe de riz + 2 c. à soupe de légumes + 20 g de dinde",
+      "notes": "Prolonger la cuisson des légumes de bébé si besoin : ils doivent s'écraser entre deux doigts."
+    },
+    "ironScore": 1,
+    "mainProtein": "poultry",
+    "tags": [],
+    "illustration": "chou",
+    "source": "seed"
+  },
+  {
+    "id": "navarin-agneau-navets-carottes",
+    "slug": "navarin-agneau-navets-carottes",
+    "title": "Navarin d'agneau aux navets et carottes",
+    "description": "Le mijoté du dimanche : agneau confit, navets et carottes fondants dans une sauce tomatée douce.",
+    "slots": [
+      "lunch",
+      "dinner"
+    ],
+    "prepMinutes": 25,
+    "cookMinutes": 105,
+    "longCook": true,
+    "prepAhead": false,
+    "prepAheadSteps": [],
+    "yieldsLeftovers": false,
+    "servingsBase": 4,
+    "ingredients": [
+      {
+        "ingredientId": "agneau-epaule",
+        "qty": 800,
+        "unit": "g",
+        "note": "désossée, en morceaux"
+      },
+      {
+        "ingredientId": "navet",
+        "qty": 500,
+        "unit": "g"
+      },
+      {
+        "ingredientId": "carotte",
+        "qty": 4,
+        "unit": "piece",
+        "form": "cooked"
+      },
+      {
+        "ingredientId": "pomme-de-terre",
+        "qty": 600,
+        "unit": "g"
+      },
+      {
+        "ingredientId": "oignon",
+        "qty": 2,
+        "unit": "piece"
+      },
+      {
+        "ingredientId": "ail",
+        "qty": 2,
+        "unit": "piece"
+      },
+      {
+        "ingredientId": "concentre-tomate",
+        "qty": 2,
+        "unit": "cs"
+      },
+      {
+        "ingredientId": "tomates-concassees",
+        "qty": 400,
+        "unit": "g"
+      },
+      {
+        "ingredientId": "farine",
+        "qty": 1,
+        "unit": "cs"
+      },
+      {
+        "ingredientId": "thym",
+        "qty": 1,
+        "unit": "cc"
+      },
+      {
+        "ingredientId": "laurier",
+        "qty": 2,
+        "unit": "piece"
+      },
+      {
+        "ingredientId": "huile-olive",
+        "qty": 2,
+        "unit": "cs"
+      },
+      {
+        "ingredientId": "persil",
+        "qty": 0.5,
+        "unit": "piece",
+        "note": "ciselé"
+      },
+      {
+        "ingredientId": "sel",
+        "qty": 1,
+        "unit": "pincee",
+        "adultOnly": true,
+        "note": "au service"
+      },
+      {
+        "ingredientId": "poivre",
+        "qty": 1,
+        "unit": "pincee",
+        "adultOnly": true,
+        "note": "au service"
+      }
+    ],
+    "steps": [
+      "Fais dorer les morceaux d'agneau dans l'huile d'une cocotte, puis ajoute les oignons émincés.",
+      "Saupoudre de farine, mélange, puis ajoute le concentre, les tomates concassées, l'ail, le thym et le laurier.",
+      "Couvre d'eau à hauteur et laisse mijoter 1 h à couvert, à feu doux.",
+      "Ajoute les navets, les carottes et les pommes de terre en morceaux, poursuis 45 min.",
+      "Vérifie que la viande se défait à la fourchette, retire le laurier et parsème de persil.",
+      "Prélève la portion bébé, puis sale et poivre."
+    ],
+    "babyAdaptation": {
+      "when": "Prélever avant de saler et de poivrer",
+      "texture": "viande effilochée finement, légumes écrasés à la fourchette avec un peu de sauce",
+      "amount": "20 g d'agneau + 4 c. à soupe de légumes",
+      "notes": "Retirer le gras visible de la portion bébé. Fer de l'agneau + vitamine C du persil."
+    },
+    "ironScore": 3,
+    "mainProtein": "red-meat",
+    "tags": [
+      "one-pot"
+    ],
+    "illustration": "navet",
+    "source": "seed"
+  },
+  {
+    "id": "potee-chou-echine-porc",
+    "slug": "potee-chou-echine-porc",
+    "title": "Potée au chou et échine de porc",
+    "description": "Une potée généreuse où le chou devient fondant au contact de la viande, sans charcuterie.",
+    "slots": [
+      "lunch",
+      "dinner"
+    ],
+    "prepMinutes": 25,
+    "cookMinutes": 120,
+    "longCook": true,
+    "prepAhead": false,
+    "prepAheadSteps": [],
+    "yieldsLeftovers": false,
+    "servingsBase": 4,
+    "ingredients": [
+      {
+        "ingredientId": "porc-echine",
+        "qty": 800,
+        "unit": "g"
+      },
+      {
+        "ingredientId": "chou-vert",
+        "qty": 1,
+        "unit": "piece"
+      },
+      {
+        "ingredientId": "carotte",
+        "qty": 4,
+        "unit": "piece",
+        "form": "cooked"
+      },
+      {
+        "ingredientId": "pomme-de-terre",
+        "qty": 800,
+        "unit": "g"
+      },
+      {
+        "ingredientId": "navet",
+        "qty": 300,
+        "unit": "g"
+      },
+      {
+        "ingredientId": "oignon",
+        "qty": 1,
+        "unit": "piece"
+      },
+      {
+        "ingredientId": "ail",
+        "qty": 2,
+        "unit": "piece"
+      },
+      {
+        "ingredientId": "thym",
+        "qty": 1,
+        "unit": "cc"
+      },
+      {
+        "ingredientId": "laurier",
+        "qty": 2,
+        "unit": "piece"
+      },
+      {
+        "ingredientId": "moutarde",
+        "qty": 1,
+        "unit": "cs",
+        "adultOnly": true,
+        "note": "au service"
+      },
+      {
+        "ingredientId": "sel",
+        "qty": 1,
+        "unit": "pincee",
+        "adultOnly": true,
+        "note": "au service"
+      },
+      {
+        "ingredientId": "poivre",
+        "qty": 1,
+        "unit": "pincee",
+        "adultOnly": true,
+        "note": "au service"
+      }
+    ],
+    "steps": [
+      "Mets l'échine dans une grande cocotte, couvre d'eau froide avec l'oignon, l'ail, le thym et le laurier, porte à frémissement et écume.",
+      "Laisse cuire 1 h à petits frémissements, à couvert.",
+      "Coupe le chou en quartiers, blanchis-le 5 min dans l'eau bouillante et égoutte-le.",
+      "Ajoute le chou, les carottes, les navets et les pommes de terre dans la cocotte et poursuis 1 h.",
+      "Découpe la viande : elle doit être bien cuite et fondante.",
+      "Prélève la portion bébé avec un peu de bouillon, puis sale et sers les grands avec la moutarde."
+    ],
+    "babyAdaptation": {
+      "when": "Prélever avant de saler et de servir la moutarde",
+      "texture": "porc effiloché très finement, légumes écrasés avec un peu de bouillon",
+      "amount": "20 g de porc + 4 c. à soupe de légumes",
+      "notes": "Retirer le gras. Fer de la viande + vitamine C du chou."
+    },
+    "ironScore": 3,
+    "mainProtein": "red-meat",
+    "tags": [
+      "one-pot"
+    ],
+    "illustration": "chou",
+    "source": "seed"
+  },
+  {
+    "id": "one-pot-poulet-champignons-petites-pates",
+    "slug": "one-pot-poulet-champignons-petites-pates",
+    "title": "One-pot de poulet, champignons et petites pâtes",
+    "description": "Tout cuit dans la même casserole : poulet tendre, champignons, épinards et petites pâtes qui boivent la sauce.",
+    "slots": [
+      "lunch",
+      "dinner"
+    ],
+    "prepMinutes": 10,
+    "cookMinutes": 20,
+    "longCook": false,
+    "prepAhead": false,
+    "prepAheadSteps": [],
+    "yieldsLeftovers": false,
+    "servingsBase": 4,
+    "ingredients": [
+      {
+        "ingredientId": "poulet-filet",
+        "qty": 400,
+        "unit": "g"
+      },
+      {
+        "ingredientId": "champignon",
+        "qty": 300,
+        "unit": "g"
+      },
+      {
+        "ingredientId": "petites-pates",
+        "qty": 240,
+        "unit": "g"
+      },
+      {
+        "ingredientId": "epinard-surgele",
+        "qty": 200,
+        "unit": "g"
+      },
+      {
+        "ingredientId": "oignon",
+        "qty": 1,
+        "unit": "piece"
+      },
+      {
+        "ingredientId": "ail",
+        "qty": 1,
+        "unit": "piece"
+      },
+      {
+        "ingredientId": "creme-fraiche",
+        "qty": 80,
+        "unit": "g"
+      },
+      {
+        "ingredientId": "thym",
+        "qty": 1,
+        "unit": "cc"
+      },
+      {
+        "ingredientId": "huile-olive",
+        "qty": 1,
+        "unit": "cs"
+      },
+      {
+        "ingredientId": "persil",
+        "qty": 0.5,
+        "unit": "piece",
+        "note": "ciselé"
+      },
+      {
+        "ingredientId": "sel",
+        "qty": 1,
+        "unit": "pincee",
+        "adultOnly": true,
+        "note": "au service"
+      },
+      {
+        "ingredientId": "poivre",
+        "qty": 1,
+        "unit": "pincee",
+        "adultOnly": true,
+        "note": "au service"
+      }
+    ],
+    "steps": [
+      "Coupe le poulet en petits dés, émince l'oignon et les champignons.",
+      "Fais revenir le poulet 4 min dans l'huile, puis ajoute l'oignon, l'ail et les champignons.",
+      "Verse les petites pâtes, le thym et 700 ml d'eau, laisse cuire 10 min en remuant souvent.",
+      "Ajoute les épinards et la crème, poursuis 3 min : le poulet doit être cuit à cœur.",
+      "Parsème de persil, prélève la portion bébé, puis sale et poivre."
+    ],
+    "babyAdaptation": {
+      "when": "Prélever avant de saler et de poivrer",
+      "texture": "poulet haché finement ou en tout petits dés, champignons hachés, pâtes bien cuites",
+      "amount": "4 à 5 c. à soupe dont 20 g de poulet",
+      "notes": "Fer des épinards + vitamine C du persil. Allergènes : gluten, lait."
+    },
+    "ironScore": 2,
+    "mainProtein": "poultry",
+    "tags": [
+      "one-pot"
+    ],
+    "illustration": "champignon",
+    "source": "seed"
+  }
+]

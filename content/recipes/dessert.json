@@ -1,1 +1,586 @@
-[]
+[
+  {
+    "id": "fruit-de-saison",
+    "slug": "fruit-de-saison",
+    "title": "Fruit de saison",
+    "description": "Le plus simple des desserts : un fruit bien mûr du moment, épluché et partagé.",
+    "slots": [
+      "dessert"
+    ],
+    "prepMinutes": 2,
+    "cookMinutes": 0,
+    "longCook": false,
+    "prepAhead": false,
+    "prepAheadSteps": [],
+    "yieldsLeftovers": false,
+    "servingsBase": 4,
+    "ingredients": [
+      {
+        "ingredientId": "fruits-de-saison",
+        "qty": 600,
+        "unit": "g",
+        "note": "pomme, poire, raisin, kiwi… selon le marché"
+      }
+    ],
+    "steps": [
+      "Choisis des fruits bien mûrs du moment.",
+      "Lave-les, épluche-les si besoin et retire pépins et noyaux.",
+      "Coupe-les en quartiers ou en lamelles à partager."
+    ],
+    "babyAdaptation": {
+      "when": "Prélever la portion bébé avant de couper en quartiers",
+      "texture": "Fruit mûr écrasé ou en lamelles fondantes ; pomme crue râpée, raisin coupé en quatre, fruit ferme cuit 5 minutes à la vapeur",
+      "amount": "1/2 fruit (60 à 80 g)"
+    },
+    "ironScore": 0,
+    "mainProtein": "none",
+    "tags": [
+      "seasonal-fruit",
+      "repeatable",
+      "quick"
+    ],
+    "illustration": "raisin",
+    "source": "seed"
+  },
+  {
+    "id": "compote-pomme-poire",
+    "slug": "compote-pomme-poire",
+    "title": "Compote pomme-poire",
+    "description": "Une compote douce sans sucre ajouté, juste parfumée à la vanille.",
+    "slots": [
+      "dessert"
+    ],
+    "prepMinutes": 10,
+    "cookMinutes": 20,
+    "longCook": false,
+    "prepAhead": false,
+    "prepAheadSteps": [],
+    "yieldsLeftovers": false,
+    "servingsBase": 4,
+    "ingredients": [
+      {
+        "ingredientId": "pomme",
+        "qty": 3,
+        "unit": "piece",
+        "form": "cooked"
+      },
+      {
+        "ingredientId": "poire",
+        "qty": 3,
+        "unit": "piece"
+      },
+      {
+        "ingredientId": "vanille",
+        "qty": 1,
+        "unit": "cc"
+      }
+    ],
+    "steps": [
+      "Épluche les pommes et les poires, puis coupe-les en morceaux.",
+      "Mets-les dans une casserole avec 5 cl d'eau et la vanille.",
+      "Fais cuire 20 minutes à couvert et à feu doux.",
+      "Écrase à la fourchette ou mixe selon la texture souhaitée."
+    ],
+    "babyAdaptation": {
+      "when": "Prélever la portion bébé après la cuisson",
+      "texture": "Compote lisse ou écrasée finement, servie tiède ou froide",
+      "amount": "80 à 100 g",
+      "notes": "Se garde 3 jours au réfrigérateur ou se congèle en portions."
+    },
+    "ironScore": 0,
+    "mainProtein": "none",
+    "tags": [
+      "seasonal-fruit"
+    ],
+    "illustration": "pomme",
+    "source": "seed"
+  },
+  {
+    "id": "compote-pomme-coing",
+    "slug": "compote-pomme-coing",
+    "title": "Compote pomme-coing",
+    "description": "Le coing parfumé adoucit la pomme dans une compote d'octobre sans sucre.",
+    "slots": [
+      "dessert"
+    ],
+    "prepMinutes": 15,
+    "cookMinutes": 35,
+    "longCook": false,
+    "prepAhead": false,
+    "prepAheadSteps": [],
+    "yieldsLeftovers": false,
+    "servingsBase": 4,
+    "ingredients": [
+      {
+        "ingredientId": "coing",
+        "qty": 2,
+        "unit": "piece"
+      },
+      {
+        "ingredientId": "pomme",
+        "qty": 3,
+        "unit": "piece",
+        "form": "cooked"
+      },
+      {
+        "ingredientId": "vanille",
+        "qty": 1,
+        "unit": "cc"
+      }
+    ],
+    "steps": [
+      "Frotte les coings pour retirer leur duvet, épluche-les et coupe-les en petits morceaux.",
+      "Fais-les cuire 15 minutes à couvert avec 15 cl d'eau.",
+      "Ajoute les pommes épluchées en morceaux et la vanille, puis poursuis 20 minutes.",
+      "Mixe finement."
+    ],
+    "babyAdaptation": {
+      "when": "Prélever la portion bébé après avoir mixé",
+      "texture": "Compote bien lisse, le coing doit être parfaitement tendre",
+      "amount": "80 à 100 g"
+    },
+    "ironScore": 0,
+    "mainProtein": "none",
+    "tags": [
+      "seasonal-fruit"
+    ],
+    "illustration": "coing",
+    "source": "seed"
+  },
+  {
+    "id": "poires-pochees-vanille",
+    "slug": "poires-pochees-vanille",
+    "title": "Poires pochées à la vanille",
+    "description": "Des poires fondantes pochées dans une eau vanillée, sans une once de sucre.",
+    "slots": [
+      "dessert"
+    ],
+    "prepMinutes": 10,
+    "cookMinutes": 20,
+    "longCook": false,
+    "prepAhead": false,
+    "prepAheadSteps": [],
+    "yieldsLeftovers": false,
+    "servingsBase": 4,
+    "ingredients": [
+      {
+        "ingredientId": "poire",
+        "qty": 4,
+        "unit": "piece",
+        "note": "mûres mais fermes"
+      },
+      {
+        "ingredientId": "vanille",
+        "qty": 2,
+        "unit": "cc"
+      },
+      {
+        "ingredientId": "cannelle",
+        "qty": 1,
+        "unit": "pincee"
+      },
+      {
+        "ingredientId": "citron",
+        "qty": 0.5,
+        "unit": "piece",
+        "note": "le jus"
+      }
+    ],
+    "steps": [
+      "Épluche les poires en gardant la queue et arrose-les de jus de citron.",
+      "Porte à frémissement 75 cl d'eau avec la vanille et la cannelle.",
+      "Plonge les poires et laisse pocher 20 minutes, jusqu'à ce qu'une lame les traverse sans résistance.",
+      "Sers tiède avec un peu du jus de cuisson."
+    ],
+    "babyAdaptation": {
+      "when": "Prélever une demi-poire après la cuisson",
+      "texture": "Poire bien fondante, écrasée ou en lamelles à attraper",
+      "amount": "1/2 poire"
+    },
+    "ironScore": 0,
+    "mainProtein": "none",
+    "tags": [
+      "seasonal-fruit",
+      "finger-food"
+    ],
+    "illustration": "poire",
+    "source": "seed"
+  },
+  {
+    "id": "clafoutis-figues",
+    "slug": "clafoutis-figues",
+    "title": "Clafoutis aux figues",
+    "description": "Un clafoutis tendre où les figues mûres apportent toute la douceur.",
+    "slots": [
+      "dessert"
+    ],
+    "prepMinutes": 15,
+    "cookMinutes": 35,
+    "longCook": false,
+    "prepAhead": false,
+    "prepAheadSteps": [],
+    "yieldsLeftovers": false,
+    "servingsBase": 4,
+    "ingredients": [
+      {
+        "ingredientId": "figue",
+        "qty": 8,
+        "unit": "piece",
+        "note": "bien mûres, coupées en quatre"
+      },
+      {
+        "ingredientId": "oeuf",
+        "qty": 3,
+        "unit": "piece"
+      },
+      {
+        "ingredientId": "lait",
+        "qty": 250,
+        "unit": "ml"
+      },
+      {
+        "ingredientId": "farine",
+        "qty": 60,
+        "unit": "g"
+      },
+      {
+        "ingredientId": "vanille",
+        "qty": 1,
+        "unit": "cc"
+      },
+      {
+        "ingredientId": "beurre",
+        "qty": 10,
+        "unit": "g"
+      }
+    ],
+    "steps": [
+      "Préchauffe le four à 180 °C et beurre un plat.",
+      "Dispose les figues coupées en quatre dans le plat.",
+      "Fouette les œufs, la farine, la vanille et le lait jusqu'à obtenir une pâte lisse.",
+      "Verse sur les figues et enfourne 35 minutes, jusqu'à ce que le centre soit bien pris."
+    ],
+    "babyAdaptation": {
+      "when": "Prélever la portion bébé une fois le clafoutis tiédi",
+      "texture": "Clafoutis bien cuit à cœur, écrasé ou en petits morceaux fondants",
+      "amount": "1 petite part (60 à 80 g)",
+      "notes": "Œufs totalement cuits : le couteau doit ressortir sec. Le lait de vache convient dans une préparation ; la portion bébé peut aussi être faite au lait infantile (2e âge ou croissance)."
+    },
+    "ironScore": 1,
+    "mainProtein": "egg",
+    "tags": [
+      "oven"
+    ],
+    "illustration": "figue",
+    "source": "seed"
+  },
+  {
+    "id": "flan-vanille-four",
+    "slug": "flan-vanille-four",
+    "title": "Flan aux œufs à la vanille",
+    "description": "Un petit flan au four tout simple, parfumé à la vanille, à servir avec une compote.",
+    "slots": [
+      "dessert"
+    ],
+    "prepMinutes": 10,
+    "cookMinutes": 40,
+    "longCook": false,
+    "prepAhead": false,
+    "prepAheadSteps": [],
+    "yieldsLeftovers": false,
+    "servingsBase": 4,
+    "ingredients": [
+      {
+        "ingredientId": "lait",
+        "qty": 500,
+        "unit": "ml"
+      },
+      {
+        "ingredientId": "oeuf",
+        "qty": 4,
+        "unit": "piece"
+      },
+      {
+        "ingredientId": "vanille",
+        "qty": 2,
+        "unit": "cc"
+      }
+    ],
+    "steps": [
+      "Préchauffe le four à 160 °C.",
+      "Fais tiédir le lait avec la vanille.",
+      "Fouette les œufs, puis verse le lait tiède dessus en remuant.",
+      "Répartis dans 4 ramequins et fais cuire 40 minutes au bain-marie, jusqu'à ce que le flan soit bien pris.",
+      "Laisse refroidir puis réserve au frais."
+    ],
+    "babyAdaptation": {
+      "when": "Servir un ramequin refroidi",
+      "texture": "Flan lisse et bien pris, sans partie liquide",
+      "amount": "1/2 ramequin",
+      "notes": "Sans sucre, il se marie bien avec une cuillère de compote. Les ramequins peuvent être préparés au lait infantile pour bébé."
+    },
+    "ironScore": 1,
+    "mainProtein": "dairy",
+    "tags": [
+      "oven",
+      "dairy-heavy"
+    ],
+    "illustration": "oeuf",
+    "source": "seed"
+  },
+  {
+    "id": "crumble-pomme-poire-amande",
+    "slug": "crumble-pomme-poire-amande",
+    "title": "Crumble pomme-poire à l'amande",
+    "description": "Des fruits d'automne fondants sous une croûte d'avoine et d'amande, sans sucre ajouté.",
+    "slots": [
+      "dessert"
+    ],
+    "prepMinutes": 15,
+    "cookMinutes": 30,
+    "longCook": false,
+    "prepAhead": false,
+    "prepAheadSteps": [],
+    "yieldsLeftovers": false,
+    "servingsBase": 4,
+    "ingredients": [
+      {
+        "ingredientId": "pomme",
+        "qty": 3,
+        "unit": "piece",
+        "form": "cooked"
+      },
+      {
+        "ingredientId": "poire",
+        "qty": 3,
+        "unit": "piece"
+      },
+      {
+        "ingredientId": "flocons-avoine",
+        "qty": 60,
+        "unit": "g"
+      },
+      {
+        "ingredientId": "poudre-amande",
+        "qty": 50,
+        "unit": "g",
+        "form": "powder"
+      },
+      {
+        "ingredientId": "farine",
+        "qty": 40,
+        "unit": "g"
+      },
+      {
+        "ingredientId": "beurre",
+        "qty": 50,
+        "unit": "g",
+        "note": "froid, en dés"
+      },
+      {
+        "ingredientId": "cannelle",
+        "qty": 1,
+        "unit": "pincee"
+      }
+    ],
+    "steps": [
+      "Préchauffe le four à 180 °C.",
+      "Épluche les pommes et les poires, coupe-les en dés et dispose-les dans un plat avec la cannelle.",
+      "Sable du bout des doigts les flocons, la poudre d'amande, la farine et le beurre.",
+      "Parsème sur les fruits et enfourne 30 minutes, jusqu'à ce que le dessus soit doré."
+    ],
+    "babyAdaptation": {
+      "when": "Prélever la portion bébé à la sortie du four, une fois tiédie",
+      "texture": "Fruits fondants écrasés avec un peu de croûte ramollie",
+      "amount": "80 à 100 g",
+      "notes": "Amande uniquement en poudre."
+    },
+    "ironScore": 0,
+    "mainProtein": "none",
+    "tags": [
+      "oven",
+      "seasonal-fruit"
+    ],
+    "illustration": "avoine",
+    "source": "seed"
+  },
+  {
+    "id": "riz-au-lait-pommes",
+    "slug": "riz-au-lait-pommes",
+    "title": "Riz au lait et pommes fondantes",
+    "description": "Un riz au lait vanillé et crémeux, adouci par des pommes fondues à la cannelle.",
+    "slots": [
+      "dessert"
+    ],
+    "prepMinutes": 10,
+    "cookMinutes": 40,
+    "longCook": false,
+    "prepAhead": false,
+    "prepAheadSteps": [],
+    "yieldsLeftovers": false,
+    "servingsBase": 4,
+    "ingredients": [
+      {
+        "ingredientId": "riz",
+        "qty": 100,
+        "unit": "g",
+        "note": "rond de préférence"
+      },
+      {
+        "ingredientId": "lait",
+        "qty": 750,
+        "unit": "ml"
+      },
+      {
+        "ingredientId": "vanille",
+        "qty": 1,
+        "unit": "cc"
+      },
+      {
+        "ingredientId": "pomme",
+        "qty": 2,
+        "unit": "piece",
+        "form": "cooked"
+      },
+      {
+        "ingredientId": "beurre",
+        "qty": 10,
+        "unit": "g"
+      },
+      {
+        "ingredientId": "cannelle",
+        "qty": 1,
+        "unit": "pincee"
+      }
+    ],
+    "steps": [
+      "Rince le riz et porte le lait à frémissement avec la vanille.",
+      "Verse le riz et fais cuire 35 à 40 minutes à feu très doux en remuant souvent.",
+      "Pendant ce temps, fais fondre les pommes en dés dans le beurre avec la cannelle, 10 minutes à couvert.",
+      "Sers le riz au lait tiède ou froid avec les pommes dessus."
+    ],
+    "babyAdaptation": {
+      "when": "Prélever la portion bébé en fin de cuisson",
+      "texture": "Riz très fondant, pommes écrasées mélangées au riz",
+      "amount": "4 à 5 cuillères à soupe",
+      "notes": "Tu peux cuire la part de bébé à part au lait infantile, ou garder le lait de vache cuit, adapté à 12 mois."
+    },
+    "ironScore": 1,
+    "mainProtein": "dairy",
+    "tags": [
+      "dairy-heavy"
+    ],
+    "illustration": "pomme",
+    "source": "seed"
+  },
+  {
+    "id": "creme-chataigne-yaourt",
+    "slug": "creme-chataigne-yaourt",
+    "title": "Crème de châtaigne au yaourt",
+    "description": "Des châtaignes d'octobre mixées en crème vanillée et servies sur un yaourt nature.",
+    "slots": [
+      "dessert"
+    ],
+    "prepMinutes": 20,
+    "cookMinutes": 30,
+    "longCook": false,
+    "prepAhead": false,
+    "prepAheadSteps": [],
+    "yieldsLeftovers": false,
+    "servingsBase": 4,
+    "ingredients": [
+      {
+        "ingredientId": "chataigne",
+        "qty": 400,
+        "unit": "g",
+        "note": "fraîches, incisées"
+      },
+      {
+        "ingredientId": "lait",
+        "qty": 100,
+        "unit": "ml"
+      },
+      {
+        "ingredientId": "vanille",
+        "qty": 1,
+        "unit": "cc"
+      },
+      {
+        "ingredientId": "yaourt-nature",
+        "qty": 4,
+        "unit": "piece"
+      }
+    ],
+    "steps": [
+      "Incise les châtaignes et fais-les cuire 30 minutes à l'eau frémissante.",
+      "Épluche-les encore chaudes en retirant la peau brune.",
+      "Mixe-les avec le lait et la vanille jusqu'à obtenir une crème très lisse.",
+      "Dépose une cuillère de crème de châtaigne sur chaque yaourt."
+    ],
+    "babyAdaptation": {
+      "when": "Prélever la portion bébé après le mixage",
+      "texture": "Crème de châtaigne parfaitement lisse, sans morceaux, mélangée au yaourt",
+      "amount": "1/2 yaourt et 1 cuillère à soupe de crème"
+    },
+    "ironScore": 1,
+    "mainProtein": "dairy",
+    "tags": [
+      "dairy-heavy"
+    ],
+    "illustration": "chataigne",
+    "source": "seed"
+  },
+  {
+    "id": "salade-kiwi-clementine",
+    "slug": "salade-kiwi-clementine",
+    "title": "Salade kiwi-clémentine",
+    "description": "Une salade d'hiver acidulée et pleine de vitamine C pour finir un plat riche en fer.",
+    "slots": [
+      "dessert"
+    ],
+    "prepMinutes": 10,
+    "cookMinutes": 0,
+    "longCook": false,
+    "prepAhead": false,
+    "prepAheadSteps": [],
+    "yieldsLeftovers": false,
+    "servingsBase": 4,
+    "ingredients": [
+      {
+        "ingredientId": "kiwi",
+        "qty": 4,
+        "unit": "piece",
+        "note": "bien mûrs"
+      },
+      {
+        "ingredientId": "clementine",
+        "qty": 6,
+        "unit": "piece"
+      },
+      {
+        "ingredientId": "vanille",
+        "qty": 1,
+        "unit": "cc"
+      }
+    ],
+    "steps": [
+      "Épluche les kiwis et coupe-les en dés.",
+      "Pèle les clémentines à vif et détache les quartiers sans leur peau blanche.",
+      "Mélange les fruits avec la vanille et sers bien frais."
+    ],
+    "babyAdaptation": {
+      "when": "Prélever la portion bébé avant de mélanger",
+      "texture": "Kiwi en petits dés fondants, quartiers de clémentine sans membrane coupés en morceaux",
+      "amount": "60 à 80 g",
+      "notes": "Idéale après une viande ou des lentilles : la vitamine C aide à absorber le fer."
+    },
+    "ironScore": 0,
+    "mainProtein": "none",
+    "tags": [
+      "seasonal-fruit",
+      "quick"
+    ],
+    "illustration": "clementine",
+    "source": "seed"
+  }
+]

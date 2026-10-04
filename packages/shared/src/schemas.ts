@@ -72,6 +72,9 @@ export const Ingredient = z.object({
   unit: PriceUnit,
   /** Prix moyen indicatif en € par unité de prix. */
   avgPrice: z.number().nonnegative(),
+  /** Nom d'une pièce quand il diffère (« gousse d'ail »). */
+  pieceName: z.string().optional(),
+  pieceNamePlural: z.string().optional(),
   /** Poids moyen d'une pièce en grammes (conversions g ↔ pièce). */
   pieceWeight: z.number().positive().optional(),
   /** Mois de pleine saison (1-12), produits frais uniquement. */

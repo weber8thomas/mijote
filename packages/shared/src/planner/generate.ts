@@ -15,7 +15,7 @@ export type PlanContext = {
 };
 
 export const ALTERNATIVES = 6;
-export const LIMITS = { redMeat: 2, fish: 2, legumes: 2, longCook: 2, leftovers: 2, repeatable: 3 };
+export const LIMITS = { redMeat: 2, fish: 2, legumes: 2, longCook: 2, leftovers: 2, repeatable: 3, sideRepeat: 2 };
 
 /** Générateur pseudo-aléatoire reproductible (mulberry32). */
 export function rng(seed: number) {
@@ -83,13 +83,19 @@ export function nextMain(entries: PlanEntry[], day: number, slot: Slot): PlanEnt
 type SlotCtx = { day: number; slot: Slot; entries: PlanEntry[]; tally: Tally; month: number; excludeId?: string };
 
 /** Contraintes dures : une recette qui ne les respecte pas n'est ni retenue ni proposée. */
-export function eligible(r: Recipe, c: SlotCtx, byId: Map<string, Recipe>): boolean {
+/** relaxed : seules restent les règles qui fâchent vraiment (créneau, écartée, doublon) ; le reste devient une alerte douce. */
+export function eligible(r: Recipe, c: SlotCtx, byId: Map<string, Recipe>, relaxed = false): boolean {
   if (r.status === "excluded" || !r.slots.includes(c.slot) || r.id === c.excludeId) return false;
   const used = c.tally.uses.get(r.id) ?? 0;
-  if (used > 0 && !(r.tags.includes("repeatable") && used < LIMITS.repeatable)) return false;
-  if (!isMain(c.slot)) return true;
+  const side = c.slot === "breakfast" || c.slot === "dessert";
+  const maxUses = r.tags.includes("repeatable") ? LIMITS.repeatable : side ? LIMITS.sideRepeat : 1;
+  if (used >= maxUses) return false;
+  // Un petit-déjeuner ou un dessert peut revenir dans la semaine, mais pas deux jours de suite.
+  if (side && c.entries.some((e) => e.slot === c.slot && e.day === c.day - 1 && e.recipeId === r.id)) return false;
+  if (!isMain(c.slot) || relaxed) return true;
   if (r.mainProtein === "red-meat" && c.tally.redMeat >= LIMITS.redMeat) return false;
-  if (r.longCook && c.tally.longCook >= LIMITS.longCook) return false;
+  // Cuissons longues : au plus 2, et seulement le week-end.
+  if (r.longCook && (c.tally.longCook >= LIMITS.longCook || !isWeekend(c.day))) return false;
   if (tracked(r.mainProtein)) {
     for (const n of [previousMain(c.entries, c.day, c.slot), nextMain(c.entries, c.day, c.slot)]) {
       const p = n && byId.get(n.recipeId)?.mainProtein;
@@ -109,6 +115,8 @@ export function score(r: Recipe, c: SlotCtx, ctx: PlanContext, byId: Map<string,
   s += tier === 1 ? 0.6 : tier === 3 ? -0.6 : 0;
   if (ctx.previousRecipeIds?.includes(r.id)) s -= 1.5;
   const weekend = isWeekend(c.day);
+
+  if ((c.slot === "breakfast" || c.slot === "dessert") && !r.tags.includes("repeatable") && (c.tally.uses.get(r.id) ?? 0) > 0) s -= 2;
 
   if (c.slot === "breakfast") {
     if (!weekend && r.prepAhead) s += 2.5;
@@ -145,9 +153,9 @@ export function score(r: Recipe, c: SlotCtx, ctx: PlanContext, byId: Map<string,
 }
 
 /** Candidats triés pour une case, avec un léger hasard reproductible pour varier les semaines. */
-export function rankCandidates(c: SlotCtx, ctx: PlanContext, byId: Map<string, Recipe>, random: () => number): Recipe[] {
+export function rankCandidates(c: SlotCtx, ctx: PlanContext, byId: Map<string, Recipe>, random: () => number, relaxed = false): Recipe[] {
   return ctx.recipes
-    .filter((r) => eligible(r, c, byId))
+    .filter((r) => eligible(r, c, byId, relaxed))
     .map((r) => ({ r, s: score(r, c, ctx, byId) + random() * 1.5 }))
     .sort((a, b) => b.s - a.s || a.r.id.localeCompare(b.r.id))
     .map((x) => x.r);
@@ -197,6 +205,29 @@ export function generateWeek(ctx: PlanContext, weekStart: string, seed: number):
     }
   }
   return { id: `week-${weekStart}`, weekStart, status: "draft", seed, entries };
+}
+
+/**
+ * Alternatives à jour pour une case, recalculées contre la semaine telle qu'elle est maintenant
+ * (après d'éventuels remplacements) : on garde l'ordre des alternatives d'origine encore valides,
+ * puis on complète avec le meilleur classement actuel.
+ */
+export function alternativesFor(week: WeekPlan, entryId: string, ctx: PlanContext): Recipe[] {
+  const byId = new Map(ctx.recipes.map((r) => [r.id, r]));
+  const entry = week.entries.find((e) => e.id === entryId);
+  if (!entry) return [];
+  const others = week.entries.filter((e) => e.id !== entryId);
+  const c: SlotCtx = { day: entry.day, slot: entry.slot, entries: others, tally: tally(others, byId), month: monthOfWeek(week.weekStart), excludeId: entry.recipeId };
+  const ok = (r: Recipe | undefined): r is Recipe => !!r && eligible(r, c, byId);
+  const kept = entry.alternatives.map((id) => byId.get(id)).filter(ok);
+  const keptIds = new Set(kept.map((r) => r.id));
+  const fresh = rankCandidates(c, ctx, byId, rng(week.seed ^ hash(entryId))).filter((r) => !keptIds.has(r.id));
+  const strict = [...kept, ...fresh];
+  if (strict.length >= ALTERNATIVES) return strict.slice(0, ALTERNATIVES);
+  // Pas assez d'idées qui cochent tout : on complète avec des recettes qui déclencheront une alerte douce (jamais un doublon).
+  const ids = new Set(strict.map((r) => r.id));
+  const soft = rankCandidates(c, ctx, byId, rng(week.seed ^ hash(entryId)), true).filter((r) => !ids.has(r.id));
+  return [...strict, ...soft].slice(0, ALTERNATIVES);
 }
 
 /** Remplace la recette d'une case par une alternative ; l'ancienne prend sa place parmi les alternatives. */
