@@ -221,7 +221,8 @@
     "mainProtein": "poultry",
     "tags": [
       "one-pot",
-      "soup"
+      "soup",
+      "bowl"
     ],
     "illustration": "panais",
     "source": "seed"
@@ -337,7 +338,8 @@
     "mainProtein": "legume",
     "tags": [
       "one-pot",
-      "batch"
+      "batch",
+      "bowl"
     ],
     "illustration": "lentilles",
     "source": "seed"
@@ -453,7 +455,8 @@
     "mainProtein": "legume",
     "tags": [
       "one-pot",
-      "batch"
+      "batch",
+      "bowl"
     ],
     "illustration": "poivron",
     "source": "seed"
@@ -687,7 +690,8 @@
     "mainProtein": "poultry",
     "tags": [
       "one-pot",
-      "batch"
+      "batch",
+      "bowl"
     ],
     "illustration": "courge",
     "source": "seed"
@@ -1379,7 +1383,8 @@
     "mainProtein": "red-meat",
     "tags": [
       "one-pot",
-      "batch"
+      "batch",
+      "bowl"
     ],
     "illustration": "tomate",
     "source": "seed"
@@ -2826,7 +2831,8 @@
     "mainProtein": "legume",
     "tags": [
       "one-pot",
-      "batch"
+      "batch",
+      "bowl"
     ],
     "illustration": "epinard",
     "source": "seed"
@@ -3154,7 +3160,8 @@
     "ironScore": 1,
     "mainProtein": "fish",
     "tags": [
-      "one-pot"
+      "one-pot",
+      "bowl"
     ],
     "illustration": "courge",
     "source": "seed"
@@ -3402,7 +3409,8 @@
     "tags": [
       "soup",
       "one-pot",
-      "batch"
+      "batch",
+      "bowl"
     ],
     "illustration": "lentilles",
     "source": "seed"
@@ -3725,7 +3733,8 @@
     "ironScore": 1,
     "mainProtein": "poultry",
     "tags": [
-      "one-pot"
+      "one-pot",
+      "bowl"
     ],
     "illustration": "patate-douce",
     "source": "seed"
@@ -5784,7 +5793,8 @@
     "mainProtein": "legume",
     "tags": [
       "soup",
-      "one-pot"
+      "one-pot",
+      "bowl"
     ],
     "illustration": "haricot",
     "source": "seed"

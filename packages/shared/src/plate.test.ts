@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { AI_SAMPLES, INGREDIENTS, RECIPES, ingredientMap } from "./content";
 import { ILLUSTRATION_KEYS } from "./illustrations";
-import { GENERIC_PRODUCE, illustrationOf, plateOf } from "./plate";
+import { GENERIC_PRODUCE, illustrationOf, isBowlDish, looksLikeBowl, plateOf } from "./plate";
 
 const KEYS = new Set<string>(ILLUSTRATION_KEYS);
 const ingredients = ingredientMap();
@@ -59,5 +59,23 @@ describe("plateOf", () => {
 
   it("un dessert garde son illustration unique", () => {
     for (const r of RECIPES.filter((x) => x.slots.every((s) => s === "dessert"))) expect(plateOf(r, ingredients)).toEqual([r.illustration]);
+  });
+});
+
+describe("poisson blanc et bol", () => {
+  it("un poisson blanc (cabillaud, lieu, merlu) a son illustration, pas le saumon", () => {
+    const lieu = RECIPES.find((r) => r.id === "lieu-beurre-citron-puree-potimarron")!;
+    expect(plateOf(lieu, ingredients)).toContain("poisson-blanc");
+    expect(illustrationOf("saumon")).toBe("poisson");
+  });
+
+  it("chaque recette du seed qui se mange à la cuillère porte l'étiquette bowl", () => {
+    const missing = RECIPES.filter((r) => looksLikeBowl(r) && !r.tags.includes("bowl")).map((r) => r.id);
+    expect(missing).toEqual([]);
+  });
+
+  it("un gâteau au yaourt reste dans l'assiette", () => {
+    const cake = RECIPES.find((r) => r.title.startsWith("Gâteau au yaourt"));
+    if (cake) expect(isBowlDish(cake)).toBe(false);
   });
 });

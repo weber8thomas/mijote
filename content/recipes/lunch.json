@@ -93,7 +93,8 @@
     "mainProtein": "legume",
     "tags": [
       "soup",
-      "one-pot"
+      "one-pot",
+      "bowl"
     ],
     "illustration": "courge",
     "source": "seed"
@@ -751,7 +752,8 @@
     "tags": [
       "soup",
       "one-pot",
-      "batch"
+      "batch",
+      "bowl"
     ],
     "illustration": "lentilles",
     "source": "seed"
@@ -1271,7 +1273,8 @@
     "ironScore": 3,
     "mainProtein": "red-meat",
     "tags": [
-      "one-pot"
+      "one-pot",
+      "bowl"
     ],
     "illustration": "chou",
     "source": "seed"
@@ -3559,7 +3562,8 @@
     "ironScore": 0,
     "mainProtein": "veggie",
     "tags": [
-      "soup"
+      "soup",
+      "bowl"
     ],
     "illustration": "poireau",
     "source": "seed"
@@ -3652,7 +3656,8 @@
     "ironScore": 0,
     "mainProtein": "dairy",
     "tags": [
-      "soup"
+      "soup",
+      "bowl"
     ],
     "illustration": "poireau",
     "source": "seed"

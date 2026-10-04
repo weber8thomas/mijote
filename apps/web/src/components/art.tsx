@@ -1,4 +1,4 @@
-import { ILLUSTRATION_KEYS, ingredientMap, plateOf, type Recipe } from "@mijote/shared";
+import { ILLUSTRATION_KEYS, ingredientMap, isBowlDish, plateOf, type Recipe } from "@mijote/shared";
 import { metaOf, type Soup, type Tone } from "@/components/illustrations/meta";
 import { cn } from "@/lib/utils";
 
@@ -27,16 +27,7 @@ type Dish =
 
 const GROUND = 104 / 120;
 
-/**
- * Bol plutôt qu'assiette :
- * - plat (déjeuner, dîner) : tag `soup`, ou un titre de plat en sauce mangé à la cuillère (soupe, velouté, dahl, curry, chili…) ;
- * - dessert : un titre crémeux (compote, yaourt, petits-suisses, riz/semoule au lait, crème, flan).
- */
-const SPOON_DISH = /soupe|velouté|potage|dahl|curry|chili|harira|minestrone|mafé|potée/i;
-const CREAMY_DESSERT = /compote|yaourt|petits-suisses|riz au lait|semoule|crème|flan/i;
-
 const isMain = (r: Recipe) => r.slots.some((s) => s === "lunch" || s === "dinner");
-export const isBowlDish = (r: Recipe) => (isMain(r) ? r.tags.includes("soup") || SPOON_DISH.test(r.title) : CREAMY_DESSERT.test(r.title));
 
 /** Créneaux de l'assiette : protéine au fond à droite, l'accompagnement le plus haut au fond à gauche, le plus plat devant. */
 const SLOT = { backLeft: [37, 68], backRight: [83, 66], front: [60, 99] } as const;
@@ -103,9 +94,20 @@ const Layer = ({ file, item }: { file: string; item?: Item }) => (
   />
 );
 
-/** Le plat d'une recette dans une seule pastille : assiette ou bol, puis protéine, légume, féculent (ou le produit du dessert). */
-export function Plate({ recipe, className }: { recipe: Recipe; className?: string }) {
-  const dish = dishFor(recipe);
+/** En tout petit (moins de ~48 px), une assiette à trois aliments devient illisible : on montre seulement l'aliment vedette. */
+function compactOf(dish: Dish): Dish {
+  if (dish.kind !== "plate") return dish;
+  const hero = dish.items.find((it) => metaOf(it.key).kind === "protein") ?? dish.items[0];
+  return hero ? { kind: "single", key: hero.key } : dish;
+}
+
+/**
+ * Le plat d'une recette dans une seule pastille : assiette ou bol, puis protéine, légume, féculent (ou le produit du dessert).
+ * compact : pour les vignettes de moins de ~48 px (vue du mois), seulement l'aliment vedette en autocollant.
+ */
+export function Plate({ recipe, className, compact = false }: { recipe: Recipe; className?: string; compact?: boolean }) {
+  const full = dishFor(recipe);
+  const dish = compact ? compactOf(full) : full;
   return (
     <span className={cn("relative block aspect-square", className)} aria-hidden>
       {dish.kind === "single" ? (

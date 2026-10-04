@@ -90,7 +90,8 @@
     "ironScore": 0,
     "mainProtein": "none",
     "tags": [
-      "seasonal-fruit"
+      "seasonal-fruit",
+      "bowl"
     ],
     "illustration": "pomme",
     "source": "seed"
@@ -142,7 +143,8 @@
     "ironScore": 0,
     "mainProtein": "none",
     "tags": [
-      "seasonal-fruit"
+      "seasonal-fruit",
+      "bowl"
     ],
     "illustration": "coing",
     "source": "seed"
@@ -323,7 +325,8 @@
     "mainProtein": "dairy",
     "tags": [
       "oven",
-      "dairy-heavy"
+      "dairy-heavy",
+      "bowl"
     ],
     "illustration": "oeuf",
     "source": "seed"
@@ -468,7 +471,8 @@
     "ironScore": 1,
     "mainProtein": "dairy",
     "tags": [
-      "dairy-heavy"
+      "dairy-heavy",
+      "bowl"
     ],
     "illustration": "pomme",
     "source": "seed"
@@ -525,7 +529,8 @@
     "ironScore": 1,
     "mainProtein": "dairy",
     "tags": [
-      "dairy-heavy"
+      "dairy-heavy",
+      "bowl"
     ],
     "illustration": "chataigne",
     "source": "seed"
@@ -634,7 +639,8 @@
     "tags": [
       "quick",
       "dairy-heavy",
-      "seasonal-fruit"
+      "seasonal-fruit",
+      "bowl"
     ],
     "illustration": "poire",
     "source": "seed"
@@ -940,7 +946,8 @@
     "ironScore": 1,
     "mainProtein": "dairy",
     "tags": [
-      "dairy-heavy"
+      "dairy-heavy",
+      "bowl"
     ],
     "illustration": "cereales",
     "source": "seed"
@@ -1160,7 +1167,8 @@
     "mainProtein": "dairy",
     "tags": [
       "quick",
-      "dairy-heavy"
+      "dairy-heavy",
+      "bowl"
     ],
     "illustration": "fruits-rouges",
     "source": "seed"
@@ -1301,7 +1309,8 @@
     "ironScore": 1,
     "mainProtein": "dairy",
     "tags": [
-      "dairy-heavy"
+      "dairy-heavy",
+      "bowl"
     ],
     "illustration": "banane",
     "source": "seed"

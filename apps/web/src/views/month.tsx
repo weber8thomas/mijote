@@ -36,7 +36,7 @@ type Meal = { entry: PlanEntry; recipe: Recipe } | undefined;
 function MiniPlate({ meal, className }: { meal: Meal; className: string }) {
   if (!meal) return <span className={cn("block aspect-square", className)} aria-hidden />;
   if (!meal.entry.confirmed) return <span className={cn("block aspect-square scale-75 rounded-full border-[1.5px] border-dashed border-ochre/70", className)} aria-hidden />;
-  return <Plate recipe={meal.recipe} className={className} />;
+  return <Plate recipe={meal.recipe} className={className} compact />;
 }
 
 const mealLabel = (slot: string, meal: Meal) => (!meal ? undefined : `${slot} : ${meal.entry.confirmed ? meal.recipe.title : "à choisir"}`);

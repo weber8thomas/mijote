@@ -30,6 +30,7 @@ export const ILLUSTRATION_KEYS = [
   "lentilles",
   "pois-chiche",
   "poisson",
+  "poisson-blanc",
   "oeuf",
   "avoine",
   "viande",

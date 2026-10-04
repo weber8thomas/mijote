@@ -125,6 +125,7 @@ Format :
 - Utilise d'abord les ingrédients du catalogue (leur identifiant exact). Si un ingrédient manque, ajoute-le dans newIngredients avec un id nouveau et utilise cet id.
 - illustration : le produit vedette, parmi : ${ILLUSTRATION_KEYS.join(", ")}.
 - longCook : cuisson de plus d'1 h 30, réservée au week-end.
+- tags : ajoute bowl quand le plat se mange à la cuillère, dans un bol (soupe, velouté, dahl, curry, chili, compote, yaourt, riz au lait…).
 
 Catalogue des ingrédients (identifiant : nom (catégorie, étiquettes)) :
 ${catalog}`;

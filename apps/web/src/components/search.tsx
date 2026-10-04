@@ -214,8 +214,8 @@ function SearchBody({ pick, onClose }: { pick?: PickMode; onClose: () => void })
             {ai.error && <p className="mx-2 rounded-2xl bg-ochre-soft/80 px-3 py-2.5 text-sm text-ochre-ink">{ai.error}</p>}
             {ai.recipes.map((r) => (
               <Command.Item key={r.id} value={r.id} onSelect={() => choose(r)} className="flex min-h-16 cursor-pointer items-center gap-3 rounded-2xl px-2 py-1.5 data-[selected=true]:bg-muted">
-                <span className="grid size-14 shrink-0 place-items-center overflow-hidden rounded-xl bg-paper-deep">
-                  <Plate recipe={r} className="h-[88%]" />
+                <span className="grid size-16 shrink-0 place-items-center">
+                  <Plate recipe={r} className="h-full" />
                 </span>
                 <span className="min-w-0 flex-1">
                   <span className="line-clamp-2 leading-snug font-bold">{r.title}</span>
@@ -237,8 +237,8 @@ function SearchBody({ pick, onClose }: { pick?: PickMode; onClose: () => void })
               onSelect={() => choose(r)}
               className="flex min-h-16 cursor-pointer items-center gap-3 rounded-2xl px-2 py-1.5 data-[selected=true]:bg-muted"
             >
-              <span className="grid size-14 shrink-0 place-items-center overflow-hidden rounded-xl bg-paper-deep">
-                <Plate recipe={r} className="h-[88%]" />
+              <span className="grid size-16 shrink-0 place-items-center">
+                <Plate recipe={r} className="h-full" />
               </span>
               <span className="min-w-0 flex-1">
                 <span className="line-clamp-2 leading-snug font-bold">{r.title}</span>

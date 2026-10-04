@@ -82,9 +82,9 @@ const PROTEIN: Record<string, string> = {
   "poulet-cuisse": "poulet",
   "poulet-filet": "poulet",
   "dinde-escalope": "poulet",
-  cabillaud: "poisson",
-  lieu: "poisson",
-  merlu: "poisson",
+  cabillaud: "poisson-blanc",
+  lieu: "poisson-blanc",
+  merlu: "poisson-blanc",
   saumon: "poisson",
   truite: "poisson",
   maquereau: "poisson",
@@ -182,3 +182,17 @@ export function plateOf(recipe: Recipe, ingredients: Map<string, Ingredient>): s
   const plate = [protein, veg, starch].filter((k, i, all): k is string => !!k && all.indexOf(k) === i);
   return plate.length ? plate : [recipe.illustration];
 }
+
+// Bol ou assiette ? Les recettes du seed et de Claude portent l'étiquette `bowl` ; ce repli par le titre sert
+// aux recettes écrites à la main (et un test vérifie que le seed est bien étiqueté).
+const SPOON_DISH = /soupe|velouté|potage|dahl|curry|chili|harira|minestrone|mafé|potée/i;
+const CREAMY_DESSERT = /compote|yaourt|petits-suisses|riz au lait|semoule|crème|flan/i;
+const isMainDish = (r: Recipe) => r.slots.some((s) => s === "lunch" || s === "dinner");
+
+/** Le titre évoque un plat à la cuillère (soupe, dahl, curry…) ou un dessert crémeux. */
+const BAKED = /gâteau|cake|muffin|tarte|crumble|clafoutis|cookie|crêpe/i;
+export const looksLikeBowl = (r: Recipe) =>
+  isMainDish(r) ? r.tags.includes("soup") || SPOON_DISH.test(r.title) : CREAMY_DESSERT.test(r.title) && !BAKED.test(r.title);
+
+/** Le plat se dessine dans un bol. */
+export const isBowlDish = (r: Recipe) => r.tags.includes("bowl") || looksLikeBowl(r);

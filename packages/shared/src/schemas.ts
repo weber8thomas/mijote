@@ -149,6 +149,8 @@ export const RecipeTag = z.enum([
   "raw-egg",
   "rare-meat",
   "finger-food",
+  /** Se mange à la cuillère, dans un bol (soupe, dahl, curry, compote…) : décide de l'illustration bol ou assiette. */
+  "bowl",
 ]);
 export type RecipeTag = z.infer<typeof RecipeTag>;
 
