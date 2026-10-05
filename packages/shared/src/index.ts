@@ -7,6 +7,7 @@ export * from "./dates";
 export * from "./labels";
 export * from "./planner";
 export * from "./shopping";
+export * from "./ha-sync";
 export * from "./inventory";
 export * from "./plate";
 export * from "./illustrations";

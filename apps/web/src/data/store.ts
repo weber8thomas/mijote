@@ -17,6 +17,8 @@ import {
   manualItem,
   parseShoppingText,
   rerollChoices,
+  itemLine,
+  type LocalChange,
   type Household,
   type InventoryItem,
   type ProductInfo,
@@ -83,8 +85,15 @@ const KEY = "mijote-demo-v2";
 
 export const today = () => new Date();
 export { dayIndex } from "@mijote/shared";
+import { dayIndex as dayIndexOf } from "@mijote/shared";
 export const thisWeek = () => mondayOf(today());
 export const nextWeek = () => addDays(thisWeek(), 7);
+
+/** Semaine des courses en cours : la suivante si elle est validée et qu'on est en fin de semaine (vendredi → dimanche). */
+export function shoppingWeek(s: State = state) {
+  const next = nextWeek();
+  return s.weeks[next]?.status === "validated" && dayIndexOf(today()) >= 4 ? next : thisWeek();
+}
 
 const HOUSEHOLD: Household = { id: "foyer", name: "Notre foyer", adults: 2, babies: 1, dessertSlot: "dinner", priceThresholds: DEFAULT_THRESHOLDS };
 
@@ -153,6 +162,9 @@ export const useStore = () =>
   );
 
 export const getState = () => state;
+
+/** Abonnement hors React (synchro Home Assistant). */
+export const subscribe = (l: () => void) => (listeners.add(l), () => void listeners.delete(l));
 
 // ——— Données dérivées (mémorisées par référence) ———
 
@@ -334,6 +346,35 @@ export const actions = {
     const kept = current.map((i) => (revive.has(i.id) ? { ...i, haveAlready: false, checked: false, checkedBy: undefined, updatedAt: now } : i));
     set({ ...state, shopping: { ...state.shopping, [weekStart]: [...kept, ...items] } });
     return [...kept.filter((i) => revive.has(i.id)), ...items];
+  },
+
+  /**
+   * Applique le résultat d'une synchro Home Assistant : cases cochées, articles dictés, supprimés là-bas.
+   * `synced` est la nouvelle mémoire ; les articles créés ici y sont ajoutés avec leur uid HA.
+   */
+  applyHaSync(weekStart: string, changes: LocalChange[], synced: HaSyncState["synced"], lastSync: string) {
+    const { list, byId } = ingredientsOf(state);
+    const now = new Date().toISOString();
+    let items = [...(state.shopping[weekStart] ?? [])];
+    const memory = { ...synced };
+    changes.forEach((c, i) => {
+      if (c.kind === "check") items = items.map((it) => (it.id === c.itemId ? { ...it, checked: c.checked, checkedBy: c.checked ? "Home Assistant" : undefined, updatedAt: now } : it));
+      if (c.kind === "remove") items = items.filter((it) => it.id !== c.itemId);
+      if (c.kind === "have") items = items.map((it) => (it.id === c.itemId ? { ...it, haveAlready: true, updatedAt: now } : it));
+      if (c.kind === "create") {
+        // Le texte dicté reste tel quel (« lait d'avoine bio ») ; on retrouve juste l'ingrédient pour le rayon.
+        const [line] = parseShoppingText(c.summary, list);
+        const it = { ...manualItem(weekStart, { ...(line ?? { text: c.summary }), label: c.summary }, byId, new Date(Date.now() + i)), checked: c.done, updatedAt: now };
+        items.push(it);
+        // Mémorisé avec le texte Mijoté : le texte dicté, différent, compte comme « renommé dans HA » et n'est jamais écrasé.
+        memory[it.id] = { uid: c.uid, status: c.done ? "completed" : "needs_action", summary: itemLine(it, byId) };
+      }
+    });
+    set({ ...state, shopping: { ...state.shopping, [weekStart]: items }, haSync: { weekStart, lastSync, synced: memory } });
+  },
+
+  setHaSyncError(message: string | undefined) {
+    set({ ...state, haSync: { ...(state.haSync ?? { weekStart: shoppingWeek(), synced: {} }), lastError: message } });
   },
 
   removeShoppingItem(weekStart: string, itemId: string) {

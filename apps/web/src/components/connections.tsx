@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { actions, today, useStore } from "@/data/store";
 import { AI_MODELS, DEFAULT_MODEL, testKey } from "@/lib/claude";
+import { syncNow } from "@/lib/ha-sync";
 import { testConnection } from "@/lib/home-assistant";
 
 const appUrl = () => `${window.location.origin}${window.location.pathname}`;
@@ -50,10 +51,10 @@ export function HomeAssistantSheet({ open, onOpenChange }: { open: boolean; onOp
   const saved = s.integrations?.ha;
   const [url, setUrl] = useState(saved?.url ?? "");
   const [token, setToken] = useState(saved?.token ?? "");
-  const [entity, setEntity] = useState(saved?.entity ?? "todo.shopping_list");
+  const [entity, setEntity] = useState(saved?.entity ?? "todo.mijote_courses");
   const [autoSync, setAutoSync] = useState(saved?.autoSync ?? true);
   const [testing, setTesting] = useState(false);
-  const cfg = { url: url.trim(), token: token.trim(), entity: entity.trim() || "todo.shopping_list", autoSync };
+  const cfg = { url: url.trim(), token: token.trim(), entity: entity.trim() || "todo.mijote_courses", autoSync };
 
   const test = async () => {
     setTesting(true);
@@ -72,7 +73,7 @@ export function HomeAssistantSheet({ open, onOpenChange }: { open: boolean; onOp
       open={open}
       onOpenChange={onOpenChange}
       title="Home Assistant"
-      description="Envoie la liste vers une liste « À faire » de Home Assistant, et récupère ce que tu y dictes."
+      description="La liste de courses vit aussi dans Home Assistant : Assist, Gemini ou Google (reliés à HA), l'appli HA et l'autre téléphone la lisent et la modifient, même Mijoté fermé."
       footer={
         <div className="flex gap-2">
           {saved && (
@@ -97,7 +98,8 @@ export function HomeAssistantSheet({ open, onOpenChange }: { open: boolean; onOp
             onClick={() => {
               actions.setIntegrations({ ha: cfg });
               onOpenChange(false);
-              toast.success("Home Assistant enregistré");
+              toast.success("Home Assistant enregistré", { description: cfg.autoSync ? "Première synchro en cours…" : undefined });
+              if (cfg.autoSync) void syncNow();
             }}
           >
             Enregistrer
@@ -112,12 +114,15 @@ export function HomeAssistantSheet({ open, onOpenChange }: { open: boolean; onOp
         <Field label="Jeton d'accès longue durée" hint="Profil → Sécurité → Jetons d'accès longue durée.">
           <Input value={token} onChange={(e) => setToken(e.target.value)} type="password" autoComplete="off" className="h-12 text-base" />
         </Field>
-        <Field label="Liste">
-          <Input value={entity} onChange={(e) => setEntity(e.target.value)} placeholder="todo.shopping_list" autoComplete="off" className="h-12 text-base" />
+        <Field label="Liste" hint="Dans HA : Paramètres → Appareils et services → Ajouter une intégration → « Liste de tâches locale », nommée « Mijoté courses ».">
+          <Input value={entity} onChange={(e) => setEntity(e.target.value)} placeholder="todo.mijote_courses" autoComplete="off" className="h-12 text-base" />
         </Field>
-        <label className="flex min-h-12 items-center gap-3 rounded-2xl bg-card px-4 shadow-card ring-1 ring-border">
+        <label className="flex min-h-14 items-center gap-3 rounded-2xl bg-card px-4 py-2 shadow-card ring-1 ring-border">
           <input type="checkbox" checked={autoSync} onChange={(e) => setAutoSync(e.target.checked)} className="size-5 accent-[var(--primary)]" />
-          <span className="text-sm font-semibold">Synchroniser tout seul (ajouts et cases cochées)</span>
+          <span className="text-sm">
+            <span className="block font-semibold">Liste partagée avec Home Assistant</span>
+            <span className="block text-muted-foreground">Dans les deux sens : ajouts, cases cochées, suppressions. Synchro à l'ouverture, puis toutes les 30 s.</span>
+          </span>
         </label>
         <div className="space-y-2 rounded-2xl bg-ochre-soft/70 p-4 text-sm text-ochre-ink">
           <p className="font-semibold">À ajouter une fois dans configuration.yaml :</p>
@@ -136,7 +141,9 @@ export function VoiceSheet({ open, onOpenChange }: { open: boolean; onOpenChange
       <div className="space-y-5 text-sm">
         <section className="space-y-2">
           <h3 className="text-lg">Avec Home Assistant (le plus simple)</h3>
-          <p>Relie Google Assistant, Gemini ou Assist à ta liste Home Assistant. Dis « ajoute du lait à la liste de courses », puis dans Mijoté : Courses → Envoyer → Importer.</p>
+          <p>Active « Liste partagée » dans Réglages → Home Assistant. La liste « Mijoté courses » de HA est alors la même que celle de Mijoté, dans les deux sens.</p>
+          <p>Avec Assist (l'assistant de HA, qui peut remplacer l'assistant du téléphone sur Android) : « ajoute du lait à Mijoté courses », « qu'y a-t-il sur Mijoté courses ? ». Ce que tu dictes apparaît dans Mijoté ; ce que tu coches en magasin se coche dans HA.</p>
+          <p>Gemini ou Google Assistant passent par la liaison de HA avec Google : selon ton installation, ils voient la liste HA. À vérifier chez toi.</p>
         </section>
         <section className="space-y-2">
           <h3 className="text-lg">Avec un lien</h3>

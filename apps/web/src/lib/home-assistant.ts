@@ -4,7 +4,7 @@
 // et être joignable en HTTPS (Mijoté est servi en HTTPS).
 
 export type HaConfig = { url: string; token: string; entity: string; autoSync?: boolean };
-export type HaItem = { summary: string; uid?: string; status: "needs_action" | "completed" };
+export type HaItem = { summary: string; uid: string; status: "needs_action" | "completed"; description?: string | null };
 
 export class HaError extends Error {
   readonly kind: "network" | "auth" | "entity" | "other";
@@ -63,3 +63,20 @@ export async function pullNewItems(cfg: HaConfig, known: string[]): Promise<stri
   const have = new Set(known.map((s) => s.toLowerCase()));
   return (await getItems(cfg)).filter((i) => i.status === "needs_action" && !have.has(i.summary.toLowerCase())).map((i) => i.summary);
 }
+
+/** Ajoute un article avec une description (marqueur Mijoté). Une liste qui ne gère pas les descriptions
+ * (l'intégration « Liste de courses » historique) refuse le champ : on réessaie sans. */
+export async function addItemMarked(cfg: HaConfig, summary: string, description: string) {
+  try {
+    await call(cfg, "/api/services/todo/add_item", { entity_id: cfg.entity, item: summary, description });
+  } catch (e) {
+    if (e instanceof HaError && e.kind === "entity") await addItem(cfg, summary);
+    else throw e;
+  }
+}
+
+/** Change le statut ou le texte d'un article (désigné par son uid). */
+export const updateItem = (cfg: HaConfig, uid: string, patch: { status?: HaItem["status"]; rename?: string }) =>
+  call(cfg, "/api/services/todo/update_item", { entity_id: cfg.entity, item: uid, ...patch });
+
+export const removeItems = (cfg: HaConfig, uids: string[]) => call(cfg, "/api/services/todo/remove_item", { entity_id: cfg.entity, item: uids });
