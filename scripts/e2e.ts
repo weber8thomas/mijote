@@ -231,6 +231,13 @@ const OFF: Record<string, Record<string, unknown>> = {
     additives_tags: ["en:e322", "en:e471", "en:e500", "en:e503", "en:e330", "en:e415"],
     allergens_tags: ["en:gluten", "en:milk", "en:soybeans"],
     ingredients_text_fr: "Farine de blé, sucre, huile de palme, cacao maigre 4 %, sirop de glucose, sel, émulsifiant : lécithine de soja",
+    nutrition_data_per: "100g",
+    serving_size: "2 biscuits (25 g)",
+    nutriments: { "energy-kj_100g": 2017, "energy-kcal_100g": 481, fat_100g: 20, "saturated-fat_100g": 9.4, carbohydrates_100g: 68, sugars_100g: 35, fiber_100g: 3.1, proteins_100g: 5.6, salt_100g: 0.55, "energy-kj_serving": 504, sugars_serving: 8.75 },
+    nutrient_levels: { fat: "high", "saturated-fat": "high", sugars: "high", salt: "moderate" },
+    image_front_url: "https://images.openfoodfacts.org/images/products/3270000000002/front_fr.12.400.jpg",
+    image_nutrition_url: "https://images.openfoodfacts.org/images/products/3270000000002/nutrition_fr.13.400.jpg",
+    last_modified_t: 1790000000,
   },
   "3270000000003": { product_name_fr: "Compote pomme poire sans sucres ajoutés", brands: "Vergers du Sud", quantity: "4 × 100 g", nutriscore_grade: "a", nova_group: 1, additives_tags: [], allergens_tags: [], ingredients_text_fr: "Pommes 70 %, poires 30 %" },
 };
@@ -315,6 +322,24 @@ await step("fiche #/produit/<code> → Favori → visible dans Mes produits", as
   await page.getByText("Tu l'as marqué « à éviter pour bébé ».").waitFor();
   await page.waitForTimeout(400);
   await page.screenshot({ path: `${out}produits-fiche.png` });
+  // Valeurs nutritionnelles, source, photo en grand.
+  await page.getByRole("heading", { name: "Valeurs nutritionnelles" }).waitFor();
+  await page.getByRole("rowheader", { name: "Énergie" }).waitFor();
+  await page.getByText("481 kcal").first().waitFor();
+  await page.getByRole("rowheader", { name: "dont sucres" }).waitFor();
+  await page.getByText("Assez salé pour bébé (0,55 g de sel pour 100 g).").waitFor();
+  await page.getByText("Source : Open Food Facts").waitFor();
+  await page.getByRole("heading", { name: "Valeurs nutritionnelles" }).scrollIntoViewIfNeeded();
+  await page.screenshot({ path: `${out}produits-nutrition.png` });
+  const full = page.waitForRequest((r) => r.url().endsWith("front_fr.12.full.jpg"));
+  await page.getByRole("button", { name: /Voir la photo en grand/ }).first().click();
+  await full;
+  const viewer = page.getByRole("dialog");
+  await viewer.getByRole("tab", { name: "Valeurs nutritionnelles" }).click();
+  await viewer.getByRole("img", { name: /Valeurs nutritionnelles : Biscuits/ }).waitFor();
+  await page.screenshot({ path: `${out}produits-photo.png` });
+  await page.keyboard.press("Escape");
+  await viewer.waitFor({ state: "detached" });
   await page.goto(`${base}#/produits`);
   await page.getByRole("tab", { name: /Favoris/ }).click();
   await page.getByRole("button", { name: /^Carottes des sables.*voir la fiche/ }).waitFor();

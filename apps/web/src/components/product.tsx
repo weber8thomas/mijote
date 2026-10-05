@@ -1,8 +1,9 @@
-import { guessLocation, illustrationOf, LOCATION_LABELS, matchProduct, type Ingredient, type InventoryItem, type ProductInfo, type StorageLocation } from "@mijote/shared";
+import { guessLocation, illustrationOf, LOCATION_LABELS, matchProduct, type Ingredient, type InventoryItem, type Nutrients, type ProductInfo, type StorageLocation } from "@mijote/shared";
 import { Baby, ChevronRight, ExternalLink, Star, TriangleAlert } from "lucide-react";
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { toast } from "sonner";
 import { Art } from "@/components/art";
+import { ProductPhotoButton } from "@/components/photo-viewer";
 import { Box, Segmented } from "@/components/kit";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -128,9 +129,7 @@ export function ProductDetails({ product, code, hideName = false, hideHeader = f
     <div className="flex flex-col gap-4">
       {!hideHeader && (
         <div className="flex items-center gap-4">
-          <span className="grid size-24 shrink-0 place-items-center overflow-hidden rounded-3xl bg-white ring-1 ring-border">
-            {product.image ? <img src={product.image} alt={`Photo : ${product.name}`} className="size-full object-contain" /> : <Art name="sprig" className="size-16" />}
-          </span>
+          <ProductPhotoButton product={product} className="size-24" />
           <div className="min-w-0">
             {!hideName && <p className="font-heading text-xl leading-tight">{product.name}</p>}
             {(product.brand || product.quantity) && <p className="mt-1 text-sm text-muted-foreground">{[product.brand, product.quantity].filter(Boolean).join(" · ")}</p>}
@@ -138,7 +137,7 @@ export function ProductDetails({ product, code, hideName = false, hideHeader = f
         </div>
       )}
 
-      <div className="grid grid-cols-3 gap-2">
+      <div className="grid grid-cols-2 gap-2 min-[400px]:grid-cols-4">
         <Stat label="Nutri-Score">{product.nutriscore ? <NutriScale grade={product.nutriscore} /> : <span className="text-sm text-muted-foreground">inconnu</span>}</Stat>
         <Stat label="NOVA">
           {product.nova ? (
@@ -152,9 +151,20 @@ export function ProductDetails({ product, code, hideName = false, hideHeader = f
         <Stat label="Additifs">
           <span className="tabular-nums">{product.additives.length}</span>
         </Stat>
+        <Stat label={`Énergie / ${product.nutrition?.per === "100ml" ? "100 ml" : "100 g"}`}>
+          {product.nutrition?.energyKcal !== undefined ? (
+            <span className="tabular-nums">
+              {fr0(product.nutrition.energyKcal)} <span className="text-sm font-normal text-muted-foreground">kcal</span>
+            </span>
+          ) : (
+            <span className="text-sm text-muted-foreground">inconnue</span>
+          )}
+        </Stat>
       </div>
 
       <BabyBox product={product} />
+
+      <NutritionTable product={product} />
 
       {product.allergens.length > 0 && (
         <div>
@@ -180,12 +190,135 @@ export function ProductDetails({ product, code, hideName = false, hideHeader = f
         </details>
       )}
 
+      <OffSource code={code} updatedAt={product.updatedAt} />
+    </div>
+  );
+}
+
+// ——— Valeurs nutritionnelles ———
+
+const fr0 = (n: number) => n.toLocaleString("fr-FR", { maximumFractionDigits: 0 });
+const frG = (n: number) => `${n.toLocaleString("fr-FR", { maximumFractionDigits: n < 1 ? 2 : 1 })} g`;
+
+type LevelKey = keyof NonNullable<ProductInfo["levels"]>;
+const LEVEL_DOT = { low: "bg-sage", moderate: "bg-ochre", high: "bg-terracotta" } as const;
+const LEVEL_LABEL = { low: "faible", moderate: "modéré", high: "élevé" } as const;
+
+const ROWS: { key: keyof Nutrients; label: string; sub?: boolean; level?: LevelKey }[] = [
+  { key: "fat", label: "Matières grasses", level: "fat" },
+  { key: "saturatedFat", label: "dont saturés", sub: true, level: "saturatedFat" },
+  { key: "carbs", label: "Glucides" },
+  { key: "sugars", label: "dont sucres", sub: true, level: "sugars" },
+  { key: "fiber", label: "Fibres" },
+  { key: "proteins", label: "Protéines" },
+  { key: "salt", label: "Sel", level: "salt" },
+];
+
+/** Tableau « Valeurs nutritionnelles » comme sur l'emballage, avec les repères (faible, modéré, élevé). */
+export function NutritionTable({ product }: { product: ProductInfo }) {
+  const n = product.nutrition;
+  const sv = product.serving;
+  const per = n?.per === "100ml" ? "100 ml" : "100 g";
+  if (!n)
+    return (
+      <p className="rounded-2xl bg-paper-deep/50 px-4 py-3 text-sm text-muted-foreground">
+        Valeurs nutritionnelles non renseignées sur Open Food Facts{product.images?.nutrition ? " : regarde la photo du tableau (touche la photo du produit)." : "."}
+      </p>
+    );
+  const energy = (x: Nutrients | undefined) =>
+    x?.energyKcal !== undefined ? (
+      <>
+        <span className="font-semibold whitespace-nowrap">{fr0(x.energyKcal)} kcal</span>
+        {x.energyKj !== undefined && <span className="block text-xs whitespace-nowrap text-muted-foreground">{fr0(x.energyKj)} kJ</span>}
+      </>
+    ) : (
+      "—"
+    );
+  return (
+    <section aria-labelledby="nutrition-title" className="overflow-hidden rounded-2xl ring-1 ring-border">
+      <h3 id="nutrition-title" className="bg-paper-deep/70 px-4 py-2.5 font-sans text-sm font-bold">
+        Valeurs nutritionnelles
+      </h3>
+      <table className="w-full text-sm">
+        <thead>
+          <tr className="border-b border-border text-xs text-muted-foreground">
+            <th scope="col" className="px-4 py-2 text-left font-semibold">
+              <span className="sr-only">Nutriment</span>
+            </th>
+            <th scope="col" className="px-3 py-2 text-right align-bottom font-semibold whitespace-nowrap">
+              Pour {per}
+            </th>
+            {sv && (
+              <th scope="col" className="px-4 py-2 text-right align-bottom font-semibold">
+                <span className="whitespace-nowrap">Par portion</span>
+                <span className="block font-normal">{sv.size}</span>
+              </th>
+            )}
+          </tr>
+        </thead>
+        <tbody className="tabular-nums">
+          <tr className="border-b border-border">
+            <th scope="row" className="px-4 py-2 text-left font-semibold">
+              Énergie
+            </th>
+            <td className="px-3 py-2 text-right">{energy(n)}</td>
+            {sv && <td className="px-4 py-2 text-right">{energy(sv)}</td>}
+          </tr>
+          {ROWS.map((r) => {
+            const level = r.level ? product.levels?.[r.level] : undefined;
+            return (
+              <tr key={r.key} className="border-b border-border last:border-0">
+                <th scope="row" className={cn("py-2 pr-2 text-left", r.sub ? "pl-7 font-normal text-muted-foreground" : "pl-4 font-semibold")}>
+                  {r.label}
+                </th>
+                <td className="px-3 py-2 text-right whitespace-nowrap">
+                  <span className="inline-flex items-center justify-end gap-1.5">
+                    {n[r.key] !== undefined ? frG(n[r.key]!) : "—"}
+                    {level && (
+                      <span className={cn("size-2.5 shrink-0 rounded-full", LEVEL_DOT[level])} title={`Teneur ${LEVEL_LABEL[level]}`}>
+                        <span className="sr-only">(teneur {LEVEL_LABEL[level]})</span>
+                      </span>
+                    )}
+                  </span>
+                </td>
+                {sv && <td className="px-4 py-2 text-right whitespace-nowrap">{sv[r.key] !== undefined ? frG(sv[r.key]!) : "—"}</td>}
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+      {product.levels && (
+        <p className="flex flex-wrap gap-x-3 gap-y-1 border-t border-border px-4 py-2 text-xs text-muted-foreground" aria-hidden>
+          {(["low", "moderate", "high"] as const).map((l) => (
+            <span key={l} className="inline-flex items-center gap-1">
+              <span className={cn("size-2 rounded-full", LEVEL_DOT[l])} /> teneur {LEVEL_LABEL[l]}
+            </span>
+          ))}
+        </p>
+      )}
+    </section>
+  );
+}
+
+// ——— Source ———
+
+/** D'où viennent les données : Open Food Facts, base libre et collaborative. */
+export function OffSource({ code, updatedAt, short = false, className }: { code?: string; updatedAt?: string; short?: boolean; className?: string }) {
+  return (
+    <aside className={cn("rounded-2xl bg-paper-deep/50 px-4 py-3 text-xs leading-relaxed text-muted-foreground", className)}>
+      <p>
+        <strong className="text-foreground">Source : Open Food Facts</strong>
+        {short
+          ? ", base libre et collaborative (association à but non lucratif)."
+          : ", base de données libre et collaborative tenue par une association française à but non lucratif. Les fiches sont saisies par des bénévoles et des fabricants à partir des emballages : vérifie l'étiquette en cas de doute. Données sous licence ODbL, photos sous CC BY-SA."}
+        {updatedAt && !short && ` Fiche mise à jour le ${new Date(updatedAt).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" })}.`}
+      </p>
       {code && (
-        <a href={offPage(code)} target="_blank" rel="noreferrer" className="inline-flex min-h-12 items-center gap-1.5 self-start text-sm font-semibold text-primary-ink underline-offset-4 hover:underline">
-          Voir sur Open Food Facts <ExternalLink className="size-3.5" aria-hidden />
+        <a href={offPage(code)} target="_blank" rel="noreferrer" className="mt-1 inline-flex min-h-11 items-center gap-1.5 text-sm font-semibold text-primary-ink underline-offset-4 hover:underline">
+          Voir ou compléter sur Open Food Facts <ExternalLink className="size-3.5" aria-hidden />
         </a>
       )}
-    </div>
+    </aside>
   );
 }
 

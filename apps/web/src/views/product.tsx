@@ -2,8 +2,8 @@ import type { ProductInfo } from "@mijote/shared";
 import { ArrowLeft, Check, Package, PackageSearch, ScanBarcode, ShoppingBasket, Trash2, WifiOff } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
-import { Art } from "@/components/art";
 import { EmptyState } from "@/components/kit";
+import { ProductPhotoButton } from "@/components/photo-viewer";
 import { addProductToShopping, AvoidBand, INTO, MarkToggles, ProductDetails, ProductSkeleton, ShelveFields, storedToast, useProduct, useRemember, useShelve } from "@/components/product";
 import { openScan } from "@/components/scan";
 import { Shell } from "@/components/shell";
@@ -94,9 +94,7 @@ export function ProductView({ code: raw }: { code: string }) {
         <section aria-labelledby="product-name" className="flex flex-col gap-4 lg:sticky lg:top-8">
           {memo?.mark === "eviter" && <AvoidBand />}
           <div className="flex items-center gap-4 lg:flex-col lg:items-start">
-            <span className="grid size-28 shrink-0 place-items-center overflow-hidden rounded-3xl bg-white shadow-card ring-1 ring-border lg:size-56">
-              {product.image ? <img src={product.image} alt={`Photo : ${product.name}`} className="size-full object-contain" /> : <Art name="sprig" className="size-20 lg:size-36" />}
-            </span>
+            <ProductPhotoButton product={product} className="size-28 shadow-card lg:size-56" artClassName="size-20 lg:size-36" />
             <div className="min-w-0">
               <h1 id="product-name" className="font-heading text-2xl leading-tight lg:text-3xl">
                 {product.name}

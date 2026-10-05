@@ -264,6 +264,23 @@ export const StorageLocation = z.enum(["placard", "frigo", "congelateur"]);
 export type StorageLocation = z.infer<typeof StorageLocation>;
 
 /** Fiche Open Food Facts résumée (scan d'un code-barres). */
+/** Nutriments en grammes (énergie en kcal et kJ). */
+export const Nutrients = z.object({
+  energyKcal: z.number().optional(),
+  energyKj: z.number().optional(),
+  fat: z.number().optional(),
+  saturatedFat: z.number().optional(),
+  carbs: z.number().optional(),
+  sugars: z.number().optional(),
+  fiber: z.number().optional(),
+  proteins: z.number().optional(),
+  salt: z.number().optional(),
+});
+export type Nutrients = z.infer<typeof Nutrients>;
+const Level = z.enum(["low", "moderate", "high"]);
+const Photo = z.object({ display: z.string(), full: z.string() });
+export type ProductPhoto = z.infer<typeof Photo>;
+
 export const ProductInfo = z.object({
   name: z.string(),
   brand: z.string().optional(),
@@ -274,6 +291,16 @@ export const ProductInfo = z.object({
   allergens: z.array(z.string()).default([]),
   ingredientsText: z.string().optional(),
   quantity: z.string().optional(),
+  /** Valeurs nutritionnelles pour 100 g (ou 100 ml). */
+  nutrition: Nutrients.extend({ per: z.enum(["100g", "100ml"]) }).optional(),
+  /** Par portion, quand l'emballage en indique une (« 30 g »). */
+  serving: Nutrients.extend({ size: z.string() }).optional(),
+  /** Repères nutritionnels (faible, modéré, élevé). */
+  levels: z.object({ fat: Level.optional(), saturatedFat: Level.optional(), sugars: Level.optional(), salt: Level.optional() }).optional(),
+  /** Photos : affichée (400 px) et pleine résolution. */
+  images: z.object({ front: Photo.optional(), ingredients: Photo.optional(), nutrition: Photo.optional() }).optional(),
+  /** Dernière mise à jour de la fiche sur Open Food Facts (AAAA-MM-JJ). */
+  updatedAt: z.string().optional(),
 });
 export type ProductInfo = z.infer<typeof ProductInfo>;
 

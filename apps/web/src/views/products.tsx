@@ -3,7 +3,7 @@ import { Package, ScanBarcode, Search, ShoppingBasket, Star, WifiOff, X } from "
 import { AnimatePresence, motion } from "motion/react";
 import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import { EmptyState, PageHeader, Segmented } from "@/components/kit";
-import { addProductToShopping, BabyPastille, NutriBadge, ProductThumb } from "@/components/product";
+import { addProductToShopping, BabyPastille, NutriBadge, ProductThumb, OffSource } from "@/components/product";
 import { openScan } from "@/components/scan";
 import { Shell } from "@/components/shell";
 import { Button } from "@/components/ui/button";
@@ -162,6 +162,7 @@ export function ProductsView({ q: initialQ = "" }: { q?: string }) {
           </AnimatePresence>
         </>
       )}
+      <OffSource short className="mt-8" />
     </Shell>
   );
 }
@@ -169,7 +170,8 @@ export function ProductsView({ q: initialQ = "" }: { q?: string }) {
 /** Une ligne : toute la ligne ouvre la fiche ; « Aux courses » à droite, en un geste. */
 export function ProductRow({ code, product, mark, warn = true }: { code: string; product: ProductInfo; mark?: ProductMemo["mark"]; warn?: boolean }) {
   const [weekStart] = useSelectedWeek();
-  const sub = [product.brand, product.quantity].filter(Boolean).join(" · ");
+  const kcal = product.nutrition?.energyKcal;
+  const sub = [product.brand, product.quantity, kcal !== undefined ? `${Math.round(kcal)} kcal/100 ${product.nutrition?.per === "100ml" ? "ml" : "g"}` : undefined].filter(Boolean).join(" · ");
   return (
     <div className="flex items-center">
       <button

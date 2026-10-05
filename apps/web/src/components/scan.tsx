@@ -330,7 +330,11 @@ function StoreResult({ code, session, onOpen }: { code: string; session: Session
               <ProductThumb product={outcome.product} className="size-14" />
               <span className="min-w-0 flex-1">
                 <span className="line-clamp-2 leading-snug font-semibold">{outcome.product.name}</span>
-                {outcome.product.brand && <span className="block truncate text-sm text-muted-foreground">{outcome.product.brand}</span>}
+                {(outcome.product.brand || outcome.product.nutrition?.energyKcal !== undefined) && (
+                  <span className="block truncate text-sm text-muted-foreground">
+                    {[outcome.product.brand, outcome.product.nutrition?.energyKcal !== undefined ? `${Math.round(outcome.product.nutrition.energyKcal)} kcal/100 g` : undefined].filter(Boolean).join(" · ")}
+                  </span>
+                )}
               </span>
               {outcome.product.nutriscore && <NutriBadge grade={outcome.product.nutriscore} />}
               <ChevronRight className="size-5 shrink-0 text-muted-foreground" aria-hidden />
