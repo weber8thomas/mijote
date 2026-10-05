@@ -1,5 +1,6 @@
+import { matchProduct } from "./inventory";
 import { CHANNEL_LABELS } from "./labels";
-import type { Channel, Ingredient, Recipe, ShoppingItem, WeekPlan } from "./schemas";
+import type { Channel, Ingredient, ProductInfo, Recipe, ShoppingItem, WeekPlan } from "./schemas";
 import { baseUnitOf, formatQty, priceOf, roundForShopping, toBase } from "./units";
 
 // Liste de courses : agrégation des quantités de la semaine, par canal (marché / supermarché) et par rayon.
@@ -233,4 +234,33 @@ export function itemLine(it: ShoppingItem, ingredients: Map<string, Ingredient>)
   if (!it.qty) return name;
   if (it.unit === "piece") return ing ? formatQty(it.qty, "piece", ing) : `${formatQty(it.qty, "piece")} ${name}`;
   return `${name} · ${formatQty(it.qty, it.unit)}`;
+}
+
+// ——— Scan en magasin ———
+
+/** Mots qui ne disent rien du produit (« de », « bio »…), ignorés pour comparer un libellé et un nom de produit. */
+const FILLER = new Set(["de", "du", "des", "le", "la", "les", "au", "aux", "et", "en", "avec", "sans", "pour", "sur", "bio", "nature", "naturel", "naturelle", "france", "francais", "francaise", "origine"]);
+const meaningful = (t: string) =>
+  norm(t)
+    .split(/[^a-z0-9]+/)
+    .filter((w) => w.length > 1 && !FILLER.has(w))
+    .map(singular);
+
+/**
+ * Article de la liste correspondant à un produit scanné en magasin.
+ * - même ingrédient du catalogue (reconnu prudemment par matchProduct : « pâte à tartiner » ne coche pas les pâtes) ;
+ * - ou article ajouté à la main hors catalogue dont tous les mots se retrouvent dans le nom du produit
+ *   (« papier toilette » ↔ « Papier toilette confort 12 rouleaux »).
+ * Un article non coché passe devant un article déjà coché ; les articles « J'ai déjà » sont ignorés.
+ */
+export function matchShoppingItem(product: Pick<ProductInfo, "name">, items: ShoppingItem[], ingredients: Ingredient[]): ShoppingItem | undefined {
+  const ing = matchProduct(product.name, ingredients);
+  const words = new Set(meaningful(product.name));
+  const byLabel = (it: ShoppingItem) => {
+    if (!it.label) return false;
+    const label = meaningful(it.label);
+    return label.length > 0 && label.every((w) => words.has(w));
+  };
+  const hits = items.filter((it) => !it.haveAlready && ((ing && it.ingredientId === ing.id) || byLabel(it)));
+  return hits.find((it) => !it.checked) ?? hits[0];
 }
