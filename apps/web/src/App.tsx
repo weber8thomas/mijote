@@ -1,11 +1,16 @@
 import { MotionConfig } from "motion/react";
+import { useEffect } from "react";
 import { PreviewProvider } from "@/components/preview";
+import { openScan, ScanHost } from "@/components/scan";
+import { useHaSyncLoop } from "@/lib/ha-sync";
 import { GlobalSearch } from "@/components/search";
 import { Toaster } from "@/components/ui/sonner";
-import { query, useRoute } from "@/lib/router";
+import { query, replace, useRoute } from "@/lib/router";
 import { useSelectedWeek } from "@/lib/ui";
 import { NewRecipeView } from "@/views/new-recipe";
 import { PantryView } from "@/views/pantry";
+import { ProductView } from "@/views/product";
+import { ProductsView } from "@/views/products";
 import { FridgePrint, ShoppingPrint } from "@/views/print";
 import { RecipeView } from "@/views/recipe";
 import { RecipesView } from "@/views/recipes";
@@ -26,6 +31,14 @@ function Routes() {
       return a === "nouvelle" ? <NewRecipeView /> : a === "ingredient" ? <RecipesView ingredient={b} /> : a ? <RecipeView slug={a} /> : <RecipesView />;
     case "placard":
       return <PantryView key={a ?? ""} scan={a === "scanner"} />;
+    case "produit":
+      return a ? <ProductView key={a} code={a} /> : <ProductsView />;
+    case "produits": {
+      const q = query().get("q") ?? "";
+      return <ProductsView key={q} q={q} />;
+    }
+    case "scanner":
+      return <ScanShortcut />;
     case "reglages":
       return <SettingsView />;
     case "installer":
@@ -35,13 +48,25 @@ function Routes() {
   }
 }
 
+/** Raccourci d'appli #/scanner : « Mes produits » en fond, le lecteur ouvert par-dessus (le retour ne le rouvre pas). */
+function ScanShortcut() {
+  useEffect(() => {
+    replace("/produits");
+    openScan("fiche");
+  }, []);
+  return null;
+}
+
 export default function App() {
+  // Liste de courses partagée avec Home Assistant : synchro dans les deux sens, tant que l'appli est ouverte.
+  useHaSyncLoop();
   return (
     <MotionConfig reducedMotion="user">
       <PreviewProvider>
         <Routes />
       </PreviewProvider>
       <GlobalSearch />
+      <ScanHost />
       <Toaster position="top-center" />
     </MotionConfig>
   );

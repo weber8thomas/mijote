@@ -30,7 +30,7 @@ export default defineConfig({
         share_target: { action: base, method: "GET", params: { title: "titre", text: "t", url: "lien" } },
         shortcuts: [
           { name: "Ajouter aux courses", short_name: "Courses", url: `${base}#/courses/ajouter`, icons: [{ src: "icons/icon-192.png", sizes: "192x192" }] },
-          { name: "Scanner un produit", short_name: "Scanner", url: `${base}#/placard/scanner`, icons: [{ src: "icons/icon-192.png", sizes: "192x192" }] },
+          { name: "Scanner un produit", short_name: "Scanner", url: `${base}#/scanner`, icons: [{ src: "icons/icon-192.png", sizes: "192x192" }] },
         ],
         icons: [
           { src: "icons/icon-192.png", sizes: "192x192", type: "image/png" },

@@ -22,6 +22,12 @@ describe("ajout à la main", () => {
     expect(lines[3].label).toBe("papier toilette");
   });
 
+  it("ne coupe pas un mot qui commence comme un article", () => {
+    const lines = parseShoppingText("lentilles vertes, des lardons, l'huile, d’abricots, laitue", INGREDIENTS);
+    expect(lines.map((l) => l.label)).toEqual(["lentilles vertes", "lardons", "huile", "abricots", "laitue"]);
+    expect(lines[0].ingredientId).toBe("lentilles-vertes");
+  });
+
   it("garde les articles manuels quand la liste est recalculée", () => {
     const week = { ...generateWeek(ctx, "2026-10-05", 3), status: "validated" as const };
     const first = buildShoppingList({ week, recipes: new Map(RECIPES.map((r) => [r.id, r])), ingredients, pantryInStock: new Set() });

@@ -25,7 +25,7 @@ export function HaStatus({ className }: { className?: string }) {
     <div className={cn("flex min-h-12 items-center gap-2 rounded-2xl px-3 text-sm", error ? "bg-ochre-soft/80 text-ochre-ink" : "bg-sage-soft/70 text-sage-ink", className)} role="status">
       {error ? <AlertTriangle className="size-4 shrink-0" aria-hidden /> : <HouseWifi className="size-4 shrink-0" aria-hidden />}
       <button type="button" onClick={() => (error ? go("/reglages") : undefined)} className="min-w-0 flex-1 truncate text-left">
-        {error ? `Home Assistant : ${error}` : busy ? "Synchro avec Home Assistant…" : `Liste partagée avec Home Assistant${when ? ` · ${when}` : ""}`}
+        {error ? `Home Assistant : ${error}` : busy ? "Synchro…" : `Partagée avec Home Assistant${when ? ` · ${when.replace(/^il y a /, "")}` : ""}`}
       </button>
       <button type="button" onClick={() => void syncNow()} disabled={busy} className="grid size-11 shrink-0 place-items-center rounded-full hover:bg-card/60" aria-label="Synchroniser maintenant">
         <RefreshCw className={cn("size-4", busy && "animate-spin")} aria-hidden />

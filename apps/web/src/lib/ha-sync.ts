@@ -12,6 +12,12 @@ export const haConfig = (): HaConfig | null => {
   return ha?.url && ha.token && ha.entity && ha.autoSync ? ha : null;
 };
 
+/**
+ * Une synchro à la fois sur tout l'appareil : deux onglets ouverts ne doivent pas envoyer les mêmes articles en double.
+ * L'onglet suivant attend, puis travaille sur la liste déjà mise à jour (le store suit les autres onglets).
+ */
+const acrossTabs = (fn: () => Promise<void>) => (typeof navigator !== "undefined" && navigator.locks ? navigator.locks.request("mijote-ha-sync", fn) : fn());
+
 let running: Promise<void> | null = null;
 let again = false;
 let busy = false;
@@ -27,7 +33,7 @@ export function syncNow(): Promise<void> {
   running = (async () => {
     do {
       again = false;
-      await syncOnce();
+      await acrossTabs(syncOnce);
     } while (again);
   })().finally(() => {
     running = null;
@@ -70,10 +76,20 @@ async function syncOnce() {
     actions.applyHaSync(weekStart, plan.local, plan.synced, started);
     applying = false;
     if (plan.remote.some((o) => o.op === "add")) again = true;
+    failures = 0;
   } catch (e) {
+    applying = false;
+    failures++;
+    // Réseau du téléphone qui coupe un instant : on réessaie sans rien afficher ; l'erreur ne s'affiche qu'à la 2e fois.
+    if (failures === 1 && e instanceof HaError && e.kind === "network") {
+      window.setTimeout(() => void syncNow(), 2000);
+      return;
+    }
     actions.setHaSyncError(e instanceof HaError ? e.message : e instanceof Error ? e.message : String(e));
   }
 }
+
+let failures = 0;
 
 let applying = false;
 

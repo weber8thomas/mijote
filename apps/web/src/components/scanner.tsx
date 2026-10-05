@@ -1,8 +1,8 @@
 import type { BarcodeFormat } from "barcode-detector/ponyfill";
-import { CameraOff, Flashlight, FlashlightOff, Keyboard, XIcon } from "lucide-react";
+import { CameraOff, Check, Flashlight, FlashlightOff, Keyboard, XIcon } from "lucide-react";
 import { motion } from "motion/react";
 import { Dialog as DialogPrimitive } from "radix-ui";
-import { useEffect, useRef, useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent, type ReactNode } from "react";
 // Le moteur de lecture (ZXing, ~1 Mo) est servi depuis le site, jamais depuis un CDN, et chargé seulement si besoin.
 import zxingWasmUrl from "zxing-wasm/reader/zxing_reader.wasm?url";
 import { Button } from "@/components/ui/button";
@@ -75,7 +75,24 @@ const MESSAGES: Record<Exclude<CamState, "starting" | "live">, { title: string; 
 
 type TorchCapabilities = MediaTrackCapabilities & { torch?: boolean };
 
-export function BarcodeScanner({ onDetected, onClose }: { onDetected: (code: string) => void; onClose: () => void }) {
+/** Même code relu par la caméra pendant ce délai : ignoré (mode continu). */
+const SAME_CODE_MS = 4000;
+/** Pause après une lecture en mode continu, le temps de lire le résultat. */
+const COOLDOWN_MS = 1200;
+
+type ScannerProps = {
+  onDetected: (code: string) => void;
+  onClose: () => void;
+  title?: string;
+  hint?: string;
+  /** Mode continu (magasin) : la caméra reste ouverte après une lecture, bouton « Terminer ». */
+  continuous?: boolean;
+  /** Résultat de la dernière lecture, affiché au-dessus des commandes (zone du pouce). */
+  children?: ReactNode;
+};
+
+export function BarcodeScanner({ onDetected, onClose, title = "Scanner un produit", hint: liveHint, continuous = false, children }: ScannerProps) {
+  const lastRef = useRef<{ code: string; at: number } | null>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const doneRef = useRef(false);
@@ -96,8 +113,16 @@ export function BarcodeScanner({ onDetected, onClose }: { onDetected: (code: str
     streamRef.current = null;
   };
 
-  const finish = (value: string) => {
+  const finish = (value: string, manualEntry = false) => {
     if (doneRef.current) return;
+    if (continuous) {
+      const last = lastRef.current;
+      const now = performance.now();
+      if (!manualEntry && last && (now - last.at < COOLDOWN_MS || (last.code === value && now - last.at < SAME_CODE_MS))) return;
+      lastRef.current = { code: value, at: now };
+      onDetectedRef.current(value);
+      return;
+    }
     doneRef.current = true;
     stop();
     onDetectedRef.current(value);
@@ -156,6 +181,7 @@ export function BarcodeScanner({ onDetected, onClose }: { onDetected: (code: str
     if (!fake) return;
     const t = setTimeout(() => finish(fake), 400);
     return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Boucle de lecture : à chaque image de la vidéo, au plus toutes les 200 ms.
@@ -181,8 +207,11 @@ export function BarcodeScanner({ onDetected, onClose }: { onDetected: (code: str
           .then((found) => {
             const hit = found.map((f) => normalizeCode(f.rawValue)).find(Boolean);
             if (hit && !stopped) {
-              stopped = true;
-              navigator.vibrate?.(30);
+              const last = lastRef.current;
+              const now = performance.now();
+              const fresh = !last || (now - last.at >= COOLDOWN_MS && (last.code !== hit || now - last.at >= SAME_CODE_MS));
+              if (!continuous) stopped = true;
+              if (fresh) navigator.vibrate?.(30);
               finish(hit);
             }
           })
@@ -199,6 +228,7 @@ export function BarcodeScanner({ onDetected, onClose }: { onDetected: (code: str
       if (rvfc) video.cancelVideoFrameCallback(handle);
       else cancelAnimationFrame(handle);
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [cam, detector]);
 
   const toggleTorch = async () => {
@@ -217,12 +247,13 @@ export function BarcodeScanner({ onDetected, onClose }: { onDetected: (code: str
     e.preventDefault();
     const value = code.replace(/\s+/g, "");
     if (!/^\d{8,14}$/.test(value)) return setCodeError("Un code-barres compte 8 à 13 chiffres.");
-    finish(value);
+    finish(value, true);
+    if (continuous) setCode("");
   };
 
   const failed = cam !== "starting" && cam !== "live";
   const showManual = manual || failed;
-  const hint = detectorFailed ? "Lecture automatique indisponible : saisis le code." : cam === "starting" ? "Ouverture de la caméra…" : "Vise le code-barres : il se lit tout seul.";
+  const hint = detectorFailed ? "Lecture automatique indisponible : saisis le code." : cam === "starting" ? "Ouverture de la caméra…" : (liveHint ?? "Vise le code-barres : il se lit tout seul.");
 
   return (
     <DialogPrimitive.Root open onOpenChange={(o) => !o && onClose()}>
@@ -230,6 +261,13 @@ export function BarcodeScanner({ onDetected, onClose }: { onDetected: (code: str
         <DialogPrimitive.Content
           className="fixed inset-0 z-[60] flex flex-col overflow-hidden bg-foreground text-white outline-none data-open:animate-in data-open:fade-in-0"
           aria-describedby="scanner-hint"
+          // Un toast (« Annuler ») touché pendant le scan ne ferme pas le lecteur.
+          onPointerDownOutside={(e) => {
+            if ((e.target as Element | null)?.closest?.("[data-sonner-toaster]")) e.preventDefault();
+          }}
+          onInteractOutside={(e) => {
+            if ((e.target as Element | null)?.closest?.("[data-sonner-toaster]")) e.preventDefault();
+          }}
         >
           <video
             ref={videoRef}
@@ -246,7 +284,7 @@ export function BarcodeScanner({ onDetected, onClose }: { onDetected: (code: str
               <DialogPrimitive.Close className="grid size-12 shrink-0 place-items-center rounded-full bg-white/15 backdrop-blur-sm hover:bg-white/25 focus-visible:ring-[3px] focus-visible:ring-white/70 focus-visible:outline-none" aria-label="Fermer le lecteur">
                 <XIcon className="size-6" />
               </DialogPrimitive.Close>
-              <DialogPrimitive.Title className="min-w-0 flex-1 truncate text-center font-heading text-xl">Scanner un produit</DialogPrimitive.Title>
+              <DialogPrimitive.Title className="min-w-0 flex-1 truncate text-center font-heading text-xl">{title}</DialogPrimitive.Title>
               {torch.supported ? (
                 <button
                   type="button"
@@ -268,7 +306,7 @@ export function BarcodeScanner({ onDetected, onClose }: { onDetected: (code: str
 
           {/* Viseur, ou explication si la caméra ne s'ouvre pas */}
           <div className="relative z-0 grid flex-1 place-items-center px-6">
-            {failed ? (
+            {failed && children ? null : failed ? (
               <div role="alert" className="paper w-full max-w-sm rounded-3xl px-6 py-7 text-center text-foreground shadow-float">
                 <span className="mx-auto grid size-14 place-items-center rounded-full bg-primary-soft text-primary-ink">
                   <CameraOff className="size-7" aria-hidden />
@@ -296,8 +334,9 @@ export function BarcodeScanner({ onDetected, onClose }: { onDetected: (code: str
           {/* Bas d'écran : zone du pouce */}
           <div className="pb-safe relative z-10 bg-gradient-to-t from-black/65 via-black/40 to-transparent">
             <div className="mx-auto flex max-w-md flex-col gap-3 px-4 pt-6 pb-4">
+              {children}
               {!failed && (
-                <p id="scanner-hint" className="text-center text-base font-medium text-white/90" aria-live="polite">
+                <p id="scanner-hint" className={cn("text-center text-base font-medium text-white/90", children && "sr-only")} aria-live="polite">
                   {hint}
                 </p>
               )}
@@ -331,10 +370,22 @@ export function BarcodeScanner({ onDetected, onClose }: { onDetected: (code: str
                     Valider
                   </Button>
                 </form>
-              ) : (
+              ) : continuous ? null : (
                 <Button type="button" variant="outline" size="lg" className="h-12 border-white/50 text-white hover:bg-white/15 hover:text-white" onClick={() => setManual(true)}>
                   <Keyboard /> Saisir le code
                 </Button>
+              )}
+              {continuous && (
+                <div className={cn("grid gap-2", showManual ? "grid-cols-1" : "grid-cols-2")}>
+                  {!showManual && (
+                    <Button type="button" variant="outline" size="lg" className="h-12 border-white/50 bg-transparent text-white hover:bg-white/15 hover:text-white" onClick={() => setManual(true)}>
+                      <Keyboard /> Saisir
+                    </Button>
+                  )}
+                  <Button type="button" size="lg" className="h-12" onClick={onClose}>
+                    <Check /> Terminer
+                  </Button>
+                </div>
               )}
               {codeError && (
                 <p id="scanner-code-error" role="alert" className="text-center text-sm font-semibold text-primary-soft">

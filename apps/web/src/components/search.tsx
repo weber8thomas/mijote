@@ -1,12 +1,14 @@
 import { illustrationOf, INGREDIENTS, MONTHS, rankByInventory, seasonalProduce, SLOT_LABELS, type Ingredient, type Recipe, type Slot } from "@mijote/shared";
 import { Command } from "cmdk";
-import { AlertTriangle, ArrowLeft, Loader2, Refrigerator, Search, Sparkles, X } from "lucide-react";
+import { AlertTriangle, ArrowLeft, ChevronRight, Globe, Loader2, PackageSearch, Refrigerator, ScanBarcode, Search, Sparkles, X } from "lucide-react";
 import { motion } from "motion/react";
 import { Dialog as DialogPrimitive } from "radix-ui";
 import { useMemo, useState, useSyncExternalStore } from "react";
 import { Art, Plate } from "@/components/art";
 import { Chip, RecipeMeta } from "@/components/kit";
 import { runAi } from "@/components/new-recipe-sheet";
+import { NutriBadge, ProductThumb } from "@/components/product";
+import { openScan } from "@/components/scan";
 import { actions, getState, ingredientsOf, recipesOf, today, useRecipes, useStore } from "@/data/store";
 import { ideas } from "@/lib/claude";
 import { go } from "@/lib/router";
@@ -135,6 +137,19 @@ function SearchBody({ pick, onClose }: { pick?: PickMode; onClose: () => void })
     return ingredients.list.filter((i) => used.has(i.id) && normalize(i.name).includes(nq)).slice(0, 6);
   }, [pick, nq, all, ingredients]);
 
+  // Produits déjà vus (« Mes produits ») dont le nom ou la marque contient tous les mots cherchés.
+  const myProducts = useMemo(() => {
+    if (pick || nq.length < 2) return [];
+    const words = nq.split(/\s+/);
+    return Object.entries(s.products ?? {})
+      .filter(([, m]) => {
+        const h = normalize(`${m.product.name} ${m.product.brand ?? ""}`);
+        return words.every((w) => h.includes(w));
+      })
+      .sort(([, a], [, b]) => b.lastSeen.localeCompare(a.lastSeen))
+      .slice(0, 4);
+  }, [pick, nq, s.products]);
+
   const choose = (r: Recipe) => {
     onClose();
     // Idée de Claude choisie : elle rejoint les recettes du foyer.
@@ -147,7 +162,7 @@ function SearchBody({ pick, onClose }: { pick?: PickMode; onClose: () => void })
   };
 
   return (
-    <Command shouldFilter={false} loop className="flex min-h-0 flex-1 flex-col" label={pick ? pick.title : "Rechercher une recette ou un ingrédient"}>
+    <Command shouldFilter={false} loop className="flex min-h-0 flex-1 flex-col" label={pick ? pick.title : "Rechercher une recette, un ingrédient ou un produit"}>
       <div className="pt-safe shrink-0 border-b border-border">
         <div className="flex items-center gap-1 px-2 py-2">
           <button type="button" onClick={onClose} className="grid size-11 shrink-0 place-items-center rounded-full hover:bg-muted" aria-label="Fermer la recherche">
@@ -159,7 +174,7 @@ function SearchBody({ pick, onClose }: { pick?: PickMode; onClose: () => void })
               autoFocus
               value={q}
               onValueChange={setQ}
-              placeholder={pick ? `Chercher pour : ${pick.title.toLowerCase()}` : "Recette, ingrédient…"}
+              placeholder={pick ? `Chercher pour : ${pick.title.toLowerCase()}` : "Recette, ingrédient, produit…"}
               className="h-12 w-full rounded-full bg-paper-deep/70 pr-11 pl-11 text-base outline-none placeholder:text-muted-foreground focus-visible:ring-[3px] focus-visible:ring-ring/40"
             />
             {q && (
@@ -199,6 +214,68 @@ function SearchBody({ pick, onClose }: { pick?: PickMode; onClose: () => void })
                 }}
               />
             ))}
+          </Command.Group>
+        )}
+
+        {!pick && (
+          <Command.Group heading="Produits" className={GROUP}>
+            {nq ? (
+              <>
+                {myProducts.map(([code, m]) => (
+                  <Command.Item
+                    key={code}
+                    value={`prod-${code}`}
+                    onSelect={() => {
+                      onClose();
+                      go(`/produit/${encodeURIComponent(code)}`);
+                    }}
+                    className="flex min-h-14 cursor-pointer items-center gap-3 rounded-2xl px-2 py-1.5 data-[selected=true]:bg-muted"
+                  >
+                    <ProductThumb product={m.product} className="size-11 rounded-xl" artClassName="size-8" />
+                    <span className="min-w-0 flex-1">
+                      <span className="block truncate font-semibold">{m.product.name}</span>
+                      <span className="block truncate text-xs text-muted-foreground">{m.product.brand ?? "Mes produits"}</span>
+                    </span>
+                    {m.product.nutriscore && <NutriBadge grade={m.product.nutriscore} className="size-7 text-xs" />}
+                  </Command.Item>
+                ))}
+                {nq.length >= 2 && (
+                  <ActionItem
+                    value="prod-off"
+                    icon={<Globe className="size-5" />}
+                    title={`Chercher « ${q.trim()} » dans Open Food Facts`}
+                    hint="Produits du commerce : Nutri-Score, alertes bébé"
+                    onSelect={() => {
+                      onClose();
+                      go(`/produits?q=${encodeURIComponent(q.trim())}`);
+                    }}
+                  />
+                )}
+              </>
+            ) : (
+              <>
+                <ActionItem
+                  value="prod-scan"
+                  icon={<ScanBarcode className="size-5" />}
+                  title="Scanner un produit"
+                  hint="Nutri-Score, additifs, alertes bébé"
+                  onSelect={() => {
+                    onClose();
+                    openScan("fiche");
+                  }}
+                />
+                <ActionItem
+                  value="prod-mine"
+                  icon={<PackageSearch className="size-5" />}
+                  title="Mes produits"
+                  hint="Récents, favoris, à éviter"
+                  onSelect={() => {
+                    onClose();
+                    go("/produits");
+                  }}
+                />
+              </>
+            )}
           </Command.Group>
         )}
 
@@ -260,6 +337,22 @@ function SearchBody({ pick, onClose }: { pick?: PickMode; onClose: () => void })
   );
 }
 
+const GROUP =
+  "[&_[cmdk-group-heading]]:px-3 [&_[cmdk-group-heading]]:pt-3 [&_[cmdk-group-heading]]:pb-1 [&_[cmdk-group-heading]]:text-xs [&_[cmdk-group-heading]]:font-bold [&_[cmdk-group-heading]]:tracking-wide [&_[cmdk-group-heading]]:text-muted-foreground [&_[cmdk-group-heading]]:uppercase";
+
+function ActionItem({ value, icon, title, hint, onSelect }: { value: string; icon: React.ReactNode; title: string; hint: string; onSelect: () => void }) {
+  return (
+    <Command.Item value={value} onSelect={onSelect} className="flex min-h-14 cursor-pointer items-center gap-3 rounded-2xl px-2 py-1.5 data-[selected=true]:bg-muted">
+      <span className="grid size-11 shrink-0 place-items-center rounded-full bg-primary-soft text-primary-ink">{icon}</span>
+      <span className="min-w-0 flex-1">
+        <span className="block font-semibold">{title}</span>
+        <span className="block text-xs text-muted-foreground">{hint}</span>
+      </span>
+      <ChevronRight className="size-4 shrink-0 text-muted-foreground" aria-hidden />
+    </Command.Item>
+  );
+}
+
 function IngredientItem({ ingredient, count, onSelect }: { ingredient: Ingredient; count: number; onSelect: () => void }) {
   return (
     <Command.Item value={`ing-${ingredient.id}`} onSelect={onSelect} className="flex min-h-14 cursor-pointer items-center gap-3 rounded-2xl px-2 py-1.5 data-[selected=true]:bg-muted">
@@ -287,7 +380,7 @@ export function SearchButton({ className, label = false }: { className?: string;
       whileTap={{ scale: 0.94 }}
       onClick={openSearch}
       className={cn("flex items-center gap-3 rounded-full", label ? "h-12 px-4 font-semibold text-muted-foreground hover:bg-card/60 hover:text-foreground" : "grid size-11 place-items-center hover:bg-muted", className)}
-      aria-label="Rechercher une recette ou un ingrédient"
+      aria-label="Rechercher une recette, un ingrédient ou un produit"
     >
       <Search className="size-5" aria-hidden />
       {label && (

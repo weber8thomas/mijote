@@ -189,7 +189,8 @@ export function parseShoppingText(text: string, ingredients: Ingredient[]): Pars
         qty = 1;
         unit = "piece";
       }
-      const label = rest.replace(/^(un|une|des|du|de la|de l'|de|d'|les|le|la|l')\s*/i, "").trim() || raw;
+      // Article en tête de ligne : un mot entier (« le » de « lentilles » reste en place).
+      const label = rest.replace(/^(?:(?:un|une|des|du|de la|de|les|le|la)\s+|(?:de l|d|l)['’]\s*)/i, "").trim() || raw;
       const ing = matchIngredient(label, ingredients);
       return { text: raw, label, ingredientId: ing?.id, qty, unit };
     });

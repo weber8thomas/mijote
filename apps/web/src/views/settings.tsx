@@ -1,5 +1,5 @@
 import { formatPrice, householdPortions, type Ingredient } from "@mijote/shared";
-import { ChevronLeft, ChevronRight, Download, HouseWifi, KeyRound, Mic, Minus, Package, Plus, RotateCcw, Smartphone, Sparkles, Upload, Users } from "lucide-react";
+import { ChevronLeft, ChevronRight, Download, HouseWifi, KeyRound, Mic, Minus, Package, PackageSearch, Plus, RotateCcw, Smartphone, Sparkles, Upload, Users } from "lucide-react";
 import { useMemo, useRef, useState, type ReactNode } from "react";
 import { toast } from "sonner";
 import { LogoMark } from "@/components/brand";
@@ -93,6 +93,9 @@ export function SettingsView() {
         <Group title="Maison et connexions">
           <LinkRow onClick={() => go("/placard")} icon={<Package className="size-5" />}>
             Placard et frigo
+          </LinkRow>
+          <LinkRow onClick={() => go("/produits")} icon={<PackageSearch className="size-5" />}>
+            Mes produits
           </LinkRow>
           <LinkRow onClick={() => setHa(true)} icon={<HouseWifi className="size-5" />} detail={s.integrations?.ha ? "relié" : undefined}>
             Home Assistant

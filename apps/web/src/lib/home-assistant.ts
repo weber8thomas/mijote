@@ -24,8 +24,9 @@ async function call<T>(cfg: HaConfig, path: string, body?: unknown): Promise<T> 
       headers: { Authorization: `Bearer ${cfg.token.trim()}`, "Content-Type": "application/json" },
       body: body === undefined ? undefined : JSON.stringify(body),
     });
-  } catch {
-    throw new HaError("Home Assistant ne répond pas. Vérifie l'adresse (en https) et l'autorisation CORS.", "network");
+  } catch (e) {
+    const cause = e instanceof Error ? ` (${e.message})` : "";
+    throw new HaError(`Home Assistant ne répond pas. Vérifie l'adresse (en https) et l'autorisation CORS.${cause}`, "network");
   }
   if (res.status === 401 || res.status === 403) throw new HaError("Jeton refusé par Home Assistant.", "auth");
   if (res.status === 400 || res.status === 404) throw new HaError(`Liste introuvable : ${cfg.entity}.`, "entity");

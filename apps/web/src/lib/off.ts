@@ -113,6 +113,59 @@ export async function fetchProduct(barcode: string): Promise<ProductInfo | null>
   return r.status === "found" ? r.product : null;
 }
 
+// ——— Recherche par nom ———
+
+/** Un résultat de recherche : la fiche est partielle (ni ingrédients ni additifs) ; la fiche complète vient de lookupProduct. */
+export type ProductHit = { code: string; product: ProductInfo };
+export type ProductSearch = { status: "ok"; hits: ProductHit[] } | { status: "offline" } | { status: "busy" };
+
+const SEARCH_FIELDS = "code,product_name,product_name_fr,brands,image_front_small_url,nutriscore_grade,nova_group";
+
+/** Recherche plein texte, limitée aux produits vendus en France. */
+export const offSearchUrl = (q: string) =>
+  `https://world.openfoodfacts.org/cgi/search.pl?search_terms=${encodeURIComponent(q.trim())}&search_simple=1&action=process&json=1&page_size=20` +
+  `&tagtype_0=countries&tag_contains_0=contains&tag_0=france&fields=${SEARCH_FIELDS}`;
+
+const searches = new Map<string, ProductSearch>();
+const searchKey = (q: string) => q.trim().toLowerCase().replace(/\s+/g, " ");
+
+/** Résultat déjà connu pour cette recherche (pas de nouvel appel). */
+export const cachedSearch = (q: string) => searches.get(searchKey(q));
+
+/**
+ * Cherche des produits par leur nom. Open Food Facts limite le nombre de recherches :
+ * on n'appelle qu'à la validation, et chaque recherche réussie est gardée pour la session.
+ */
+export async function searchProducts(q: string, { timeout = 10000 }: { timeout?: number } = {}): Promise<ProductSearch> {
+  const key = searchKey(q);
+  if (!key) return { status: "ok", hits: [] };
+  const hit = searches.get(key);
+  if (hit) return hit;
+  if (typeof navigator !== "undefined" && navigator.onLine === false) return { status: "offline" };
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), timeout);
+  try {
+    const res = await fetch(offSearchUrl(key), { signal: ctrl.signal, headers: { Accept: "application/json" } });
+    if (res.status === 429 || res.status === 503) return { status: "busy" };
+    if (!res.ok) return { status: "offline" };
+    const data = (await res.json()) as { products?: (OffProduct & { code?: string })[] };
+    const seen = new Set<string>();
+    const hits = (data.products ?? []).flatMap((p) => {
+      const code = p.code?.trim();
+      if (!code || !isBarcode(code) || seen.has(code) || !(clean(p.product_name_fr) ?? clean(p.product_name))) return [];
+      seen.add(code);
+      return [{ code, product: toProductInfo(p) }];
+    });
+    const result: ProductSearch = { status: "ok", hits };
+    searches.set(key, result);
+    return result;
+  } catch {
+    return { status: "offline" };
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
 // ——— Vigilance bébé (11-12 mois) ———
 
 const norm = (t: string) =>

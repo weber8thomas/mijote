@@ -1,26 +1,20 @@
 import { CHANNEL_LABELS, formatEuros, formatQty, groupByAisle, itemLine, itemName, shoppingText, totals, type Channel, type Ingredient, type ShoppingItem } from "@mijote/shared";
-import { Check, Copy, Download, Home, HouseWifi, Loader2, NotebookPen, Package, Plus, Printer, Search, Share2, Trash2, Undo2, X } from "lucide-react";
+import { Check, Copy, Home, NotebookPen, Package, PackageSearch, Plus, Printer, ScanBarcode, Search, Share2, Trash2, Undo2, X } from "lucide-react";
 import { motion, useMotionValue, useTransform } from "motion/react";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { EmptyState, PageHeader, Segmented } from "@/components/kit";
+import { openScan } from "@/components/scan";
 import { Shell } from "@/components/shell";
 import { Sheet } from "@/components/sheet";
 import { Button } from "@/components/ui/button";
-import { actions, getState, ingredientsOf, useShopping, useStore, useWeek } from "@/data/store";
-import { type HaConfig, pullNewItems, pushItems, setDone } from "@/lib/home-assistant";
+import { actions, ingredientsOf, useShopping, useStore, useWeek } from "@/data/store";
+import { HaStatus } from "@/components/ha-status";
 import { go, replace } from "@/lib/router";
 import { normalize } from "@/lib/text";
 import { useSelectedWeek } from "@/lib/ui";
 import { cn } from "@/lib/utils";
 import { weekRange, WeekSwitch } from "@/views/week";
-
-/** Envoi vers Home Assistant en tâche de fond, sans bloquer l'interface. */
-function haSync(task: (cfg: HaConfig) => Promise<unknown>) {
-  const cfg = getState().integrations?.ha;
-  if (!cfg?.autoSync || !cfg.url || !cfg.token) return;
-  task(cfg).catch((e: unknown) => toast.error("Home Assistant", { description: e instanceof Error ? e.message : String(e) }));
-}
 
 export function ShoppingView({ add }: { add?: string }) {
   const [weekStart] = useSelectedWeek();
@@ -46,7 +40,6 @@ export function ShoppingView({ add }: { add?: string }) {
     const names = added.map((i) => itemName(i, ingredients));
     if (added.every((i) => i.channel !== channel)) setChannel(added[0].channel);
     toast.success(names.length === 1 ? `${names[0]} : ajouté` : `${names.length} articles ajoutés`, { description: names.length > 1 ? names.join(", ") : undefined });
-    haSync((cfg) => pushItems(cfg, added.map((i) => itemLine(i, ingredients))));
   };
 
   // Lien profond #/courses/ajouter?t=… (Gemini, Assistant, raccourci, partage) : on ajoute, puis on revient à la liste.
@@ -68,8 +61,9 @@ export function ShoppingView({ add }: { add?: string }) {
         subtitle={weekRange(weekStart)}
         actions={
           <>
-            <Button variant="ghost" size="icon-lg" onClick={() => go("/placard")} aria-label="Placard et frigo">
-              <Package className="size-5" />
+            {/* Mode magasin : chaque produit scanné coche son article, la caméra reste ouverte. */}
+            <Button size="lg" className="mr-1 h-12 px-4" onClick={() => openScan("magasin")} aria-label="Scanner en magasin : coche les articles">
+              <ScanBarcode aria-hidden /> Scanner
             </Button>
             {items.length > 0 && (
               <>
@@ -88,6 +82,16 @@ export function ShoppingView({ add }: { add?: string }) {
         <WeekSwitch />
       </div>
 
+      <nav aria-label="À la maison et produits" className="mb-4 grid grid-cols-2 gap-2">
+        <a href="#/placard" aria-label="Placard et frigo" className="flex min-h-12 items-center gap-2 rounded-2xl bg-card px-3 py-2 text-sm font-semibold shadow-card ring-1 ring-border transition-colors hover:bg-muted focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:outline-none">
+          <Package className="size-5 shrink-0 text-primary-ink" aria-hidden /> Placard & frigo
+        </a>
+        <a href="#/produits" className="flex min-h-12 items-center gap-2 rounded-2xl bg-card px-3 py-2 text-sm font-semibold shadow-card ring-1 ring-border transition-colors hover:bg-muted focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:outline-none">
+          <PackageSearch className="size-5 shrink-0 text-primary-ink" aria-hidden /> Mes produits
+        </a>
+      </nav>
+
+      <HaStatus className="mb-3" />
       <AddBar inputRef={addRef} onAdd={addText} />
 
       {!hasList ? (
@@ -150,7 +154,7 @@ export function ShoppingView({ add }: { add?: string }) {
                 <h2 className="mb-1.5 px-1 font-sans text-sm font-bold tracking-wide text-muted-foreground uppercase">{g.aisle}</h2>
                 <ul className="paper divide-y divide-border overflow-hidden rounded-3xl shadow-card ring-1 ring-border">
                   {g.items.map((it) => (
-                    <ShoppingRow key={it.id} item={it} name={itemName(it, ingredients)} line={itemLine(it, ingredients)} weekStart={weekStart} />
+                    <ShoppingRow key={it.id} item={it} name={itemName(it, ingredients)} weekStart={weekStart} />
                   ))}
                 </ul>
               </section>
@@ -184,7 +188,7 @@ export function ShoppingView({ add }: { add?: string }) {
         </>
       )}
 
-      <SendSheet open={sendOpen} onOpenChange={setSendOpen} weekStart={weekStart} items={items} ingredients={ingredients} onImport={addText} />
+      <SendSheet open={sendOpen} onOpenChange={setSendOpen} weekStart={weekStart} items={items} ingredients={ingredients} />
     </Shell>
   );
 }
@@ -219,7 +223,7 @@ function AddBar({ onAdd, inputRef }: { onAdd: (text: string) => void; inputRef: 
   );
 }
 
-function ShoppingRow({ item, name, line, weekStart }: { item: ShoppingItem; name: string; line: string; weekStart: string }) {
+function ShoppingRow({ item, name, weekStart }: { item: ShoppingItem; name: string; weekStart: string }) {
   const x = useMotionValue(0);
   const reveal = useTransform(x, [-110, -30, 0], [1, 0.4, 0]);
   const qty = item.qty ? formatQty(item.qty, item.unit) : "";
@@ -233,7 +237,6 @@ function ShoppingRow({ item, name, line, weekStart }: { item: ShoppingItem; name
   };
   const toggle = () => {
     actions.toggleChecked(weekStart, item.id);
-    haSync((cfg) => setDone(cfg, line, !item.checked));
   };
   return (
     <li className="relative">
@@ -324,43 +327,19 @@ function SendSheet({
   weekStart,
   items,
   ingredients,
-  onImport,
 }: {
   open: boolean;
   onOpenChange: (o: boolean) => void;
   weekStart: string;
   items: ShoppingItem[];
   ingredients: Map<string, Ingredient>;
-  onImport: (text: string) => void;
 }) {
   const s = useStore();
-  const ha = s.integrations?.ha;
-  const haReady = !!(ha?.url && ha.token && ha.entity);
-  const [busy, setBusy] = useState<"push" | "pull" | null>(null);
+  const shared = !!s.integrations?.ha?.autoSync;
   const toBuy = items.filter((i) => !i.haveAlready && !i.checked);
   const text = shoppingText(items, ingredients, `Courses ${weekRange(weekStart)}`);
   // Keep : une ligne par article, sans titres de rayon, pour obtenir une liste à cocher.
   const plain = toBuy.map((i) => itemLine(i, ingredients)).join("\n");
-
-  const run = async (kind: "push" | "pull") => {
-    if (!ha) return;
-    setBusy(kind);
-    try {
-      if (kind === "push") {
-        const n = await pushItems(ha, toBuy.map((i) => itemLine(i, ingredients)));
-        toast.success(n ? `${n} article${n > 1 ? "s" : ""} envoyé${n > 1 ? "s" : ""} à Home Assistant` : "Home Assistant a déjà toute la liste");
-      } else {
-        const fresh = await pullNewItems(ha, items.map((i) => itemLine(i, ingredients)));
-        if (fresh.length) onImport(fresh.join("\n"));
-        else toast("Rien de nouveau dans Home Assistant");
-      }
-      onOpenChange(false);
-    } catch (e) {
-      toast.error("Home Assistant", { description: e instanceof Error ? e.message : String(e) });
-    } finally {
-      setBusy(null);
-    }
-  };
 
   const share = async (body: string) => {
     try {
@@ -390,14 +369,9 @@ function SendSheet({
             onOpenChange(false);
           }}
         />
-        {haReady ? (
-          <>
-            <SendOption icon={busy === "push" ? <Loader2 className="size-5 animate-spin" /> : <HouseWifi className="size-5" />} title="Envoyer à Home Assistant" hint={ha.entity} onClick={() => run("push")} disabled={!!busy} />
-            <SendOption icon={busy === "pull" ? <Loader2 className="size-5 animate-spin" /> : <Download className="size-5" />} title="Importer depuis Home Assistant" hint="Ce que tu as dicté à l'assistant." onClick={() => run("pull")} disabled={!!busy} />
-          </>
-        ) : (
+        {!shared && (
           <button type="button" onClick={() => go("/reglages")} className="min-h-12 w-full rounded-2xl px-4 text-left text-sm text-muted-foreground underline-offset-4 hover:underline">
-            Relier Home Assistant (et Gemini ou Google Assistant) dans les réglages →
+            Partager la liste avec Home Assistant (Assist, Gemini, l'autre téléphone) dans les réglages →
           </button>
         )}
       </div>

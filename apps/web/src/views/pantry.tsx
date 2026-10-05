@@ -2,7 +2,6 @@ import {
   guessLocation,
   illustrationOf,
   LOCATION_LABELS,
-  matchProduct,
   PANTRY_BASICS,
   parseShoppingText,
   rankByInventory,
@@ -12,21 +11,21 @@ import {
   type ProductInfo,
   type StorageLocation,
 } from "@mijote/shared";
-import { ArrowRightLeft, Baby, Camera, Check, ChevronRight, ExternalLink, Plus, ScanBarcode, ShoppingBasket, Trash2, WifiOff } from "lucide-react";
+import { ArrowRightLeft, Camera, Check, ChevronRight, PackageSearch, Plus, ScanBarcode, ShoppingBasket, Trash2 } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import { DropdownMenu } from "radix-ui";
-import { lazy, Suspense, useEffect, useMemo, useRef, useState, type FormEvent, type ReactNode } from "react";
+import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import { toast } from "sonner";
 import { Art } from "@/components/art";
 import { FridgePhotoSheet } from "@/components/fridge-photo";
-import { Box, Chip, EmptyState, PageHeader, RecipeVisual, Segmented } from "@/components/kit";
+import { Chip, EmptyState, PageHeader, RecipeVisual, Segmented } from "@/components/kit";
+import { addNameToShopping, INTO, LOCATIONS, LocationPicker, NutriBadge, ProductDetails, storedToast } from "@/components/product";
+import { openScan } from "@/components/scan";
 import { Shell } from "@/components/shell";
 import { Sheet } from "@/components/sheet";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { actions, ingredientsOf, recipesOf, useStore } from "@/data/store";
-import { babyWarnings, isBarcode, lookupProduct, offPage, type Lookup } from "@/lib/off";
 import { go } from "@/lib/router";
 import { useSelectedWeek } from "@/lib/ui";
 import { cn } from "@/lib/utils";
@@ -34,11 +33,6 @@ import { cn } from "@/lib/utils";
 // Placard & frigo : ce qu'il y a à la maison. Scan d'un code-barres (Open Food Facts), ajout à la main,
 // basiques du placard, et idées de recettes avec ce qu'on a déjà.
 
-// Le lecteur (caméra + polyfill) n'est chargé qu'à la première ouverture.
-const BarcodeScanner = lazy(() => import("@/components/scanner").then((m) => ({ default: m.BarcodeScanner })));
-
-const LOCATIONS: StorageLocation[] = ["placard", "frigo", "congelateur"];
-const INTO: Record<StorageLocation, string> = { placard: "au placard", frigo: "au frigo", congelateur: "au congélateur" };
 const EMPTY: Record<StorageLocation, { art: string; title: string }> = {
   placard: { art: "lentilles", title: "Placard vide" },
   frigo: { art: "oeuf", title: "Frigo vide" },
@@ -49,20 +43,9 @@ type NewItem = Omit<InventoryItem, "id" | "addedAt">;
 
 const artOf = (item: { ingredientId?: string }) => (item.ingredientId ? (illustrationOf(item.ingredientId) ?? "sprig") : "sprig");
 
-/** Nom passé à la liste de courses : une seule ligne, sans séparateurs que l'analyseur découperait. */
-const shoppingLabel = (name: string) => name.replace(/[,;+\n]+/g, " ").replace(/\s+et\s+/gi, " ").replace(/\s+/g, " ").trim();
-
 function qtyLabel(item: InventoryItem): string | undefined {
   if (item.qty && item.unit) return item.unit === "piece" ? `× ${formatQty(item.qty, "piece")}` : formatQty(item.qty, item.unit);
   return item.product?.quantity;
-}
-
-function addToShopping(weekStart: string, name: string) {
-  const added = actions.addToShopping(weekStart, shoppingLabel(name));
-  if (!added.length) return;
-  toast.success(`${shoppingLabel(name)} : ajouté aux courses`, {
-    action: { label: "Annuler", onClick: () => added.forEach((i) => actions.removeShoppingItem(weekStart, i.id)) },
-  });
 }
 
 function removeItem(item: InventoryItem) {
@@ -86,9 +69,6 @@ export function PantryView({ scan: scanFirst = false }: { scan?: boolean } = {})
   const { list, byId } = ingredientsOf(s);
   const inventory = useMemo(() => s.inventory ?? [], [s.inventory]);
   const [location, setLocation] = useState<StorageLocation>("placard");
-  const [scanning, setScanning] = useState(scanFirst);
-  // Code lu ; gardé pendant l'animation de fermeture de la fiche.
-  const [scan, setScan] = useState<{ code: string; open: boolean } | null>(null);
   const [adding, setAdding] = useState(false);
   const [openId, setOpenId] = useState<string | null>(null);
   const opened = inventory.find((i) => i.id === openId);
@@ -104,14 +84,19 @@ export function PantryView({ scan: scanFirst = false }: { scan?: boolean } = {})
   const added = (items: InventoryItem[]) => {
     if (!items.length) return;
     setLocation(items[0].location);
-    const text = items.length === 1 ? `${items[0].name} : rangé ${INTO[items[0].location]}` : `${items.length} produits rangés`;
-    toast.success(text, { action: { label: "Annuler", onClick: () => items.forEach((i) => actions.removeInventory(i.id)) } });
+    storedToast(items);
   };
+  // Après un scan, le rangement (et son toast) est fait par le scanner global : on montre juste le bon onglet.
+  const openScanner = () => openScan("placard", { onStored: (items) => items[0] && setLocation(items[0].location) });
 
-  const openScanner = () => {
-    toast.dismiss();
-    setScanning(true);
-  };
+  // Raccourci #/placard/scanner : le lecteur s'ouvre tout de suite.
+  const opened0 = useRef(false);
+  useEffect(() => {
+    if (!scanFirst || opened0.current) return;
+    opened0.current = true;
+    openScanner();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [scanFirst]);
 
   // Photo du frigo, lue par Claude (seulement si une clé est enregistrée sur cet appareil).
   const hasAi = !!s.integrations?.ai?.apiKey;
@@ -165,6 +150,9 @@ export function PantryView({ scan: scanFirst = false }: { scan?: boolean } = {})
                 <ScanBarcode aria-hidden /> Scanner un produit
               </Button>
             </div>
+            <Button variant="ghost" size="icon-lg" className="size-12" onClick={() => go("/produits")} aria-label="Mes produits">
+              <PackageSearch className="size-5" />
+            </Button>
             <Button variant="ghost" size="icon-lg" className="size-12" onClick={() => go("/courses")} aria-label="Retour aux courses">
               <ShoppingBasket className="size-5" />
             </Button>
@@ -216,35 +204,6 @@ export function PantryView({ scan: scanFirst = false }: { scan?: boolean } = {})
         </div>
       </div>
 
-      {scanning && (
-        <Suspense fallback={null}>
-          <BarcodeScanner
-            onClose={() => setScanning(false)}
-            onDetected={(code) => {
-              setScanning(false);
-              setScan({ code, open: true });
-            }}
-          />
-        </Suspense>
-      )}
-
-      {scan && (
-        <ScanSheet
-          key={scan.code}
-          code={scan.code}
-          open={scan.open}
-          ingredients={list}
-          onOpenChange={(o) => setScan((cur) => cur && { ...cur, open: o })}
-          onAdded={(items) => {
-            setScan((cur) => cur && { ...cur, open: false });
-            added(items);
-          }}
-          onRescan={() => {
-            setScan(null);
-            openScanner();
-          }}
-        />
-      )}
       <AddSheet open={adding} onOpenChange={setAdding} ingredients={list} onAdded={added} />
       <ItemSheet item={opened} ingredient={opened?.ingredientId ? byId.get(opened.ingredientId) : undefined} onOpenChange={(o) => !o && setOpenId(null)} />
     </Shell>
@@ -314,314 +273,6 @@ function MoveMenu({ item }: { item: InventoryItem }) {
   );
 }
 
-// ——— Nutri-Score et NOVA ———
-
-// Couleurs officielles du Nutri-Score (repère connu en magasin), texte choisi pour rester lisible.
-const NUTRI: Record<string, string> = {
-  a: "bg-[#038141] text-white",
-  b: "bg-[#85bb2f] text-foreground",
-  c: "bg-[#fecb02] text-foreground",
-  d: "bg-[#ee8100] text-foreground",
-  e: "bg-[#c7350e] text-white",
-};
-
-function NutriBadge({ grade }: { grade: string }) {
-  return (
-    <span className={cn("grid size-8 shrink-0 place-items-center rounded-full text-sm font-bold uppercase", NUTRI[grade])} title={`Nutri-Score ${grade.toUpperCase()}`}>
-      <span aria-hidden>{grade}</span>
-      <span className="sr-only">Nutri-Score {grade.toUpperCase()}</span>
-    </span>
-  );
-}
-
-function NutriScale({ grade }: { grade: string }) {
-  return (
-    <div role="img" aria-label={`Nutri-Score ${grade.toUpperCase()}`} className="flex items-center gap-1">
-      {["a", "b", "c", "d", "e"].map((g) => (
-        <span
-          key={g}
-          aria-hidden
-          className={cn(
-            "grid place-items-center rounded-lg font-bold uppercase transition-all",
-            NUTRI[g],
-            g === grade ? "h-10 w-9 text-lg shadow-card ring-2 ring-card" : "h-7 w-6 text-xs opacity-45",
-          )}
-        >
-          {g}
-        </span>
-      ))}
-    </div>
-  );
-}
-
-const NOVA_TONES: Record<number, string> = {
-  1: "bg-sage-soft text-sage-ink",
-  2: "bg-sage-soft text-sage-ink",
-  3: "bg-ochre-soft text-ochre-ink",
-  4: "bg-terracotta-soft text-terracotta-ink",
-};
-const NOVA_LABELS: Record<number, string> = { 1: "brut", 2: "ingrédient culinaire", 3: "transformé", 4: "ultra-transformé" };
-
-// ——— Fiche produit (après un scan, ou depuis l'inventaire) ———
-
-function Stat({ label, children }: { label: string; children: ReactNode }) {
-  return (
-    <div className="flex min-h-16 flex-col justify-center gap-1 rounded-2xl bg-paper-deep/70 px-3 py-2">
-      <span className="text-[0.7rem] font-semibold tracking-[0.1em] text-muted-foreground uppercase">{label}</span>
-      <div className="font-semibold">{children}</div>
-    </div>
-  );
-}
-
-function ProductDetails({ product, code, hideName = false }: { product: ProductInfo; code?: string; hideName?: boolean }) {
-  const warnings = babyWarnings(product);
-  return (
-    <div className="flex flex-col gap-4">
-      <div className="flex items-center gap-4">
-        <span className="grid size-24 shrink-0 place-items-center overflow-hidden rounded-3xl bg-white ring-1 ring-border">
-          {product.image ? <img src={product.image} alt={`Photo : ${product.name}`} className="size-full object-contain" /> : <Art name="sprig" className="size-16" />}
-        </span>
-        <div className="min-w-0">
-          {!hideName && <p className="font-heading text-xl leading-tight">{product.name}</p>}
-          {(product.brand || product.quantity) && <p className="mt-1 text-sm text-muted-foreground">{[product.brand, product.quantity].filter(Boolean).join(" · ")}</p>}
-        </div>
-      </div>
-
-      <div className="grid grid-cols-3 gap-2">
-        <Stat label="Nutri-Score">{product.nutriscore ? <NutriScale grade={product.nutriscore} /> : <span className="text-sm text-muted-foreground">inconnu</span>}</Stat>
-        <Stat label="NOVA">
-          {product.nova ? (
-            <span className={cn("inline-flex rounded-full px-2.5 py-0.5 text-sm", NOVA_TONES[product.nova])} title={NOVA_LABELS[product.nova]}>
-              {product.nova} <span className="sr-only">: {NOVA_LABELS[product.nova]}</span>
-            </span>
-          ) : (
-            <span className="text-sm text-muted-foreground">inconnu</span>
-          )}
-        </Stat>
-        <Stat label="Additifs">
-          <span className="tabular-nums">{product.additives.length}</span>
-        </Stat>
-      </div>
-
-      {warnings.length ? (
-        <Box tone="ochre" title="Pour bébé" icon={<Baby className="size-5" aria-hidden />}>
-          <ul className="flex list-disc flex-col gap-1 pl-5">
-            {warnings.map((w) => (
-              <li key={w}>{w}</li>
-            ))}
-          </ul>
-        </Box>
-      ) : (
-        <Box tone="sage" title="Pour bébé" icon={<Baby className="size-5" aria-hidden />}>
-          Ni sel, ni sucre, ni miel, ni édulcorant repéré dans les ingrédients.
-        </Box>
-      )}
-
-      {product.allergens.length > 0 && (
-        <div>
-          <p className="mb-1.5 text-sm font-semibold">Allergènes</p>
-          <div className="flex flex-wrap gap-1.5">
-            {product.allergens.map((a) => (
-              <span key={a} className="rounded-full bg-plum-soft px-3 py-1 text-sm font-semibold text-plum-ink first-letter:uppercase">
-                {a}
-              </span>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {(product.ingredientsText || product.additives.length > 0) && (
-        <details className="group rounded-2xl bg-paper-deep/50 px-4 text-sm">
-          <summary className="flex min-h-12 cursor-pointer list-none items-center justify-between font-semibold">
-            Ingrédients et additifs
-            <ChevronRight className="size-4 transition-transform group-open:rotate-90" aria-hidden />
-          </summary>
-          {product.ingredientsText && <p className="pb-3 leading-relaxed text-muted-foreground">{product.ingredientsText}</p>}
-          {product.additives.length > 0 && <p className="pb-3 text-muted-foreground">Additifs : {product.additives.join(", ")}</p>}
-        </details>
-      )}
-
-      {code && (
-        <a href={offPage(code)} target="_blank" rel="noreferrer" className="inline-flex min-h-12 items-center gap-1.5 self-start text-sm font-semibold text-primary-ink underline-offset-4 hover:underline">
-          Voir sur Open Food Facts <ExternalLink className="size-3.5" aria-hidden />
-        </a>
-      )}
-    </div>
-  );
-}
-
-function useLookup(code: string) {
-  const [state, setState] = useState<{ code: string; result: Lookup } | null>(null);
-  const [attempt, setAttempt] = useState(0);
-  useEffect(() => {
-    let cancelled = false;
-    void lookupProduct(code).then((result) => !cancelled && setState({ code, result }));
-    return () => {
-      cancelled = true;
-    };
-  }, [code, attempt]);
-  const result = state && state.code === code ? state.result : undefined;
-  return {
-    result,
-    retry: () => {
-      setState(null);
-      setAttempt((a) => a + 1);
-    },
-  };
-}
-
-function LocationPicker({ value, onChange }: { value: StorageLocation; onChange: (l: StorageLocation) => void }) {
-  return (
-    <fieldset>
-      <legend className="mb-2 text-sm font-semibold">Où le ranger ?</legend>
-      <Segmented className="flex w-full" value={value} onChange={onChange} options={LOCATIONS.map((l) => ({ value: l, label: LOCATION_LABELS[l] }))} />
-    </fieldset>
-  );
-}
-
-function MatchLine({ match, onClear }: { match?: Ingredient; onClear: () => void }) {
-  if (!match) return <p className="text-sm text-muted-foreground">Pas d'ingrédient reconnu : il sera rangé tel quel.</p>;
-  return (
-    <div className="flex items-center gap-3 rounded-2xl bg-sage-soft/60 py-1 pr-1 pl-2">
-      <Art name={illustrationOf(match.id) ?? "sprig"} className="size-10" />
-      <p className="min-w-0 flex-1 text-sm">
-        Reconnu : <span className="font-semibold">{match.name}</span>
-        <span className="block text-xs text-muted-foreground">Sert aux idées de recettes et aux courses.</span>
-      </p>
-      <Button variant="ghost" className="h-12 shrink-0 text-sage-ink" onClick={onClear}>
-        Ce n'est pas ça
-      </Button>
-    </div>
-  );
-}
-
-function ScanSheet({
-  code,
-  open,
-  ingredients,
-  onOpenChange,
-  onAdded,
-  onRescan,
-}: {
-  code: string;
-  open: boolean;
-  ingredients: Ingredient[];
-  onOpenChange: (o: boolean) => void;
-  onAdded: (items: InventoryItem[]) => void;
-  onRescan: () => void;
-}) {
-  const [weekStart] = useSelectedWeek();
-  const { result, retry } = useLookup(code);
-  const product = result?.status === "found" ? result.product : undefined;
-  const [nameEdit, setName] = useState<string | null>(null);
-  const name = nameEdit ?? product?.name ?? "";
-  const [noMatch, setNoMatch] = useState(false);
-  const match = useMemo(() => (noMatch || !name.trim() ? undefined : matchProduct(name, ingredients)), [noMatch, name, ingredients]);
-  const [locEdit, setLoc] = useState<StorageLocation | null>(null);
-  const location = locEdit ?? guessLocation(match);
-  const ready = !!result && !!name.trim();
-
-  const store = () => {
-    const item: NewItem = { name: name.trim(), ingredientId: match?.id, location, barcode: isBarcode(code) ? code : undefined, product };
-    onAdded(actions.addInventory([item]));
-  };
-
-  return (
-    <Sheet
-      open={open}
-      onOpenChange={onOpenChange}
-      title={product ? "Produit scanné" : result?.status === "offline" ? "Pas de réseau" : result ? "Produit inconnu" : "Recherche du produit…"}
-      description={`Code ${code}`}
-      footer={
-        result && (
-          <div className="flex flex-col gap-2">
-            <Button size="lg" className="h-14 w-full text-base" disabled={!ready} onClick={store}>
-              <Check aria-hidden /> Ajouter {INTO[location]}
-            </Button>
-            <Button
-              variant="outline"
-              size="lg"
-              className="h-12 w-full"
-              disabled={!ready}
-              onClick={() => {
-                addToShopping(weekStart, match?.name ?? name);
-                onOpenChange(false);
-              }}
-            >
-              <ShoppingBasket aria-hidden /> Ajouter aux courses
-            </Button>
-          </div>
-        )
-      }
-    >
-      {!result ? (
-        <div className="flex flex-col gap-4" aria-busy="true" aria-label="Chargement de la fiche produit">
-          <div className="flex items-center gap-4">
-            <div className="size-24 animate-pulse rounded-3xl bg-paper-deep" />
-            <div className="flex flex-1 flex-col gap-2">
-              <div className="h-6 w-3/4 animate-pulse rounded-full bg-paper-deep" />
-              <div className="h-4 w-1/2 animate-pulse rounded-full bg-paper-deep" />
-            </div>
-          </div>
-          <div className="grid grid-cols-3 gap-2">
-            {[0, 1, 2].map((i) => (
-              <div key={i} className="h-16 animate-pulse rounded-2xl bg-paper-deep" style={{ animationDelay: `${i * 90}ms` }} />
-            ))}
-          </div>
-          <div className="h-24 animate-pulse rounded-3xl bg-paper-deep" />
-        </div>
-      ) : (
-        <div className="flex flex-col gap-5">
-          {product ? (
-            <ProductDetails product={product} code={code} />
-          ) : result.status === "offline" ? (
-            <div className="flex items-start gap-3 rounded-3xl bg-ochre-soft px-4 py-4 text-ochre-ink">
-              <WifiOff className="mt-0.5 size-5 shrink-0" aria-hidden />
-              <div className="text-sm">
-                <p className="font-semibold">La fiche n'a pas pu être chargée.</p>
-                <p className="mt-1 text-foreground">Vérifie ta connexion. Tu peux aussi le nommer et le ranger quand même.</p>
-                <Button variant="outline" className="mt-3 h-12 border-ochre-ink/40" onClick={retry}>
-                  Réessayer
-                </Button>
-              </div>
-            </div>
-          ) : (
-            <div className="flex items-center gap-4 rounded-3xl bg-paper-deep/70 px-4 py-4">
-              <Art name="sprig" className="size-16 shrink-0" />
-              <div className="text-sm">
-                <p className="font-semibold">{isBarcode(code) ? "Open Food Facts ne connaît pas ce produit." : "Ce code n'est pas un code-barres de produit."}</p>
-                <p className="mt-1 text-muted-foreground">Donne-lui un nom pour le ranger, ou scanne à nouveau.</p>
-                <Button variant="outline" className="mt-3 h-12" onClick={onRescan}>
-                  <ScanBarcode aria-hidden /> Scanner à nouveau
-                </Button>
-              </div>
-            </div>
-          )}
-
-          <div className="flex flex-col gap-2">
-            <label htmlFor="scan-name" className="text-sm font-semibold">
-              Nom
-            </label>
-            <Input
-              id="scan-name"
-              value={name}
-              placeholder="Ex. lentilles vertes"
-              onChange={(e) => {
-                setName(e.target.value);
-                setNoMatch(false);
-              }}
-              className="h-12 text-base"
-            />
-            <MatchLine match={match} onClear={() => setNoMatch(true)} />
-          </div>
-
-          <LocationPicker value={location} onChange={setLoc} />
-        </div>
-      )}
-    </Sheet>
-  );
-}
-
 function ItemSheet({ item, ingredient, onOpenChange }: { item?: InventoryItem; ingredient?: Ingredient; onOpenChange: (o: boolean) => void }) {
   const [weekStart] = useSelectedWeek();
   // Garde le contenu affiché pendant l'animation de fermeture.
@@ -652,7 +303,7 @@ function ItemSheet({ item, ingredient, onOpenChange }: { item?: InventoryItem; i
               size="lg"
               className="h-12"
               onClick={() => {
-                addToShopping(weekStart, ingredient?.name ?? shown.name);
+                addNameToShopping(weekStart, ingredient?.name ?? shown.name);
                 onOpenChange(false);
               }}
             >
@@ -675,6 +326,18 @@ function ItemSheet({ item, ingredient, onOpenChange }: { item?: InventoryItem; i
             </div>
           )}
           <LocationPicker value={shown.location} onChange={(l) => moveItem(shown, l)} />
+          {shown.barcode && (
+            <Button
+              variant="ghost"
+              className="h-12 self-start px-3 text-primary-ink"
+              onClick={() => {
+                onOpenChange(false);
+                go(`/produit/${encodeURIComponent(shown.barcode!)}`);
+              }}
+            >
+              <PackageSearch aria-hidden /> Fiche complète, favori, à éviter
+            </Button>
+          )}
         </div>
       )}
     </Sheet>
