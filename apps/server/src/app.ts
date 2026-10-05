@@ -96,8 +96,10 @@ export function createApp({ db, household, config, services = {} }: { db: Db; ho
   });
 
   // ——— En direct (Server-Sent Events) ———
-  app.get("/api/events", (c) =>
-    streamSSE(c, async (stream) => {
+  app.get("/api/events", (c) => {
+    // Derrière nginx : pas de mise en tampon, sinon le direct arrive par paquets.
+    c.header("X-Accel-Buffering", "no");
+    return streamSSE(c, async (stream) => {
       const { version } = household.snapshot();
       await stream.writeSSE({ event: "hello", data: JSON.stringify({ version, ha: services.ha?.status() }) });
       const unsubscribe = household.subscribe((applied) => {
@@ -110,8 +112,8 @@ export function createApp({ db, household, config, services = {} }: { db: Db; ho
       await new Promise<void>((resolve) => stream.onAbort(resolve));
       clearInterval(heartbeat);
       unsubscribe();
-    }),
-  );
+    });
+  });
 
   // ——— Home Assistant ———
   app.get("/api/ha/status", (c) => c.json(services.ha ? services.ha.status() : { enabled: false }));

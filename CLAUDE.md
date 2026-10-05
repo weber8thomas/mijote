@@ -2,7 +2,15 @@
 
 Planificateur de repas familial de saison, partagé avec un bébé de 11-12 mois. Spécification complète : voir le plan d'implémentation (phases 0 → 7).
 
-**État actuel : vitrine statique** déployée sur GitHub Pages (https://weber8thomas.github.io/mijote/). Pas de serveur : données dans `localStorage`, synchro entre onglets via l'évènement `storage`, IA simulée avec `content/ai-samples.json`. Le serveur Hono + SQLite (phase 3) remplacera `apps/web/src/data/store.ts` ; les hooks `useWeek`, `useShopping`, `useRecipes` imitent déjà la future API.
+**Deux modes, même appli.** Vitrine statique sur GitHub Pages (https://weber8thomas.github.io/mijote/) : données dans `localStorage`, synchro entre onglets via `storage`, IA simulée (`content/ai-samples.json`) ou clé de l'appareil. **Serveur du foyer** (`apps/server`, Docker chez soi) : l'appli le détecte au démarrage (`GET /api/health`, jamais sur `*.github.io`) et passe en mode serveur (`apps/web/src/data/sync.ts`).
+
+## État partagé et serveur (phase 3)
+- Toute la logique du foyer est pure : `applyAction(state, action)` (`packages/shared/src/state.ts`). Heure, graine et ids sont dans l'action ; pas de bascule (`setChecked` explicite). Rejouer un journal donne le même état. `store.ts` = `dispatch` → `applyActionWithResult` → `actionSink`.
+- Téléphone en mode serveur : affiché = état confirmé + actions en attente rejouées ; file gardée hors ligne (`mijote-sync-v1`), envoi idempotent (`actionId`), direct SSE `/api/events`, rattrapage `/api/actions?since=` (410 → état complet). « Rejoindre le foyer » : `views/join.tsx`. Champs propres à l'appareil (`member`, `integrations`, `haSync`) jamais envoyés (`pickHousehold`).
+- Serveur : Hono + better-sqlite3/Drizzle (`household_state`, `action_log` 30 j, `member`, `session`, `meta`), phrase secrète (`HOUSEHOLD_PASSPHRASE`) → cookie httpOnly 1 an, sauvegarde quotidienne `VACUUM INTO`. Réglages par env (`apps/server/src/config.ts`, `.env.example`).
+- Home Assistant côté serveur (`apps/server/src/ha.ts`, client `@mijote/shared/ha-client`) : même `reconcileTodo`, jeton jamais sur les téléphones ; liste Google Keep (Gemini, « Ok Google ») via Google Keep Sync, articles reconnus par leur texte. En mode serveur `lib/ha-sync.ts` ne fait rien.
+- Claude : `@mijote/shared/ai` (invites, schémas, `convert`, images en base64). Serveur `/api/ai/*` avec limite du jour du foyer ; vitrine = appel direct (`lib/claude.ts` choisit).
+- Docker : `Dockerfile` (racine, multi-étapes, non-root via `docker/entrypoint.sh`), `docker-compose.yml` (profil `with-caddy`), image `ghcr.io/weber8thomas/mijote` (`.github/workflows/docker.yml`). Installation : README.
 
 ## Organisation
 - `packages/shared` — schémas Zod, règles bébé + linter, saisons, unités, prix, planificateur déterministe (`planner/`), liste de courses, contenu chargé (`content.ts`). Testé par Vitest.
@@ -15,9 +23,9 @@ Planificateur de repas familial de saison, partagé avec un bébé de 11-12 mois
 - Liste partagée avec Home Assistant, dans les deux sens : la liste « À faire » HA (`todo.mijote_courses`, Liste de tâches locale) est la référence que lisent et modifient Assist, Gemini/Google via HA, l'appli HA et l'autre téléphone. Réconciliation pure et testée `reconcileTodo` (`packages/shared/src/ha-sync.ts`, marqueur `mijote:<id>` en description), application et déclencheurs dans `apps/web/src/lib/ha-sync.ts` (ouverture, retour, 30 s, 1,5 s après un changement), état `state.haSync`, ligne d'état `components/ha-status.tsx`. Semaine synchronisée : `shoppingWeek()`.
 - Produits façon Yuka : fiche `#/produit/<code>` (`views/product.tsx`, briques dans `components/product.tsx`), « Mes produits » `#/produits` (historique, favoris, à éviter pour bébé ; `state.products`), recherche par nom Open Food Facts (`searchProducts`, `lib/off.ts`, seulement à la validation), scanner global `openScan(mode)` (`components/scan.tsx` : fiche, placard, magasin — en magasin, scanner coche l'article via `matchShoppingItem`).
 - Placard & frigo (`views/pantry.tsx`, route `#/placard`) : inventaire, scan de code-barres (`components/scanner.tsx`, BarcodeDetector ou polyfill zxing), `rankByInventory` (`packages/shared/src/inventory.ts`). Ce qui est à la maison sort de la liste de courses.
-- Claude (`lib/claude.ts`) : clé API du foyer stockée sur l'appareil seulement (`integrations.ai`, jamais exportée), appel direct depuis le navigateur, sorties structurées (Zod) → `Recipe` → `lintRecipe`, une correction au plus. Idées, avec ce que j'ai, lien (`web_fetch`), photo de recette, photo du frigo. Brouillons dans `state.aiDrafts`, ingrédients inconnus créés « à vérifier » (`customIngredients`).
+- Claude (`@mijote/shared/ai`, `lib/claude.ts`) : par le serveur du foyer, ou dans la vitrine avec la clé de l'appareil (`integrations.ai`, jamais exportée) ; sorties structurées (Zod) → `Recipe` → `lintRecipe`, une correction au plus. Idées, avec ce que j'ai, lien (`web_fetch`), photo de recette, photo du frigo. Brouillons dans `state.aiDrafts`, ingrédients inconnus créés « à vérifier » (`customIngredients`).
 - Appui long (`components/preview.tsx`) : l'aperçu reste ouvert au relâchement (façon menu contextuel iOS). Recherche globale : `components/search.tsx` (loupe, `/` ou Ctrl/Cmd+K).
-- `scripts/` — `lint-bebe.ts`, `e2e.ts` (parcours Playwright), `shots.ts` (captures dans `design/screens`).
+- `scripts/` — `lint-bebe.ts`, `e2e.ts` (parcours vitrine), `e2e-server.ts` (serveur du foyer), `shots.ts` (captures dans `design/screens`).
 - `design/DESIGN.md` — identité, jetons, règles.
 
 ## Commandes
@@ -29,6 +37,8 @@ npm run typecheck    # tsc -b
 npm test             # vitest (planificateur, courses, linter)
 npm run lint:bebe    # chaque recette contre les règles 11-12 mois
 npm run build && npm run preview   # puis : npm run test:e2e
+npm run dev:server   # serveur du foyer (HOUSEHOLD_PASSPHRASE=…), npm run dev parle à lui via /api
+npm run build:web:server && npm run test:e2e:server   # deux téléphones + faux HA + faux Claude
 ```
 
 ## Règles
@@ -36,4 +46,5 @@ npm run build && npm run preview   # puis : npm run test:e2e
 - Le planificateur reste déterministe (graine) et sans IA ; toute nouvelle contrainte a son test.
 - Textes en français, tutoiement, phrases courtes. Cibles tactiles ≥ 48 px.
 - Chromium est préinstallé (`/opt/pw-browsers/chromium`) : ne pas lancer `playwright install`.
-- Déploiement : push sur `main` → workflow `.github/workflows/pages.yml`.
+- Déploiement : push sur `main` → `.github/workflows/pages.yml` (vitrine) et `docker.yml` (image du serveur).
+- Clés et jetons : sur l'appareil dans la vitrine (jamais exportés), dans l'env du serveur sinon (jamais envoyés aux téléphones).

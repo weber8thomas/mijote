@@ -6,3 +6,6 @@ dist-server
 design/screens/*
 !design/screens/.gitkeep
 test-results
+/caddy
+/data
+/.env

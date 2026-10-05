@@ -1,0 +1,27 @@
+# Mijoté chez soi : cp .env.example .env, remplis-le, puis docker compose up -d
+# Avec un proxy existant (nginx, Traefik, NPM, Caddy…) : pointe-le vers le port 8080.
+# Sans proxy : docker compose --profile with-caddy up -d (certificat https automatique pour MIJOTE_DOMAIN).
+services:
+  mijote:
+    image: ghcr.io/weber8thomas/mijote:latest
+    build: .
+    restart: unless-stopped
+    env_file: .env
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./data:/data
+
+  caddy:
+    image: caddy:2
+    profiles: [with-caddy]
+    restart: unless-stopped
+    depends_on: [mijote]
+    environment:
+      MIJOTE_DOMAIN: ${MIJOTE_DOMAIN:-mijote.localhost}
+    command: caddy reverse-proxy --from ${MIJOTE_DOMAIN:-mijote.localhost} --to mijote:8080
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./caddy:/data
