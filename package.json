@@ -3,16 +3,21 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
-  "workspaces": ["apps/*", "packages/*"],
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
   "scripts": {
     "dev": "npm run dev -w @mijote/web",
     "build": "npm run build -w @mijote/web",
     "preview": "npm run preview -w @mijote/web",
     "lint": "oxlint",
-    "typecheck": "tsc -b packages/shared apps/web",
+    "typecheck": "tsc -b packages/shared apps/web apps/server",
     "test": "vitest run",
     "lint:bebe": "tsx scripts/lint-bebe.ts",
-    "test:e2e": "tsx scripts/e2e.ts"
+    "test:e2e": "tsx scripts/e2e.ts",
+    "dev:server": "npm run dev -w @mijote/server",
+    "build:server": "npm run build -w @mijote/server"
   },
   "devDependencies": {
     "@types/node": "^24.13.3",

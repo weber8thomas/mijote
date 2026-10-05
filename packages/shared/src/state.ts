@@ -152,6 +152,39 @@ export type Action =
 
 export type ActionType = Action["type"];
 
+/** Les noms d'actions connus (contrôle des actions reçues par le serveur). */
+const KNOWN: Record<ActionType, true> = {
+  generate: true,
+  reroll: true,
+  choose: true,
+  unchoose: true,
+  reopen: true,
+  validate: true,
+  setChecked: true,
+  setHave: true,
+  addToShopping: true,
+  haChanges: true,
+  removeShoppingItem: true,
+  restoreShoppingItem: true,
+  addInventory: true,
+  updateInventory: true,
+  removeInventory: true,
+  rememberProduct: true,
+  markProduct: true,
+  forgetProduct: true,
+  setPantry: true,
+  setStatus: true,
+  addIngredients: true,
+  addAiDrafts: true,
+  removeAiDraft: true,
+  addRecipe: true,
+  markDraftsSeen: true,
+  updateHousehold: true,
+  setPrice: true,
+  replaceHousehold: true,
+};
+export const isAction = (a: unknown): a is Action => !!a && typeof a === "object" && typeof (a as { type?: unknown }).type === "string" && (a as { type: string }).type in KNOWN;
+
 /** Ce qu'une action renvoie à l'écran qui l'a lancée (articles ajoutés…). */
 export type ActionResult = { items?: ShoppingItem[]; inventory?: InventoryItem[] };
 
