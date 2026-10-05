@@ -19,6 +19,7 @@ import {
   rerollChoices,
   type Household,
   type InventoryItem,
+  type ProductInfo,
   type Ingredient,
   type Recipe,
   type RecipeStatus,
@@ -52,8 +53,24 @@ export type State = {
   aiDrafts?: Recipe[];
   /** Ingrédients créés par l'IA pour ses recettes (« à vérifier »). */
   customIngredients?: Ingredient[];
+  /** Produits scannés ou consultés (Open Food Facts), par code-barres. */
+  products?: Record<string, ProductMemo>;
   /** Connexions : Home Assistant, IA. Gardées sur cet appareil, jamais exportées. */
   integrations?: Integrations;
+  /** État de la synchro de la liste avec Home Assistant (propre à cet appareil). */
+  haSync?: HaSyncState;
+};
+
+/** Un produit retenu : sa fiche, quand on l'a vu, et la marque du foyer (favori, à éviter pour bébé). */
+export type ProductMemo = { product: ProductInfo; firstSeen: string; lastSeen: string; scans: number; mark?: "favori" | "eviter" };
+
+/** Ce que Mijoté sait de la liste Home Assistant depuis la dernière synchro. */
+export type HaSyncState = {
+  weekStart: string;
+  lastSync?: string;
+  lastError?: string;
+  /** Article Mijoté → article HA tel qu'il était à la dernière synchro. */
+  synced: Record<string, { uid: string; status: "needs_action" | "completed"; summary: string }>;
 };
 
 export type Integrations = {
@@ -344,6 +361,27 @@ export const actions = {
     set(refreshAllShopping({ ...state, inventory: (state.inventory ?? []).filter((i) => i.id !== id) }));
   },
 
+  /** Retient un produit consulté ou scanné (« Mes produits »). */
+  rememberProduct(code: string, product: ProductInfo, scanned = false) {
+    const now = new Date().toISOString();
+    const old = state.products?.[code];
+    const memo: ProductMemo = { product, firstSeen: old?.firstSeen ?? now, lastSeen: now, scans: (old?.scans ?? 0) + (scanned ? 1 : 0), mark: old?.mark };
+    set({ ...state, products: { ...state.products, [code]: memo } });
+  },
+
+  /** Favori, à éviter pour bébé, ou rien. */
+  markProduct(code: string, mark: ProductMemo["mark"]) {
+    const old = state.products?.[code];
+    if (!old) return;
+    set({ ...state, products: { ...state.products, [code]: { ...old, mark } } });
+  },
+
+  forgetProduct(code: string) {
+    const { [code]: _gone, ...rest } = state.products ?? {};
+    void _gone;
+    set({ ...state, products: rest });
+  },
+
   setIntegrations(patch: Partial<Integrations>) {
     set({ ...state, integrations: { ...state.integrations, ...patch } });
   },
@@ -412,8 +450,9 @@ export const actions = {
 
   exportJSON() {
     // Les clés et jetons (IA, Home Assistant) restent sur l'appareil : jamais dans une sauvegarde.
-    const { integrations: _secrets, ...rest } = state;
+    const { integrations: _secrets, haSync: _sync, ...rest } = state;
     void _secrets;
+    void _sync;
     return JSON.stringify({ app: "mijote", version: 1, exportedAt: new Date().toISOString(), state: rest }, null, 2);
   },
 
