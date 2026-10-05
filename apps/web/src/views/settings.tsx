@@ -1,6 +1,8 @@
 import { formatPrice, householdPortions, type Ingredient } from "@mijote/shared";
-import { ChevronLeft, ChevronRight, Download, HouseWifi, KeyRound, Mic, Minus, Package, PackageSearch, Plus, RotateCcw, Smartphone, Sparkles, Upload, Users } from "lucide-react";
-import { useMemo, useRef, useState, type ReactNode } from "react";
+import { formatDistanceToNowStrict } from "date-fns";
+import { fr } from "date-fns/locale";
+import { ChevronLeft, ChevronRight, Download, HouseWifi, KeyRound, LogOut, Mic, Minus, Package, PackageSearch, Plus, RotateCcw, Smartphone, Sparkles, Trash2, Upload, Users } from "lucide-react";
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { toast } from "sonner";
 import { LogoMark } from "@/components/brand";
 import { Art } from "@/components/art";
@@ -11,6 +13,7 @@ import { Sheet } from "@/components/sheet";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { actions, ingredientsOf, useStore } from "@/data/store";
+import { currentMember, isServerMode, leaveHousehold, listMembers, removeMember, renameSelf, useServerHa, useSyncMode, type MemberInfo } from "@/data/sync";
 import { isIOS, isStandalone, promptInstall, useCanInstall } from "@/lib/install";
 import { back, go } from "@/lib/router";
 
@@ -23,6 +26,10 @@ export function SettingsView() {
   const [ha, setHa] = useState(false);
   const [voice, setVoice] = useState(false);
   const [ai, setAi] = useState(false);
+  const [members, setMembers] = useState(false);
+  const mode = useSyncMode();
+  const onServer = isServerMode();
+  const serverHa = useServerHa();
 
   const exportFile = () => {
     const blob = new Blob([actions.exportJSON()], { type: "application/json" });
@@ -82,13 +89,24 @@ export function SettingsView() {
           </LinkRow>
         </Group>
 
-        <Group title="Membres et appareils">
-          <Row label="Nom de cet appareil" hint="Affiché quand tu coches un article.">
-            <Input defaultValue={s.member} onBlur={(e) => actions.setMember(e.target.value.trim() || "Moi")} className="h-11 w-36 text-base" />
-          </Row>
-          <SoonRow icon={<Users className="size-5" />}>Membres du foyer</SoonRow>
-          <SoonRow icon={<KeyRound className="size-5" />}>Phrase secrète du foyer</SoonRow>
-        </Group>
+        {onServer ? (
+          <Group title="Membres et appareils">
+            <Row label="Ton prénom" hint="Affiché quand tu coches un article.">
+              <Input key={s.member} defaultValue={s.member} onBlur={(e) => void renameSelf(e.target.value)} className="h-11 w-36 text-base" />
+            </Row>
+            <LinkRow onClick={() => setMembers(true)} icon={<Users className="size-5" />} detail={mode === "online" ? "connecté" : "hors ligne"}>
+              Serveur du foyer
+            </LinkRow>
+          </Group>
+        ) : (
+          <Group title="Membres et appareils">
+            <Row label="Nom de cet appareil" hint="Affiché quand tu coches un article.">
+              <Input defaultValue={s.member} onBlur={(e) => actions.setMember(e.target.value.trim() || "Moi")} className="h-11 w-36 text-base" />
+            </Row>
+            <SoonRow icon={<Users className="size-5" />}>Membres du foyer (avec le serveur)</SoonRow>
+            <SoonRow icon={<KeyRound className="size-5" />}>Phrase secrète du foyer (avec le serveur)</SoonRow>
+          </Group>
+        )}
 
         <Group title="Maison et connexions">
           <LinkRow onClick={() => go("/placard")} icon={<Package className="size-5" />}>
@@ -97,7 +115,7 @@ export function SettingsView() {
           <LinkRow onClick={() => go("/produits")} icon={<PackageSearch className="size-5" />}>
             Mes produits
           </LinkRow>
-          <LinkRow onClick={() => setHa(true)} icon={<HouseWifi className="size-5" />} detail={s.integrations?.ha ? "relié" : undefined}>
+          <LinkRow onClick={() => setHa(true)} icon={<HouseWifi className="size-5" />} detail={(onServer ? serverHa?.enabled : s.integrations?.ha) ? "relié" : undefined}>
             Home Assistant
           </LinkRow>
           <LinkRow onClick={() => setAi(true)} icon={<Sparkles className="size-5" />} detail={s.integrations?.ai ? "relié" : undefined}>
@@ -122,18 +140,21 @@ export function SettingsView() {
           <LinkRow onClick={() => go("/installer")} icon={<Smartphone className="size-5" />}>
             Installer Mijoté sur le téléphone
           </LinkRow>
-          <LinkRow onClick={() => setResetting(true)} icon={<RotateCcw className="size-5" />}>
-            Remettre la démo à zéro
-          </LinkRow>
+          {!onServer && (
+            <LinkRow onClick={() => setResetting(true)} icon={<RotateCcw className="size-5" />}>
+              Remettre la démo à zéro
+            </LinkRow>
+          )}
         </Group>
 
         <Disclaimer />
         <p className="flex items-center gap-2 pb-4 text-xs text-muted-foreground">
-          <LogoMark className="size-5" mono /> Mijoté · vitrine de démonstration · données gardées sur cet appareil
+          <LogoMark className="size-5" mono /> {onServer ? "Mijoté · serveur du foyer · données partagées entre vos téléphones" : "Mijoté · vitrine de démonstration · données gardées sur cet appareil"}
         </p>
       </div>
 
       <PricesSheet open={prices} onOpenChange={setPrices} />
+      {onServer && <MembersSheet open={members} onOpenChange={setMembers} />}
       <HomeAssistantSheet open={ha} onOpenChange={setHa} />
       <VoiceSheet open={voice} onOpenChange={setVoice} />
       <ClaudeSheet open={ai} onOpenChange={setAi} />
@@ -290,6 +311,73 @@ function PricesSheet({ open, onOpenChange }: { open: boolean; onOpenChange: (o: 
           </li>
         ))}
       </ul>
+    </Sheet>
+  );
+}
+
+const seen = (iso: string) => (Date.now() - new Date(iso).getTime() < 60_000 ? "Vu à l'instant" : `Vu ${formatDistanceToNowStrict(new Date(iso), { locale: fr, addSuffix: true })}`);
+
+/** Serveur du foyer : les téléphones qui l'ont rejoint (renommer, retirer), et quitter le foyer. */
+function MembersSheet({ open, onOpenChange }: { open: boolean; onOpenChange: (o: boolean) => void }) {
+  const mode = useSyncMode();
+  const [list, setList] = useState<MemberInfo[]>();
+  const me = currentMember();
+  const load = () =>
+    listMembers()
+      .then(setList)
+      .catch(() => setList(undefined));
+  useEffect(() => {
+    if (open) void load();
+  }, [open]);
+
+  return (
+    <Sheet
+      open={open}
+      onOpenChange={onOpenChange}
+      title="Serveur du foyer"
+      description={mode === "online" ? `Connecté · ${list ? `${list.length} appareil${list.length > 1 ? "s" : ""}` : "…"}. Tout est partagé, en direct.` : "Hors ligne : tes changements partiront dès le retour du réseau."}
+      footer={
+        <Button
+          variant="ghost"
+          className="h-12 w-full"
+          onClick={() => {
+            onOpenChange(false);
+            void leaveHousehold();
+          }}
+        >
+          <LogOut aria-hidden /> Quitter le foyer sur ce téléphone
+        </Button>
+      }
+    >
+      <ul className="space-y-2">
+        {list?.map((m) => (
+          <li key={m.id} className="flex min-h-14 items-center gap-3 rounded-2xl bg-card px-4 py-2 shadow-card ring-1 ring-border">
+            <span className="min-w-0 flex-1">
+              <span className="block font-semibold">
+                {m.displayName}
+                {m.id === me?.id && <span className="font-normal text-muted-foreground"> · ce téléphone</span>}
+              </span>
+              <span className="block text-xs text-muted-foreground">{seen(m.lastSeen)}</span>
+            </span>
+            {m.id !== me?.id && (
+              <Button
+                variant="ghost"
+                size="icon-lg"
+                className="size-12"
+                aria-label={`Retirer ${m.displayName}`}
+                onClick={async () => {
+                  await removeMember(m.id).catch(() => undefined);
+                  toast(`${m.displayName} est retiré du foyer`, { description: "Ce téléphone devra redonner la phrase secrète." });
+                  void load();
+                }}
+              >
+                <Trash2 className="size-5" aria-hidden />
+              </Button>
+            )}
+          </li>
+        ))}
+      </ul>
+      <p className="mt-4 text-xs text-muted-foreground">Pour ajouter un téléphone : ouvre l'adresse du serveur et donne la phrase secrète du foyer (HOUSEHOLD_PASSPHRASE dans le .env).</p>
     </Sheet>
   );
 }

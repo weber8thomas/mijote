@@ -17,7 +17,9 @@
     "lint:bebe": "tsx scripts/lint-bebe.ts",
     "test:e2e": "tsx scripts/e2e.ts",
     "dev:server": "npm run dev -w @mijote/server",
-    "build:server": "npm run build -w @mijote/server"
+    "build:server": "npm run build -w @mijote/server",
+    "build:web:server": "npm run build -w @mijote/web -- --outDir dist-server",
+    "test:e2e:server": "tsx scripts/e2e-server.ts"
   },
   "devDependencies": {
     "@types/node": "^24.13.3",

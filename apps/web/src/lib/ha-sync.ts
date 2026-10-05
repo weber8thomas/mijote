@@ -1,6 +1,7 @@
 import { itemLine, reconcileTodo, type SyncLocalItem } from "@mijote/shared";
 import { useEffect, useSyncExternalStore } from "react";
 import { actions, getState, ingredientsOf, shoppingWeek, subscribe } from "@/data/store";
+import { isServerMode } from "@/data/sync";
 import { addItemMarked, getItems, HaError, removeItems, updateItem, type HaConfig } from "@/lib/home-assistant";
 
 // La liste « À faire » de Home Assistant est la référence partagée : Assist, Gemini ou Google (via HA),
@@ -8,6 +9,8 @@ import { addItemMarked, getItems, HaError, removeItems, updateItem, type HaConfi
 
 /** Liste partagée active : adresse, jeton, liste, et l'interrupteur « liste partagée » des réglages. */
 export const haConfig = (): HaConfig | null => {
+  // Avec le serveur du foyer, c'est lui qui synchronise (même téléphones fermés).
+  if (isServerMode()) return null;
   const ha = getState().integrations?.ha;
   return ha?.url && ha.token && ha.entity && ha.autoSync ? ha : null;
 };

@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { actions, today, useStore } from "@/data/store";
 import { AI_MODELS, DEFAULT_MODEL, testKey } from "@/lib/claude";
+import { checkHa, isServerMode, useServerHa, type HaCheck } from "@/data/sync";
 import { syncNow } from "@/lib/ha-sync";
 import { testConnection } from "@/lib/home-assistant";
 
@@ -45,8 +46,83 @@ function CopyLine({ value }: { value: string }) {
   );
 }
 
-/** Réglages Home Assistant : adresse, jeton longue durée, liste à faire. Gardés sur cet appareil. */
-export function HomeAssistantSheet({ open, onOpenChange }: { open: boolean; onOpenChange: (o: boolean) => void }) {
+/** Réglages Home Assistant : sur le serveur du foyer s'il y en a un, sinon sur cet appareil (vitrine). */
+export function HomeAssistantSheet(props: { open: boolean; onOpenChange: (o: boolean) => void }) {
+  return isServerMode() ? <ServerHaSheet {...props} /> : <DeviceHaSheet {...props} />;
+}
+
+/** Serveur du foyer : HA est réglé dans son fichier .env ; ici, l'état et un diagnostic. */
+function ServerHaSheet({ open, onOpenChange }: { open: boolean; onOpenChange: (o: boolean) => void }) {
+  const status = useServerHa();
+  const [check, setCheck] = useState<HaCheck>();
+  const [testing, setTesting] = useState(false);
+  const test = async () => {
+    setTesting(true);
+    try {
+      setCheck(await checkHa());
+    } catch (e) {
+      setCheck({ enabled: true, ok: false, error: e instanceof Error ? e.message : String(e) });
+    } finally {
+      setTesting(false);
+    }
+  };
+  const result = check ?? (status?.enabled ? undefined : { enabled: false });
+  return (
+    <Sheet
+      open={open}
+      onOpenChange={onOpenChange}
+      title="Home Assistant"
+      description="Le serveur du foyer synchronise la liste de courses avec une liste « À faire » de Home Assistant, toutes les 30 s et après chaque changement, même téléphones fermés."
+      footer={
+        <Button variant="outline" className="h-12 w-full" disabled={testing || status?.enabled === false} onClick={test}>
+          {testing ? <Loader2 className="animate-spin" aria-hidden /> : <PlugZap aria-hidden />} Tester la connexion
+        </Button>
+      }
+    >
+      <div className="space-y-4 text-sm">
+        {status?.enabled && (
+          <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 rounded-2xl bg-card p-4 shadow-card ring-1 ring-border">
+            <dt className="text-muted-foreground">Liste</dt>
+            <dd className="font-semibold">{status.entity}</dd>
+            <dt className="text-muted-foreground">Articles dans HA</dt>
+            <dd>{status.items ?? "…"}</dd>
+            <dt className="text-muted-foreground">Dernière synchro</dt>
+            <dd>{status.lastSync ? new Date(status.lastSync).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" }) : "pas encore"}</dd>
+            {status.descriptions === false && (
+              <>
+                <dt className="text-muted-foreground">Type</dt>
+                <dd>sans description (Google Keep) : articles reconnus par leur texte</dd>
+              </>
+            )}
+            {status.lastError && (
+              <>
+                <dt className="text-ochre-ink">Erreur</dt>
+                <dd className="text-ochre-ink">{status.lastError}</dd>
+              </>
+            )}
+          </dl>
+        )}
+        {result && (
+          <p role="status" className={result.ok ? "rounded-2xl bg-sage-soft/70 p-4 text-sage-ink" : "rounded-2xl bg-ochre-soft/70 p-4 text-ochre-ink"}>
+            {!result.enabled
+              ? "Pas encore relié : ajoute HA_URL et HA_TOKEN dans le fichier .env du serveur, puis redémarre-le."
+              : result.ok
+                ? `Home Assistant répond. ${result.entity} : ${result.items} article${(result.items ?? 0) > 1 ? "s" : ""}.`
+                : `Connexion impossible : ${result.error}`}
+          </p>
+        )}
+        <div className="space-y-2 rounded-2xl bg-paper-deep p-4">
+          <p className="font-semibold">Dans le fichier .env du serveur</p>
+          <pre className="overflow-x-auto rounded-xl bg-card/80 p-3 text-xs">{`HA_URL=http://homeassistant.local:8123\nHA_TOKEN=…jeton longue durée…\nHA_TODO_ENTITY=${status?.entity ?? "todo.mijote_courses"}`}</pre>
+          <p className="text-muted-foreground">Le jeton reste sur le serveur : il ne passe jamais par les téléphones. Pas besoin de CORS.</p>
+        </div>
+      </div>
+    </Sheet>
+  );
+}
+
+/** Vitrine : adresse, jeton longue durée, liste à faire, gardés sur cet appareil. */
+function DeviceHaSheet({ open, onOpenChange }: { open: boolean; onOpenChange: (o: boolean) => void }) {
   const s = useStore();
   const saved = s.integrations?.ha;
   const [url, setUrl] = useState(saved?.url ?? "");
@@ -140,7 +216,18 @@ export function VoiceSheet({ open, onOpenChange }: { open: boolean; onOpenChange
     <Sheet open={open} onOpenChange={onOpenChange} title="À la voix" description="Mijoté n'écoute pas : ton assistant le fait, puis renvoie vers Mijoté.">
       <div className="space-y-5 text-sm">
         <section className="space-y-2">
-          <h3 className="text-lg">Avec Home Assistant (le plus simple)</h3>
+          <h3 className="text-lg">Gemini et « Ok Google » (via Google Keep)</h3>
+          <p>Gemini et l'Assistant Google écrivent les courses dans Google Keep. Le serveur du foyer suit cette liste à travers Home Assistant :</p>
+          <ol className="list-decimal space-y-1 pl-5">
+            <li>Sur le téléphone : réglages de Gemini ou de l'Assistant → Notes et listes → Google Keep.</li>
+            <li>Dans HA : HACS → « Google Keep Sync », puis choisis ta liste « Courses » (elle devient todo.google_keep_courses).</li>
+            <li>Dans le .env du serveur : HA_TODO_ENTITY=todo.google_keep_courses.</li>
+            <li>Dis « Ok Google, ajoute du lait à ma liste de courses » : il arrive dans Mijoté en moins d'une minute.</li>
+          </ol>
+          <p className="text-muted-foreground">« Qu'y a-t-il sur ma liste de courses ? » marche aussi : Keep a la liste complète de Mijoté.</p>
+        </section>
+        <section className="space-y-2">
+          <h3 className="text-lg">Avec Home Assistant et Assist</h3>
           <p>Active « Liste partagée » dans Réglages → Home Assistant. La liste « Mijoté courses » de HA est alors la même que celle de Mijoté, dans les deux sens.</p>
           <p>Avec Assist (l'assistant de HA, qui peut remplacer l'assistant du téléphone sur Android) : « ajoute du lait à Mijoté courses », « qu'y a-t-il sur Mijoté courses ? ». Ce que tu dictes apparaît dans Mijoté ; ce que tu coches en magasin se coche dans HA.</p>
           <p>Gemini ou Google Assistant passent par la liaison de HA avec Google : selon ton installation, ils voient la liste HA. À vérifier chez toi.</p>

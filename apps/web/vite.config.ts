@@ -41,11 +41,14 @@ export default defineConfig({
       workbox: {
         globPatterns: ["**/*.{js,css,html,svg,png,woff2}"],
         navigateFallback: `${base}index.html`,
+        // Serveur du foyer : l'API n'est jamais servie par le cache.
+        navigateFallbackDenylist: [/\/api\//],
       },
     }),
   ],
   resolve: { alias: { "@": path.resolve(import.meta.dirname, "src") } },
-  server: { fs: { allow: ["../.."] } },
+  // `npm run dev:server` à côté : l'appli en dev parle au serveur du foyer (sinon, c'est la vitrine).
+  server: { fs: { allow: ["../.."] }, proxy: { "/api": { target: "http://localhost:8080", changeOrigin: false } } },
   // Vitrine : tout le contenu (recettes, ingrédients) est embarqué dans le bundle.
   build: { chunkSizeWarningLimit: 1200 },
 });

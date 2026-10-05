@@ -14,7 +14,7 @@ import { BadAction, type Envelope, type Household } from "./household";
 
 /** Services branchés à côté de l'API (Home Assistant, Claude). */
 export type Services = {
-  ha?: { status: () => unknown; check: () => Promise<unknown>; kick: () => void };
+  ha?: { status: () => unknown; check: () => Promise<unknown>; kick: () => void; sync: () => Promise<void> };
   ai?: { route: (app: Hono<Env>) => void };
 };
 
@@ -99,7 +99,7 @@ export function createApp({ db, household, config, services = {} }: { db: Db; ho
   app.get("/api/events", (c) =>
     streamSSE(c, async (stream) => {
       const { version } = household.snapshot();
-      await stream.writeSSE({ event: "hello", data: JSON.stringify({ version }) });
+      await stream.writeSSE({ event: "hello", data: JSON.stringify({ version, ha: services.ha?.status() }) });
       const unsubscribe = household.subscribe((applied) => {
         void stream.writeSSE({ event: "actions", data: JSON.stringify(applied) });
       });
@@ -116,9 +116,10 @@ export function createApp({ db, household, config, services = {} }: { db: Db; ho
   // ——— Home Assistant ———
   app.get("/api/ha/status", (c) => c.json(services.ha ? services.ha.status() : { enabled: false }));
   app.post("/api/ha/check", async (c) => c.json(services.ha ? await services.ha.check() : { enabled: false }));
-  app.post("/api/ha/sync", (c) => {
-    services.ha?.kick();
-    return c.json({ ok: true });
+  app.post("/api/ha/sync", async (c) => {
+    if (!services.ha) return c.json({ enabled: false });
+    await services.ha.sync();
+    return c.json(services.ha.status());
   });
 
   services.ai?.route(app);
