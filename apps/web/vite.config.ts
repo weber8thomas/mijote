@@ -1,3 +1,4 @@
+import { readFileSync } from "node:fs";
 import path from "node:path";
 import tailwindcss from "@tailwindcss/vite";
 import react from "@vitejs/plugin-react";
@@ -6,9 +7,12 @@ import { VitePWA } from "vite-plugin-pwa";
 
 // BASE_PATH="/mijote/" en déploiement GitHub Pages (voir .github/workflows/pages.yml).
 const base = process.env.BASE_PATH ?? "/";
+// Une seule version pour toute l'appli : celle du package.json à la racine (affichée dans Réglages → À propos).
+const { version } = JSON.parse(readFileSync(path.resolve(import.meta.dirname, "../../package.json"), "utf8")) as { version: string };
 
 export default defineConfig({
   base,
+  define: { __APP_VERSION__: JSON.stringify(version) },
   plugins: [
     react(),
     tailwindcss(),

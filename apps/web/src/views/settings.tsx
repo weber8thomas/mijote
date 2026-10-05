@@ -1,7 +1,7 @@
 import { formatPrice, householdPortions, type Ingredient } from "@mijote/shared";
 import { formatDistanceToNowStrict } from "date-fns";
 import { fr } from "date-fns/locale";
-import { ChevronLeft, ChevronRight, Download, HouseWifi, KeyRound, LogOut, Mic, Minus, Package, PackageSearch, Plus, RotateCcw, Smartphone, Sparkles, Trash2, Upload, Users } from "lucide-react";
+import { ChevronLeft, ChevronRight, Download, ExternalLink, HouseWifi, Info, KeyRound, LogOut, Mic, Minus, Package, PackageSearch, Plus, RotateCcw, Smartphone, Sparkles, Trash2, Upload, Users } from "lucide-react";
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { toast } from "sonner";
 import { LogoMark } from "@/components/brand";
@@ -16,6 +16,9 @@ import { actions, ingredientsOf, useStore } from "@/data/store";
 import { currentMember, hasServerAi, isServerMode, leaveHousehold, listMembers, removeMember, renameSelf, useServerHa, useSyncMode, type MemberInfo } from "@/data/sync";
 import { isIOS, isStandalone, promptInstall, useCanInstall } from "@/lib/install";
 import { back, go } from "@/lib/router";
+
+const APP_VERSION = typeof __APP_VERSION__ === "string" ? __APP_VERSION__ : "dev";
+const REPO_URL = "https://github.com/weber8thomas/mijote";
 
 export function SettingsView() {
   const s = useStore();
@@ -145,6 +148,19 @@ export function SettingsView() {
               Remettre la démo à zéro
             </LinkRow>
           )}
+        </Group>
+
+        <Group title="À propos">
+          <Row label="Mijoté" hint={onServer ? "Serveur du foyer : données partagées entre vos téléphones" : "Vitrine de démonstration : données gardées sur cet appareil"}>
+            <span className="rounded-full bg-sage-soft px-2.5 py-0.5 text-sm font-bold text-sage-ink">v{APP_VERSION}</span>
+          </Row>
+          <a href={REPO_URL} target="_blank" rel="noreferrer" className="flex min-h-14 w-full items-center gap-3 px-4 text-left font-semibold hover:bg-muted/60">
+            <span className="grid size-8 place-items-center text-primary-ink">
+              <Info className="size-5" />
+            </span>
+            <span className="flex-1">Code source et mises à jour</span>
+            <ExternalLink className="size-4 text-muted-foreground" aria-hidden />
+          </a>
         </Group>
 
         <Disclaimer />

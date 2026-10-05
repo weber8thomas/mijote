@@ -66,12 +66,13 @@ export async function pullNewItems(cfg: HaConfig, known: string[]): Promise<stri
 }
 
 /** Ajoute un article avec une description (marqueur Mijoté). Une liste qui ne gère pas les descriptions
- * (l'intégration « Liste de courses » historique) refuse le champ : on réessaie sans. */
+ * (l'intégration « Liste de courses » historique, Google Keep Sync) refuse le champ : HA répond 400, ou 500
+ * quand l'API REST ne traduit pas l'erreur de validation. On réessaie sans, sauf si le jeton ou le réseau est en cause. */
 export async function addItemMarked(cfg: HaConfig, summary: string, description: string) {
   try {
     await call(cfg, "/api/services/todo/add_item", { entity_id: cfg.entity, item: summary, description });
   } catch (e) {
-    if (e instanceof HaError && e.kind === "entity") await addItem(cfg, summary);
+    if (e instanceof HaError && (e.kind === "entity" || e.kind === "other")) await addItem(cfg, summary);
     else throw e;
   }
 }

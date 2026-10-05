@@ -16,7 +16,8 @@ function fakeHa({ keep }: { keep: boolean }) {
     if (path === "/api/") return ok({ message: "API running." });
     if (path === "/api/services/todo/get_items") return ok({ service_response: { [body.entity_id]: { items: todos.map((t) => ({ ...t })) } } });
     if (path === "/api/services/todo/add_item") {
-      if (keep && body.description) return new Response("description non gérée", { status: 400 });
+      // Le vrai HA renvoie 500 (ServiceValidationError non traduite par l'API REST) quand la liste ne gère pas les descriptions.
+      if (keep && body.description) return new Response("description non gérée", { status: 500 });
       todos.push({ uid: `u${n++}`, summary: body.item, status: "needs_action", ...(body.description ? { description: body.description } : {}) });
     }
     if (path === "/api/services/todo/update_item") {
