@@ -25,7 +25,7 @@ export function createApp({ db, household, config, services = {} }: { db: Db; ho
   const allowJoin = rateLimiter();
   const secure = config.publicUrl?.startsWith("https://") ?? false;
 
-  app.get("/api/health", (c) => c.json({ ok: true, app: "mijote", version: household.snapshot().version, ha: !!config.ha, ai: !!config.ai }));
+  app.get("/api/health", (c) => c.json({ ok: true, app: "mijote", version: household.snapshot().version, ha: !!services.ha, ai: !!services.ai }));
 
   // ——— Rejoindre le foyer ———
   app.post("/api/auth/join", async (c) => {
@@ -122,7 +122,8 @@ export function createApp({ db, household, config, services = {} }: { db: Db; ho
     return c.json(services.ha.status());
   });
 
-  services.ai?.route(app);
+  if (services.ai) services.ai.route(app);
+  else app.get("/api/ai/status", (c) => c.json({ enabled: false }));
 
   app.notFound((c) => (c.req.path.startsWith("/api/") ? c.json({ error: "Introuvable." }, 404) : spa(c, config.webDir)));
   app.onError((e, c) => {

@@ -3,7 +3,7 @@
 // Usage : npm run build:web:server && npm run build:server, puis npm run test:e2e:server
 // (WEB_DIR=… pour un autre build du front, construit avec BASE_PATH=/).
 import { spawn } from "node:child_process";
-import { existsSync, mkdtempSync, rmSync } from "node:fs";
+import { existsSync, mkdtempSync, readFileSync, rmSync } from "node:fs";
 import { createServer } from "node:http";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -15,6 +15,23 @@ if (!existsSync(join(webDir, "index.html"))) throw new Error(`Front introuvable 
 const executablePath = process.env.CHROMIUM ?? (existsSync("/opt/pw-browsers/chromium") ? "/opt/pw-browsers/chromium" : undefined);
 const PASS = "soupe-de-courge";
 
+// ——— Faux Anthropic : un brouillon tiré d'une recette du seed (qui passe le linter bébé) ———
+// oxlint-disable-next-line no-explicit-any
+type Json = any;
+const seed = (JSON.parse(readFileSync(join(root, "content/recipes/dinner.json"), "utf8")) as Json[])[1];
+const draft = {
+  ...Object.fromEntries(["description", "prepMinutes", "cookMinutes", "servingsBase", "steps", "ironScore", "mainProtein", "illustration"].map((k) => [k, seed[k] ?? ""])),
+  title: `${seed.title} (serveur)`,
+  slots: ["dinner"],
+  longCook: !!seed.longCook,
+  yieldsLeftovers: !!seed.yieldsLeftovers,
+  ingredients: seed.ingredients.map((i: Json) => ({ ingredientId: i.ingredientId, qty: i.qty, unit: i.unit, note: i.note ?? null, form: i.form ?? null, adultOnly: !!i.adultOnly })),
+  newIngredients: [],
+  babyAdaptation: { ...seed.babyAdaptation, notes: seed.babyAdaptation.notes ?? null },
+  tags: seed.tags ?? [],
+};
+let claudeKey: string | undefined;
+
 // ——— Faux Home Assistant : une liste « À faire » en mémoire ———
 type Todo = { uid: string; summary: string; status: "needs_action" | "completed"; description?: string };
 const todos: Todo[] = [];
@@ -25,6 +42,10 @@ const ha = createServer((req, res) => {
   req.on("end", () => {
     const body = raw ? JSON.parse(raw) : {};
     const send = (data: unknown) => (res.writeHead(200, { "Content-Type": "application/json" }), res.end(JSON.stringify(data)));
+    if (req.url?.startsWith("/v1/messages")) {
+      claudeKey = String(req.headers["x-api-key"]);
+      return send({ id: "msg", type: "message", role: "assistant", model: body.model, content: [{ type: "text", text: JSON.stringify({ recipes: [draft] }) }], stop_reason: "end_turn", stop_sequence: null, usage: { input_tokens: 1, output_tokens: 1 } });
+    }
     if (req.headers.authorization !== "Bearer jeton") return (res.writeHead(401), res.end());
     if (req.url === "/api/") return send({ message: "API running." });
     if (req.url === "/api/services/todo/get_items?return_response") return send({ service_response: { [body.entity_id]: { items: todos } } });
@@ -47,7 +68,7 @@ if (await fetch(`${base}api/health`).then(() => true, () => false)) throw new Er
 // Un seul processus (pas de npx) : il s'arrête bien à la fin.
 const server = spawn(process.execPath, ["--import", "tsx", "src/main.ts"], {
   cwd: join(root, "apps/server"),
-  env: { ...process.env, PORT: String(port), DATA_DIR: dataDir, WEB_DIR: webDir, HOUSEHOLD_PASSPHRASE: PASS, HA_URL: "http://localhost:8124", HA_TOKEN: "jeton", HA_TODO_ENTITY: "todo.courses", HA_SYNC_SECONDS: "2" },
+  env: { ...process.env, PORT: String(port), DATA_DIR: dataDir, WEB_DIR: webDir, HOUSEHOLD_PASSPHRASE: PASS, HA_URL: "http://localhost:8124", HA_TOKEN: "jeton", HA_TODO_ENTITY: "todo.courses", HA_SYNC_SECONDS: "2", ANTHROPIC_API_KEY: "sk-serveur", ANTHROPIC_BASE_URL: "http://localhost:8124" },
   stdio: ["ignore", "pipe", "pipe"],
 });
 let serverLog = "";
@@ -173,6 +194,21 @@ await step("réglages : serveur connecté, 2 appareils, HA relié", async () => 
   await a.page.getByRole("button", { name: /Home Assistant/ }).click();
   await a.page.getByRole("button", { name: "Tester la connexion" }).click();
   await a.page.getByText(/Home Assistant répond/).waitFor();
+});
+
+await step("Claude par le serveur : idées de dîners, brouillon gardé, vu sur l'autre téléphone", async () => {
+  await a.page.goto(`${base}#/recettes`);
+  await a.page.getByRole("button", { name: "Nouvelle recette" }).click();
+  await a.page.getByRole("button", { name: /Idées de saison/ }).click();
+  await a.page.getByRole("button", { name: "Dîners" }).click();
+  await a.page.getByText(draft.title).first().waitFor();
+  if (claudeKey !== "sk-serveur") throw new Error(`clé reçue par Anthropic : ${claudeKey}`);
+  await a.page.getByRole("button", { name: "Garder" }).first().click();
+  await a.page.getByText(/ajoutée à tes recettes/).waitFor();
+  await b.page.goto(`${base}#/recettes`);
+  await b.page.getByLabel(/Rechercher/).first().fill("(serveur)").catch(() => undefined);
+  await b.page.getByText(draft.title).first().waitFor();
+  await b.page.goto(`${base}#/courses`);
 });
 
 await step("rechargé : l'état vient du serveur", async () => {

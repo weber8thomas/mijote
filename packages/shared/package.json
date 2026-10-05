@@ -5,9 +5,11 @@
   "type": "module",
   "exports": {
     ".": "./src/index.ts",
-    "./ha-client": "./src/ha-client.ts"
+    "./ha-client": "./src/ha-client.ts",
+    "./ai": "./src/ai/claude.ts"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.131.0",
     "zod": "^4.6.5"
   }
 }

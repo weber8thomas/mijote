@@ -1,12 +1,12 @@
 import { Check, Copy, Loader2, PlugZap } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { Sheet } from "@/components/sheet";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { actions, today, useStore } from "@/data/store";
 import { AI_MODELS, DEFAULT_MODEL, testKey } from "@/lib/claude";
-import { checkHa, isServerMode, useServerHa, type HaCheck } from "@/data/sync";
+import { checkHa, fetchAiStatus, isServerMode, useServerHa, type HaCheck, type ServerAiStatus } from "@/data/sync";
 import { syncNow } from "@/lib/ha-sync";
 import { testConnection } from "@/lib/home-assistant";
 
@@ -246,8 +246,42 @@ export function VoiceSheet({ open, onOpenChange }: { open: boolean; onOpenChange
   );
 }
 
-/** Réglages Claude : clé API Anthropic, modèle, limite d'appels par jour. Gardés sur cet appareil. */
-export function ClaudeSheet({ open, onOpenChange }: { open: boolean; onOpenChange: (o: boolean) => void }) {
+/** Réglages Claude : sur le serveur du foyer s'il y en a un, sinon sur cet appareil (vitrine). */
+export function ClaudeSheet(props: { open: boolean; onOpenChange: (o: boolean) => void }) {
+  return isServerMode() ? <ServerClaudeSheet {...props} /> : <DeviceClaudeSheet {...props} />;
+}
+
+/** Serveur du foyer : la clé est dans son .env ; ici, l'état et l'usage du jour. */
+function ServerClaudeSheet({ open, onOpenChange }: { open: boolean; onOpenChange: (o: boolean) => void }) {
+  const [status, setStatus] = useState<ServerAiStatus>();
+  useEffect(() => {
+    if (open) fetchAiStatus().then(setStatus, () => setStatus(undefined));
+  }, [open]);
+  const model = AI_MODELS.find((m) => m.id === status?.model)?.label ?? status?.model;
+  return (
+    <Sheet open={open} onOpenChange={onOpenChange} title="Claude (IA)" description="Pour proposer des recettes, importer un lien ou une photo, et lire une photo du frigo. Les demandes passent par le serveur du foyer.">
+      <div className="space-y-4 text-sm">
+        {status?.enabled ? (
+          <p role="status" className="rounded-2xl bg-sage-soft/70 p-4 text-sage-ink">
+            Relié · {model}. Aujourd'hui : {status.used} demande{(status.used ?? 0) > 1 ? "s" : ""} sur {status.limit}, pour tout le foyer.
+          </p>
+        ) : (
+          <p role="status" className="rounded-2xl bg-ochre-soft/70 p-4 text-ochre-ink">
+            Pas encore relié : ajoute ANTHROPIC_API_KEY dans le fichier .env du serveur, puis redémarre-le.
+          </p>
+        )}
+        <div className="space-y-2 rounded-2xl bg-paper-deep p-4">
+          <p className="font-semibold">Dans le fichier .env du serveur</p>
+          <pre className="overflow-x-auto rounded-xl bg-card/80 p-3 text-xs">{`ANTHROPIC_API_KEY=sk-ant-…\nANTHROPIC_MODEL=${DEFAULT_MODEL}\nAI_DAILY_LIMIT=20`}</pre>
+          <p className="text-muted-foreground">La clé reste sur le serveur : aucun téléphone ne la voit. Utilise une clé dédiée, avec une limite de dépense.</p>
+        </div>
+      </div>
+    </Sheet>
+  );
+}
+
+/** Vitrine : clé API Anthropic, modèle, limite d'appels par jour, gardés sur cet appareil. */
+function DeviceClaudeSheet({ open, onOpenChange }: { open: boolean; onOpenChange: (o: boolean) => void }) {
   const s = useStore();
   const saved = s.integrations?.ai;
   const [apiKey, setApiKey] = useState(saved?.apiKey ?? "");

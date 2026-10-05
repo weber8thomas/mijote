@@ -26,7 +26,7 @@ export function FridgePhotoSheet({ photo, onClose, onAdded }: { photo: File | nu
     const cfg = aiConfig();
     const run = async () => {
       if (!cfg) throw new Error("Relie Claude dans les réglages.");
-      if (!actions.useAiCall()) throw new Error("Limite d'appels du jour atteinte.");
+      if (cfg !== "server" && !actions.useAiCall()) throw new Error("Limite d'appels du jour atteinte.");
       return readFridge(cfg, ingredientsOf(getState()).list, photo);
     };
     run().then(

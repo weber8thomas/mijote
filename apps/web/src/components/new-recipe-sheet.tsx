@@ -5,12 +5,14 @@ import { Sheet } from "@/components/sheet";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { actions, getState, ingredientsOf, recipesOf, today, useStore } from "@/data/store";
-import { AiError, fromInventory, fromPhoto, fromUrl, ideas, type AiConfig, type AiRecipe } from "@/lib/claude";
+import { hasServerAi, isServerMode } from "@/data/sync";
+import { AiError, fromInventory, fromPhoto, fromUrl, ideas, type AiRecipe, type AiTarget } from "@/lib/claude";
 import { go } from "@/lib/router";
 import { cn } from "@/lib/utils";
 
-/** Configuration Claude de cet appareil, si une clé est enregistrée. */
-export const aiConfig = (): AiConfig | null => {
+/** Où demander à Claude : au serveur du foyer s'il a une clé, sinon avec la clé de cet appareil (vitrine). */
+export const aiConfig = (): AiTarget | null => {
+  if (isServerMode()) return hasServerAi() ? "server" : null;
   const ai = getState().integrations?.ai;
   return ai?.apiKey ? { apiKey: ai.apiKey, model: ai.model } : null;
 };
@@ -27,10 +29,11 @@ export function atHomeNames() {
  * Lance un appel à Claude (limite du jour comprise) et range le résultat parmi les brouillons.
  * Les ingrédients nouveaux sont ajoutés « à vérifier » pour que la fiche s'affiche.
  */
-export async function runAi(call: (cfg: AiConfig) => Promise<AiRecipe[]>): Promise<Recipe[]> {
+export async function runAi(call: (cfg: AiTarget) => Promise<AiRecipe[]>): Promise<Recipe[]> {
   const cfg = aiConfig();
   if (!cfg) throw new AiError("Relie Claude dans les réglages.", "auth");
-  if (!actions.useAiCall()) throw new AiError("Limite d'appels du jour atteinte (réglable dans les réglages).", "rate");
+  // Avec le serveur, la limite du jour est comptée là-bas, pour tout le foyer.
+  if (cfg !== "server" && !actions.useAiCall()) throw new AiError("Limite d'appels du jour atteinte (réglable dans les réglages).", "rate");
   const results = await call(cfg);
   if (!results.length) throw new AiError("Aucune recette ne passe les règles bébé. Réessaie.", "invalid");
   actions.addIngredients(results.flatMap((r) => r.newIngredients));
@@ -55,8 +58,8 @@ export function NewRecipeSheet({
   /** Sans clé : idées pré-écrites de la démo. */
   onDemoIdeas: () => void;
 }) {
-  const s = useStore();
-  const hasAi = !!s.integrations?.ai?.apiKey;
+  useStore(); // suit la clé enregistrée dans les réglages
+  const hasAi = !!aiConfig();
   const [mode, setMode] = useState<"menu" | "ideas" | "link">("menu");
   const [url, setUrl] = useState("");
   const photo = useRef<HTMLInputElement>(null);

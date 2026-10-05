@@ -6,7 +6,7 @@ import { Dialog as DialogPrimitive } from "radix-ui";
 import { useMemo, useState, useSyncExternalStore } from "react";
 import { Art, Plate } from "@/components/art";
 import { Chip, RecipeMeta } from "@/components/kit";
-import { runAi } from "@/components/new-recipe-sheet";
+import { aiConfig, runAi } from "@/components/new-recipe-sheet";
 import { NutriBadge, ProductThumb } from "@/components/product";
 import { openScan } from "@/components/scan";
 import { actions, getState, ingredientsOf, recipesOf, today, useRecipes, useStore } from "@/data/store";
@@ -84,7 +84,7 @@ function SearchBody({ pick, onClose }: { pick?: PickMode; onClose: () => void })
   // Choix d'un repas : filtre « Avec ce que j'ai » et idées de Claude pour ce repas.
   const [homeOnly, setHomeOnly] = useState(false);
   const [ai, setAi] = useState<{ loading: boolean; recipes: Recipe[]; error?: string } | null>(null);
-  const hasAi = !!s.integrations?.ai?.apiKey;
+  const hasAi = !!aiConfig();
   const atHome = useMemo(() => {
     if (!pick) return new Map<string, number>();
     const ids = new Set((s.inventory ?? []).flatMap((i) => (i.ingredientId ? [i.ingredientId] : [])));

@@ -22,6 +22,7 @@ let saved: Saved | undefined;
 let events: EventSource | undefined;
 let flushing = false;
 let haStatus: ServerHaStatus | undefined;
+let serverAi = false;
 const listeners = new Set<() => void>();
 const notify = () => listeners.forEach((l) => l());
 const setMode = (m: SyncMode) => {
@@ -33,6 +34,8 @@ const setMode = (m: SyncMode) => {
 export const syncMode = () => mode;
 export const isServerMode = () => mode !== "demo" && mode !== "detecting";
 export const currentMember = () => member;
+/** Le serveur a-t-il une clé Claude (ANTHROPIC_API_KEY) ? */
+export const hasServerAi = () => isServerMode() && serverAi;
 
 const subscribeSync = (l: () => void) => (listeners.add(l), () => void listeners.delete(l));
 export const useSyncMode = () => useSyncExternalStore(subscribeSync, () => mode);
@@ -75,7 +78,7 @@ async function api<T>(path: string, init?: RequestInit): Promise<T> {
 export async function startSync() {
   // La vitrine publique n'a jamais de serveur : inutile de demander.
   if (location.hostname.endsWith("github.io")) return setMode("demo");
-  let health: { app?: string; ha?: boolean } | undefined;
+  let health: { app?: string; ha?: boolean; ai?: boolean } | undefined;
   try {
     const res = await fetch(`${API}/health`, { cache: "no-store" });
     health = res.ok ? ((await res.json().catch(() => undefined)) as typeof health) : undefined;
@@ -89,6 +92,7 @@ export async function startSync() {
     }
   }
   if (health?.app !== "mijote") return setMode("demo");
+  serverAi = !!health.ai;
   loadSaved();
   try {
     const me = await api<{ member: { id: string; displayName: string } }>("/me");
@@ -276,6 +280,8 @@ export async function renameSelf(name: string) {
 export const removeMember = (id: string) => api(`/members/${id}`, { method: "DELETE" });
 export type ServerHaStatus = { enabled: boolean; entity?: string; lastSync?: string; lastError?: string; busy?: boolean; items?: number; descriptions?: boolean };
 export type HaCheck = { enabled: boolean; ok?: boolean; entity?: string; items?: number; error?: string; descriptions?: boolean | null; lastSync?: string; lastError?: string };
+export type ServerAiStatus = { enabled: boolean; model?: string; used?: number; limit?: number };
+export const fetchAiStatus = () => api<ServerAiStatus>("/ai/status");
 export const checkHa = () => api<HaCheck>("/ha/check", { method: "POST" });
 /** « Synchroniser maintenant » : le serveur fait une passe complète et renvoie son état. */
 export async function syncHaNow() {

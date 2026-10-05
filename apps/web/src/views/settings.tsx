@@ -13,7 +13,7 @@ import { Sheet } from "@/components/sheet";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { actions, ingredientsOf, useStore } from "@/data/store";
-import { currentMember, isServerMode, leaveHousehold, listMembers, removeMember, renameSelf, useServerHa, useSyncMode, type MemberInfo } from "@/data/sync";
+import { currentMember, hasServerAi, isServerMode, leaveHousehold, listMembers, removeMember, renameSelf, useServerHa, useSyncMode, type MemberInfo } from "@/data/sync";
 import { isIOS, isStandalone, promptInstall, useCanInstall } from "@/lib/install";
 import { back, go } from "@/lib/router";
 
@@ -118,7 +118,7 @@ export function SettingsView() {
           <LinkRow onClick={() => setHa(true)} icon={<HouseWifi className="size-5" />} detail={(onServer ? serverHa?.enabled : s.integrations?.ha) ? "relié" : undefined}>
             Home Assistant
           </LinkRow>
-          <LinkRow onClick={() => setAi(true)} icon={<Sparkles className="size-5" />} detail={s.integrations?.ai ? "relié" : undefined}>
+          <LinkRow onClick={() => setAi(true)} icon={<Sparkles className="size-5" />} detail={(onServer ? hasServerAi() : s.integrations?.ai) ? "relié" : undefined}>
             Claude (IA)
           </LinkRow>
           <LinkRow onClick={() => setVoice(true)} icon={<Mic className="size-5" />}>
