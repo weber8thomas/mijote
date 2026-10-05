@@ -1,70 +1,52 @@
 import {
-  AI_SAMPLES,
-  chooseEntry,
-  choicesFor,
-  pickableFor,
-  unchooseEntry,
-  buildShoppingList,
+  applyActionWithResult,
   checkWeek,
-  DEFAULT_THRESHOLDS,
-  generateWeek,
-  householdPortions,
-  INGREDIENTS,
+  choicesFor,
+  haItemId,
+  ingredientsOfState,
+  initialHousehold,
+  itemLine,
   mondayOf,
   addDays,
-  PANTRY_BASICS,
-  RECIPES,
-  manualItem,
-  parseShoppingText,
-  rerollChoices,
-  itemLine,
+  pickableFor,
+  pickHousehold,
+  planContextOf,
+  recipeMapOf,
+  recipesOfState,
+  shoppingWeekOf,
+  type Action,
+  type ActionResult,
+  type HouseholdState,
   type LocalChange,
   type Household,
   type InventoryItem,
   type ProductInfo,
+  type ProductMemo,
   type Ingredient,
   type Recipe,
   type RecipeStatus,
   type ShoppingItem,
-  type WeekPlan,
 } from "@mijote/shared";
 import { useMemo, useSyncExternalStore } from "react";
 
-// État de la vitrine, gardé dans le navigateur (localStorage). Aucun serveur : les hooks ci-dessous
-// imitent la future API (useWeek, useShopping…) pour être remplacés par TanStack Query en phase 3.
+// État de l'appli : la part du foyer (partagée, modifiée seulement par des actions, voir packages/shared/src/state.ts)
+// + ce qui est propre à cet appareil. Vitrine : tout reste dans le navigateur (localStorage).
+// Serveur du foyer (data/sync.ts) : chaque action part aussi au serveur, qui la renvoie à l'autre téléphone.
 
-export type State = {
-  household: Household;
+export type { ProductMemo };
+
+/** Ce qui reste propre à cet appareil (jamais envoyé au serveur). */
+export type DeviceState = {
   /** Nom de cet appareil (qui a coché quoi). */
   member: string;
-  statuses: Record<string, RecipeStatus>;
-  /** Recettes ajoutées à la main ou gardées parmi les propositions. */
-  customRecipes: Recipe[];
-  /** Prix modifiés par le foyer (€ par unité de prix). */
-  prices: Record<string, number>;
-  weeks: Record<string, WeekPlan>;
-  shopping: Record<string, ShoppingItem[]>;
-  /** Basiques du placard : true = en stock. */
-  pantry: Record<string, boolean>;
-  /** Brouillons « IA » déjà proposés (simulation). */
-  draftsSeen: string[];
   installSeen?: boolean;
-  /** Ce qu'il y a à la maison (placard, frigo, congélateur). */
-  inventory?: InventoryItem[];
-  /** Recettes proposées par Claude, pas encore gardées ni jetées. */
-  aiDrafts?: Recipe[];
-  /** Ingrédients créés par l'IA pour ses recettes (« à vérifier »). */
-  customIngredients?: Ingredient[];
-  /** Produits scannés ou consultés (Open Food Facts), par code-barres. */
-  products?: Record<string, ProductMemo>;
   /** Connexions : Home Assistant, IA. Gardées sur cet appareil, jamais exportées. */
   integrations?: Integrations;
-  /** État de la synchro de la liste avec Home Assistant (propre à cet appareil). */
+  /** État de la synchro de la liste avec Home Assistant (vitrine : faite par cet appareil). */
   haSync?: HaSyncState;
 };
 
-/** Un produit retenu : sa fiche, quand on l'a vu, et la marque du foyer (favori, à éviter pour bébé). */
-export type ProductMemo = { product: ProductInfo; firstSeen: string; lastSeen: string; scans: number; mark?: "favori" | "eviter" };
+export type State = HouseholdState & DeviceState;
 
 /** Ce que Mijoté sait de la liste Home Assistant depuis la dernière synchro. */
 export type HaSyncState = {
@@ -85,35 +67,13 @@ const KEY = "mijote-demo-v2";
 
 export const today = () => new Date();
 export { dayIndex } from "@mijote/shared";
-import { dayIndex as dayIndexOf } from "@mijote/shared";
 export const thisWeek = () => mondayOf(today());
 export const nextWeek = () => addDays(thisWeek(), 7);
 
 /** Semaine des courses en cours : la suivante si elle est validée et qu'on est en fin de semaine (vendredi → dimanche). */
-export function shoppingWeek(s: State = state) {
-  const next = nextWeek();
-  return s.weeks[next]?.status === "validated" && dayIndexOf(today()) >= 4 ? next : thisWeek();
-}
+export const shoppingWeek = (s: State = state) => shoppingWeekOf(s, today());
 
-const HOUSEHOLD: Household = { id: "foyer", name: "Notre foyer", adults: 2, babies: 1, dessertSlot: "dinner", priceThresholds: DEFAULT_THRESHOLDS };
-
-function initial(): State {
-  const base: State = {
-    household: HOUSEHOLD,
-    member: "Moi",
-    statuses: {},
-    customRecipes: [],
-    prices: {},
-    weeks: {},
-    shopping: {},
-    pantry: Object.fromEntries(PANTRY_BASICS.map((id) => [id, true])),
-    draftsSeen: [],
-  };
-  // La semaine en cours est déjà planifiée et validée : l'écran « Aujourd'hui » a du contenu dès l'ouverture.
-  const draft = generateWeek(planContext(base), thisWeek(), 7);
-  const week = { ...draft, status: "validated" as const, validatedAt: new Date().toISOString(), entries: draft.entries.map((e) => ({ ...e, confirmed: true })) };
-  return withShopping({ ...base, weeks: { [week.weekStart]: week } }, week.weekStart);
-}
+const initial = (): State => ({ ...initialHousehold(today()), member: "Moi" });
 
 function load(): State {
   try {
@@ -142,7 +102,10 @@ function set(next: State) {
   notify();
 }
 
-// Synchro en direct entre onglets / fenêtres du même navigateur (simule la synchro entre téléphones).
+/** Remplace l'état (synchro serveur) sans repasser par les actions. */
+export const replaceState = (next: State) => set(next);
+
+// Synchro en direct entre onglets / fenêtres du même navigateur.
 if (typeof window !== "undefined") {
   window.addEventListener("storage", (e) => {
     if (e.key !== KEY || !e.newValue) return;
@@ -163,65 +126,33 @@ export const useStore = () =>
 
 export const getState = () => state;
 
-/** Abonnement hors React (synchro Home Assistant). */
+/** Abonnement hors React (synchro Home Assistant, serveur). */
 export const subscribe = (l: () => void) => (listeners.add(l), () => void listeners.delete(l));
 
-// ——— Données dérivées (mémorisées par référence) ———
+// ——— Données dérivées ———
 
-const memo = <A extends object, R>(fn: (a: A) => R) => {
-  const cache = new WeakMap<A, R>();
-  return (a: A) => {
-    if (!cache.has(a)) cache.set(a, fn(a));
-    return cache.get(a)!;
-  };
-};
-
-const NO_INGREDIENTS: Ingredient[] = [];
-let ingredientsCache: { prices: Record<string, number>; custom: Ingredient[]; value: { list: Ingredient[]; byId: Map<string, Ingredient> } } | undefined;
-
-/** Catalogue + ingrédients ajoutés par l'IA (« à vérifier »), avec les prix du foyer. Mémorisé par référence. */
-function ingredientsFor(prices: Record<string, number>, custom: Ingredient[] = NO_INGREDIENTS) {
-  if (ingredientsCache?.prices === prices && ingredientsCache.custom === custom) return ingredientsCache.value;
-  const known = new Set(INGREDIENTS.map((i) => i.id));
-  const list: Ingredient[] = [...INGREDIENTS, ...custom.filter((i) => !known.has(i.id))].map((i) => (prices[i.id] !== undefined ? { ...i, avgPrice: prices[i.id] } : i));
-  const value = { list, byId: new Map(list.map((i) => [i.id, i])) };
-  ingredientsCache = { prices, custom, value };
-  return value;
-}
-
-const recipesFor = memo((s: State) => {
-  const all = [...RECIPES, ...s.customRecipes].map((r) => ({ ...r, status: s.statuses[r.id] ?? r.status }));
-  return { all, byId: new Map(all.map((r) => [r.id, r])) };
-});
-
-/** Les recettes utiles aux semaines déjà planifiées restent connues même si elles viennent des brouillons. */
-const knownFor = memo((s: State) => {
-  const { byId } = recipesFor(s);
-  const map = new Map(byId);
-  for (const r of [...AI_SAMPLES, ...(s.aiDrafts ?? [])]) if (!map.has(r.id)) map.set(r.id, r);
-  return map;
-});
-
-export const ingredientsOf = (s: State) => ingredientsFor(s.prices, s.customIngredients);
-export const recipesOf = (s: State) => recipesFor(s);
-export const recipeMap = (s: State) => knownFor(s);
-
-function planContext(s: State) {
-  return { recipes: recipesFor(s).all, ingredients: ingredientsOf(s).byId, household: s.household };
-}
-
-function withShopping(s: State, weekStart: string): State {
-  const week = s.weeks[weekStart];
-  if (!week || week.status !== "validated") return s;
-  const pantryInStock = new Set(Object.entries(s.pantry).filter(([, v]) => v).map(([k]) => k));
-  const atHome = new Set((s.inventory ?? []).flatMap((i) => (i.ingredientId ? [i.ingredientId] : [])));
-  const items = buildShoppingList({ week, recipes: knownFor(s), ingredients: ingredientsOf(s).byId, pantryInStock, atHome, previous: s.shopping[weekStart] });
-  return { ...s, shopping: { ...s.shopping, [weekStart]: items } };
-}
-
-const refreshAllShopping = (s: State) => Object.keys(s.weeks).reduce(withShopping, s);
+export const ingredientsOf = (s: State) => ingredientsOfState(s);
+export const recipesOf = (s: State) => recipesOfState(s);
+export const recipeMap = (s: State) => recipeMapOf(s);
+const planContext = (s: State) => planContextOf(s);
 
 state = load();
+
+// ——— Envoi des actions ———
+
+/** Abonné aux actions du foyer (data/sync.ts les envoie au serveur). */
+let actionSink: ((a: Action) => void) | undefined;
+export const setActionSink = (fn: ((a: Action) => void) | undefined) => (actionSink = fn);
+
+/** Applique une action du foyer ici, puis la confie au serveur s'il y en a un. */
+function dispatch(a: Action): ActionResult {
+  const { state: next, result } = applyActionWithResult(state, a);
+  set(next);
+  actionSink?.(a);
+  return result;
+}
+
+const now = () => new Date().toISOString();
 
 // ——— Hooks « API » ———
 
@@ -272,173 +203,87 @@ const uid = () => Math.random().toString(36).slice(2, 9);
 
 export const actions = {
   /** Relance les 6 idées d'un repas (« Autres idées »). */
-  reroll(weekStart: string, entryId: string) {
-    const week = state.weeks[weekStart];
-    if (!week) return;
-    set({ ...state, weeks: { ...state.weeks, [weekStart]: rerollChoices(week, entryId, planContext(state)) } });
-  },
+  reroll: (weekStart: string, entryId: string) => void dispatch({ type: "reroll", weekStart, entryId }),
 
-  generate(weekStart: string, seed = Math.floor(Math.random() * 1e6)) {
-    const previous = state.weeks[addDays(weekStart, -7)];
-    const ctx = { ...planContext(state), previousRecipeIds: previous?.entries.map((e) => e.recipeId) };
-    const week = generateWeek(ctx, weekStart, seed);
-    const { [weekStart]: _drop, ...shopping } = state.shopping;
-    void _drop;
-    set({ ...state, weeks: { ...state.weeks, [weekStart]: week }, shopping });
-  },
+  generate: (weekStart: string, seed = Math.floor(Math.random() * 1e6)) => void dispatch({ type: "generate", weekStart, seed }),
 
   /** Choisit la recette d'un repas ; les suggestions suivantes s'ajustent. */
-  choose(weekStart: string, entryId: string, recipeId: string) {
-    const week = state.weeks[weekStart];
-    if (!week) return;
-    const next = chooseEntry(week, entryId, recipeId, planContext(state));
-    set(withShopping({ ...state, weeks: { ...state.weeks, [weekStart]: next } }, weekStart));
-  },
+  choose: (weekStart: string, entryId: string, recipeId: string) => void dispatch({ type: "choose", weekStart, entryId, recipeId }),
 
   /** Remet un repas « à choisir ». */
-  unchoose(weekStart: string, entryId: string) {
-    const week = state.weeks[weekStart];
-    if (!week) return;
-    set(withShopping({ ...state, weeks: { ...state.weeks, [weekStart]: unchooseEntry(week, entryId, planContext(state)) } }, weekStart));
-  },
+  unchoose: (weekStart: string, entryId: string) => void dispatch({ type: "unchoose", weekStart, entryId }),
 
   /** Rouvre une semaine validée : elle repasse en brouillon, la liste et ses coches sont gardées pour la prochaine validation. */
-  reopen(weekStart: string) {
-    const week = state.weeks[weekStart];
-    if (!week) return;
-    set({ ...state, weeks: { ...state.weeks, [weekStart]: { ...week, status: "draft", validatedAt: undefined } } });
-  },
+  reopen: (weekStart: string) => void dispatch({ type: "reopen", weekStart }),
 
-  validate(weekStart: string) {
-    const week = state.weeks[weekStart];
-    if (!week) return;
-    const next = { ...week, status: "validated" as const, validatedAt: new Date().toISOString() };
-    set(withShopping({ ...state, weeks: { ...state.weeks, [weekStart]: next } }, weekStart));
-  },
+  validate: (weekStart: string) => void dispatch({ type: "validate", weekStart, at: now() }),
 
   toggleChecked(weekStart: string, itemId: string) {
-    const items = (state.shopping[weekStart] ?? []).map((i) =>
-      i.id === itemId ? { ...i, checked: !i.checked, checkedBy: !i.checked ? state.member : undefined, updatedAt: new Date().toISOString() } : i,
-    );
-    set({ ...state, shopping: { ...state.shopping, [weekStart]: items } });
+    const item = state.shopping[weekStart]?.find((i) => i.id === itemId);
+    if (item) dispatch({ type: "setChecked", weekStart, itemId, checked: !item.checked, by: state.member, at: now() });
   },
 
   toggleHave(weekStart: string, itemId: string) {
-    const items = (state.shopping[weekStart] ?? []).map((i) => (i.id === itemId ? { ...i, haveAlready: !i.haveAlready, updatedAt: new Date().toISOString() } : i));
-    set({ ...state, shopping: { ...state.shopping, [weekStart]: items } });
+    const item = state.shopping[weekStart]?.find((i) => i.id === itemId);
+    if (item) dispatch({ type: "setHave", weekStart, itemId, have: !item.haveAlready, at: now() });
   },
 
   /** Ajoute des articles écrits à la main (« 3 carottes, du lait »). Renvoie les lignes ajoutées. */
-  addToShopping(weekStart: string, text: string) {
-    const { list, byId } = ingredientsOf(state);
-    const lines = parseShoppingText(text, list);
-    if (!lines.length) return [];
-    const current = state.shopping[weekStart] ?? [];
-    // Déjà dans la liste (pour une recette) : on le remet à acheter plutôt que de le doubler.
-    const revive = new Set<string>();
-    const fresh = lines.filter((l) => {
-      const hit = l.ingredientId && current.find((i) => i.ingredientId === l.ingredientId);
-      if (hit) revive.add(hit.id);
-      return !hit;
-    });
-    const items = fresh.map((l, i) => manualItem(weekStart, l, byId, new Date(Date.now() + i)));
-    const now = new Date().toISOString();
-    const kept = current.map((i) => (revive.has(i.id) ? { ...i, haveAlready: false, checked: false, checkedBy: undefined, updatedAt: now } : i));
-    set({ ...state, shopping: { ...state.shopping, [weekStart]: [...kept, ...items] } });
-    return [...kept.filter((i) => revive.has(i.id)), ...items];
-  },
+  addToShopping: (weekStart: string, text: string): ShoppingItem[] => dispatch({ type: "addToShopping", weekStart, text, at: now() }).items ?? [],
 
   /**
-   * Applique le résultat d'une synchro Home Assistant : cases cochées, articles dictés, supprimés là-bas.
-   * `synced` est la nouvelle mémoire ; les articles créés ici y sont ajoutés avec leur uid HA.
+   * Vitrine : applique le résultat d'une synchro Home Assistant faite par cet appareil.
+   * `synced` est la nouvelle mémoire ; les articles dictés y sont ajoutés avec leur uid HA.
    */
   applyHaSync(weekStart: string, changes: LocalChange[], synced: HaSyncState["synced"], lastSync: string) {
-    const { list, byId } = ingredientsOf(state);
-    const now = new Date().toISOString();
-    let items = [...(state.shopping[weekStart] ?? [])];
+    const withIds = changes.map((c) => (c.kind === "create" ? { ...c, id: haItemId(weekStart, c.uid) } : c));
+    if (withIds.length) dispatch({ type: "haChanges", weekStart, changes: withIds, at: now() });
+    const byId = ingredientsOf(state).byId;
     const memory = { ...synced };
-    changes.forEach((c, i) => {
-      if (c.kind === "check") items = items.map((it) => (it.id === c.itemId ? { ...it, checked: c.checked, checkedBy: c.checked ? "Home Assistant" : undefined, updatedAt: now } : it));
-      if (c.kind === "remove") items = items.filter((it) => it.id !== c.itemId);
-      if (c.kind === "have") items = items.map((it) => (it.id === c.itemId ? { ...it, haveAlready: true, updatedAt: now } : it));
-      if (c.kind === "create") {
-        // Le texte dicté reste tel quel (« lait d'avoine bio ») ; on retrouve juste l'ingrédient pour le rayon.
-        const [line] = parseShoppingText(c.summary, list);
-        const it = { ...manualItem(weekStart, { ...(line ?? { text: c.summary }), label: c.summary }, byId, new Date(Date.now() + i)), checked: c.done, updatedAt: now };
-        items.push(it);
-        // Mémorisé avec le texte Mijoté : le texte dicté, différent, compte comme « renommé dans HA » et n'est jamais écrasé.
-        memory[it.id] = { uid: c.uid, status: c.done ? "completed" : "needs_action", summary: itemLine(it, byId) };
-      }
-    });
-    set({ ...state, shopping: { ...state.shopping, [weekStart]: items }, haSync: { weekStart, lastSync, synced: memory } });
+    for (const c of withIds) {
+      if (c.kind !== "create") continue;
+      const it = state.shopping[weekStart]?.find((i) => i.id === c.id);
+      // Mémorisé avec le texte Mijoté : le texte dicté, différent, compte comme « renommé dans HA » et n'est jamais écrasé.
+      if (it) memory[it.id] = { uid: c.uid, status: c.done ? "completed" : "needs_action", summary: itemLine(it, byId) };
+    }
+    set({ ...state, haSync: { weekStart, lastSync, synced: memory } });
   },
 
   setHaSyncError(message: string | undefined) {
     set({ ...state, haSync: { ...(state.haSync ?? { weekStart: shoppingWeek(), synced: {} }), lastError: message } });
   },
 
-  removeShoppingItem(weekStart: string, itemId: string) {
-    set({ ...state, shopping: { ...state.shopping, [weekStart]: (state.shopping[weekStart] ?? []).filter((i) => i.id !== itemId) } });
+  removeShoppingItem: (weekStart: string, itemId: string) => void dispatch({ type: "removeShoppingItem", weekStart, itemId }),
+
+  restoreShoppingItem: (weekStart: string, item: ShoppingItem) => void dispatch({ type: "restoreShoppingItem", weekStart, item }),
+
+  addInventory(items: Omit<InventoryItem, "id" | "addedAt">[]): InventoryItem[] {
+    const at = now();
+    return dispatch({ type: "addInventory", items: items.map((i) => ({ ...i, id: uid(), addedAt: at })) }).inventory ?? [];
   },
 
-  restoreShoppingItem(weekStart: string, item: ShoppingItem) {
-    const list = state.shopping[weekStart] ?? [];
-    if (list.some((i) => i.id === item.id)) return;
-    set({ ...state, shopping: { ...state.shopping, [weekStart]: [...list, item] } });
-  },
+  updateInventory: (id: string, patch: Partial<InventoryItem>) => void dispatch({ type: "updateInventory", id, patch }),
 
-  addInventory(items: Omit<InventoryItem, "id" | "addedAt">[]) {
-    const now = new Date().toISOString();
-    const added = items.map((i) => ({ ...i, id: uid(), addedAt: now }));
-    set(refreshAllShopping({ ...state, inventory: [...(state.inventory ?? []), ...added] }));
-    return added;
-  },
-
-  updateInventory(id: string, patch: Partial<InventoryItem>) {
-    set(refreshAllShopping({ ...state, inventory: (state.inventory ?? []).map((i) => (i.id === id ? { ...i, ...patch } : i)) }));
-  },
-
-  removeInventory(id: string) {
-    set(refreshAllShopping({ ...state, inventory: (state.inventory ?? []).filter((i) => i.id !== id) }));
-  },
+  removeInventory: (id: string) => void dispatch({ type: "removeInventory", id }),
 
   /** Retient un produit consulté ou scanné (« Mes produits »). */
-  rememberProduct(code: string, product: ProductInfo, scanned = false) {
-    const now = new Date().toISOString();
-    const old = state.products?.[code];
-    const memo: ProductMemo = { product, firstSeen: old?.firstSeen ?? now, lastSeen: now, scans: (old?.scans ?? 0) + (scanned ? 1 : 0), mark: old?.mark };
-    set({ ...state, products: { ...state.products, [code]: memo } });
-  },
+  rememberProduct: (code: string, product: ProductInfo, scanned = false) => void dispatch({ type: "rememberProduct", code, product, scanned, at: now() }),
 
   /** Favori, à éviter pour bébé, ou rien. */
-  markProduct(code: string, mark: ProductMemo["mark"]) {
-    const old = state.products?.[code];
-    if (!old) return;
-    set({ ...state, products: { ...state.products, [code]: { ...old, mark } } });
-  },
+  markProduct: (code: string, mark: ProductMemo["mark"]) => void dispatch({ type: "markProduct", code, mark }),
 
-  forgetProduct(code: string) {
-    const { [code]: _gone, ...rest } = state.products ?? {};
-    void _gone;
-    set({ ...state, products: rest });
-  },
+  forgetProduct: (code: string) => void dispatch({ type: "forgetProduct", code }),
 
   setIntegrations(patch: Partial<Integrations>) {
     set({ ...state, integrations: { ...state.integrations, ...patch } });
   },
 
-  setPantry(ingredientId: string, inStock: boolean) {
-    set(refreshAllShopping({ ...state, pantry: { ...state.pantry, [ingredientId]: inStock } }));
-  },
+  setPantry: (ingredientId: string, inStock: boolean) => void dispatch({ type: "setPantry", ingredientId, inStock }),
 
-  setStatus(recipeId: string, status: RecipeStatus) {
-    set({ ...state, statuses: { ...state.statuses, [recipeId]: status } });
-  },
+  setStatus: (recipeId: string, status: RecipeStatus) => void dispatch({ type: "setStatus", recipeId, status }),
 
   addIngredients(list: Ingredient[]) {
-    const have = new Set(ingredientsOf(state).list.map((i) => i.id));
-    const fresh = list.filter((i) => !have.has(i.id));
-    if (fresh.length) set({ ...state, customIngredients: [...(state.customIngredients ?? []), ...fresh] });
+    if (list.length) dispatch({ type: "addIngredients", list });
   },
 
   /** Compte un appel à l'IA pour la limite du jour. Renvoie false si la limite est atteinte. */
@@ -452,38 +297,21 @@ export const actions = {
     return true;
   },
 
-  addAiDrafts(recipes: Recipe[]) {
-    set({ ...state, aiDrafts: [...(state.aiDrafts ?? []), ...recipes] });
-  },
+  addAiDrafts: (recipes: Recipe[]) => void dispatch({ type: "addAiDrafts", recipes }),
 
-  removeAiDraft(id: string) {
-    set({ ...state, aiDrafts: (state.aiDrafts ?? []).filter((r) => r.id !== id) });
-  },
+  removeAiDraft: (id: string) => void dispatch({ type: "removeAiDraft", id }),
 
-  addRecipe(recipe: Recipe) {
-    set({ ...state, customRecipes: [...state.customRecipes.filter((r) => r.id !== recipe.id), recipe] });
-  },
+  addRecipe: (recipe: Recipe) => void dispatch({ type: "addRecipe", recipe }),
 
-  markDraftsSeen(ids: string[]) {
-    set({ ...state, draftsSeen: [...new Set([...state.draftsSeen, ...ids])] });
-  },
+  markDraftsSeen: (ids: string[]) => void dispatch({ type: "markDraftsSeen", ids }),
 
-  updateHousehold(patch: Partial<Household>) {
-    const household = { ...state.household, ...patch };
-    const portions = householdPortions(household);
-    const weeks = Object.fromEntries(Object.entries(state.weeks).map(([k, w]) => [k, { ...w, entries: w.entries.map((e) => ({ ...e, servings: portions })) }]));
-    set(refreshAllShopping({ ...state, household, weeks }));
-  },
+  updateHousehold: (patch: Partial<Household>) => void dispatch({ type: "updateHousehold", patch }),
 
   setMember(member: string) {
     set({ ...state, member });
   },
 
-  setPrice(ingredientId: string, price: number | undefined) {
-    const { [ingredientId]: _old, ...rest } = state.prices;
-    void _old;
-    set(refreshAllShopping({ ...state, prices: price === undefined ? rest : { ...rest, [ingredientId]: price } }));
-  },
+  setPrice: (ingredientId: string, price: number | undefined) => void dispatch({ type: "setPrice", ingredientId, price }),
 
   setInstallSeen() {
     set({ ...state, installSeen: true });
@@ -491,21 +319,19 @@ export const actions = {
 
   exportJSON() {
     // Les clés et jetons (IA, Home Assistant) restent sur l'appareil : jamais dans une sauvegarde.
-    const { integrations: _secrets, haSync: _sync, ...rest } = state;
-    void _secrets;
-    void _sync;
-    return JSON.stringify({ app: "mijote", version: 1, exportedAt: new Date().toISOString(), state: rest }, null, 2);
+    return JSON.stringify({ app: "mijote", version: 1, exportedAt: new Date().toISOString(), state: pickHousehold(state) }, null, 2);
   },
 
   importJSON(text: string) {
-    const data = JSON.parse(text) as { app?: string; state?: State };
+    const data = JSON.parse(text) as { app?: string; state?: HouseholdState };
     if (data.app !== "mijote" || !data.state?.household) throw new Error("Fichier de sauvegarde Mijoté invalide");
     // Une sauvegarde n'emporte pas les connexions de cet appareil.
-    set({ ...data.state, inventory: data.state.inventory ?? [], integrations: state.integrations });
+    dispatch({ type: "replaceHousehold", state: data.state });
   },
 
+  /** Vitrine seulement : repart de l'état de départ. */
   reset() {
-    set(initial());
+    set({ ...initial(), member: state.member, integrations: state.integrations });
   },
 
   newId: uid,

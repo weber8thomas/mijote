@@ -202,14 +202,14 @@ const slug = (t: string) =>
     .replace(/^-|-$/g, "");
 
 /** Article de liste ajouté à la main, à partir d'une ligne analysée. */
-export function manualItem(weekStart: string, line: ParsedLine, ingredients: Map<string, Ingredient>, now = new Date()): ShoppingItem {
+export function manualItem(weekStart: string, line: ParsedLine, ingredients: Map<string, Ingredient>, now = new Date(), id?: string): ShoppingItem {
   const ing = line.ingredientId ? ingredients.get(line.ingredientId) : undefined;
   const base = ing ? baseUnitOf(ing) : (line.unit ?? "piece");
   let qty = 0;
   if (ing && line.qty !== undefined && line.unit) qty = line.unit === base ? line.qty : line.unit === "piece" ? toBase(line.qty, "piece", ing) : toBase(line.qty, line.unit, ing);
   else if (!ing && line.qty !== undefined) qty = line.qty;
   return {
-    id: `${weekStart}:manual:${ing?.id ?? slug(line.label)}:${now.getTime().toString(36)}`,
+    id: id ?? `${weekStart}:manual:${ing?.id ?? slug(line.label)}:${now.getTime().toString(36)}`,
     ingredientId: ing?.id ?? `divers:${slug(line.label)}`,
     label: ing ? undefined : line.label,
     manual: true,

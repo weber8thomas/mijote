@@ -13,3 +13,4 @@ export * from "./plate";
 export * from "./illustrations";
 export type * from "./basket-provider";
 export * from "./content";
+export * from "./state";
