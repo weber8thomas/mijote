@@ -1,4 +1,4 @@
-import { guessLocation, illustrationOf, LOCATION_LABELS, matchProduct, type Ingredient, type InventoryItem, type Nutrients, type ProductInfo, type StorageLocation } from "@mijote/shared";
+import { guessLocation, illustrationOf, RISK_LABELS, sortAdditives, worstRisk, type AdditiveRisk, LOCATION_LABELS, matchProduct, type Ingredient, type InventoryItem, type Nutrients, type ProductInfo, type StorageLocation } from "@mijote/shared";
 import { Baby, ChevronRight, ExternalLink, Star, TriangleAlert } from "lucide-react";
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { toast } from "sonner";
@@ -125,6 +125,7 @@ export function BabyBox({ product, compact = false }: { product: ProductInfo; co
 
 /** Fiche détaillée : Nutri-Score, NOVA, additifs, alertes bébé, allergènes, ingrédients, lien Open Food Facts. */
 export function ProductDetails({ product, code, hideName = false, hideHeader = false }: { product: ProductInfo; code?: string; hideName?: boolean; hideHeader?: boolean }) {
+  const worst = worstRisk(product.additives);
   return (
     <div className="flex flex-col gap-4">
       {!hideHeader && (
@@ -149,7 +150,10 @@ export function ProductDetails({ product, code, hideName = false, hideHeader = f
           )}
         </Stat>
         <Stat label="Additifs">
-          <span className="tabular-nums">{product.additives.length}</span>
+          <span className="inline-flex items-center gap-2 tabular-nums">
+            {product.additives.length}
+            {worst && <RiskDot risk={worst} label={RISK_LABELS[worst]} />}
+          </span>
         </Stat>
         <Stat label={`Énergie / ${product.nutrition?.per === "100ml" ? "100 ml" : "100 g"}`}>
           {product.nutrition?.energyKcal !== undefined ? (
@@ -179,19 +183,81 @@ export function ProductDetails({ product, code, hideName = false, hideHeader = f
         </div>
       )}
 
-      {(product.ingredientsText || product.additives.length > 0) && (
+      <AdditivesList additives={product.additives} />
+
+      {product.ingredientsText && (
         <details className="group rounded-2xl bg-paper-deep/50 px-4 text-sm">
           <summary className="flex min-h-12 cursor-pointer list-none items-center justify-between font-semibold">
-            Ingrédients et additifs
+            Ingrédients
             <ChevronRight className="size-4 transition-transform group-open:rotate-90" aria-hidden />
           </summary>
-          {product.ingredientsText && <p className="pb-3 leading-relaxed text-muted-foreground">{product.ingredientsText}</p>}
-          {product.additives.length > 0 && <p className="pb-3 text-muted-foreground">Additifs : {product.additives.join(", ")}</p>}
+          <p className="pb-3 leading-relaxed text-muted-foreground">{product.ingredientsText}</p>
         </details>
       )}
 
       <OffSource code={code} updatedAt={product.updatedAt} />
     </div>
+  );
+}
+
+// ——— Additifs, du plus au moins préoccupant ———
+
+// Mêmes repères de couleur que le Nutri-Score (et que les applis de scan) : rouge, orange, jaune, vert.
+const RISK_DOT: Record<AdditiveRisk, string> = {
+  high: "bg-[#c7350e]",
+  moderate: "bg-[#ee8100]",
+  limited: "bg-[#fecb02]",
+  none: "bg-[#038141]",
+  unknown: "bg-border-strong",
+};
+const RISK_TEXT: Record<AdditiveRisk, string> = {
+  high: "text-[#a52b0b]",
+  moderate: "text-[#a65a00]",
+  limited: "text-[#7a6200]",
+  none: "text-[#02672f]",
+  unknown: "text-muted-foreground",
+};
+
+export function RiskDot({ risk, label, className }: { risk: AdditiveRisk; label?: string; className?: string }) {
+  return <span className={cn("inline-block size-3 shrink-0 rounded-full", RISK_DOT[risk], className)} title={label} aria-label={label} role={label ? "img" : undefined} />;
+}
+
+/** Liste des additifs classés par nocivité ; un appui montre pourquoi. */
+export function AdditivesList({ additives }: { additives: string[] }) {
+  const list = useMemo(() => sortAdditives(additives), [additives]);
+  if (!list.length) return null;
+  return (
+    <section aria-labelledby="additifs" className="rounded-2xl bg-paper-deep/50 text-sm">
+      <h3 id="additifs" className="px-4 pt-3 pb-1 font-sans text-sm font-semibold">
+        Additifs <span className="font-normal text-muted-foreground">· du plus au moins préoccupant</span>
+      </h3>
+      <ul className="divide-y divide-border/70">
+        {list.map((a) => (
+          <li key={a.code}>
+            <details className="group">
+              <summary className="flex min-h-14 cursor-pointer list-none items-center gap-3 px-4 py-2">
+                <RiskDot risk={a.risk} />
+                <span className="min-w-0 flex-1">
+                  <span className="line-clamp-2 font-semibold">
+                    {a.code}
+                    {a.name && <span className="font-normal"> · {a.name}</span>}
+                  </span>
+                  {a.classes.length > 0 && <span className="block truncate text-xs text-muted-foreground">{a.classes.slice(0, 2).join(", ")}</span>}
+                </span>
+                <span className={cn("shrink-0 text-xs font-semibold", RISK_TEXT[a.risk])}>{RISK_LABELS[a.risk]}</span>
+                <ChevronRight className="size-4 shrink-0 text-muted-foreground transition-transform group-open:rotate-90" aria-hidden />
+              </summary>
+              <ul className="space-y-1 px-4 pb-3 pl-10 text-muted-foreground">
+                {a.reasons.map((r) => (
+                  <li key={r}>{r}</li>
+                ))}
+              </ul>
+            </details>
+          </li>
+        ))}
+      </ul>
+      <p className="px-4 pt-1 pb-3 text-xs text-muted-foreground">Classement d'après l'EFSA, l'ANSES et la réglementation européenne ; données Open Food Facts.</p>
+    </section>
   );
 }
 

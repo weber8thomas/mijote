@@ -228,7 +228,7 @@ const OFF: Record<string, Record<string, unknown>> = {
     quantity: "300 g",
     nutriscore_grade: "e",
     nova_group: 4,
-    additives_tags: ["en:e322", "en:e471", "en:e500", "en:e503", "en:e330", "en:e415"],
+    additives_tags: ["en:e322", "en:e471", "en:e500", "en:e503", "en:e330", "en:e415", "en:e202", "en:e150d"],
     allergens_tags: ["en:gluten", "en:milk", "en:soybeans"],
     ingredients_text_fr: "Farine de blé, sucre, huile de palme, cacao maigre 4 %, sirop de glucose, sel, émulsifiant : lécithine de soja",
     nutrition_data_per: "100g",
@@ -329,6 +329,17 @@ await step("fiche #/produit/<code> → Favori → visible dans Mes produits", as
   await page.getByRole("rowheader", { name: "dont sucres" }).waitFor();
   await page.getByText("Assez salé pour bébé (0,55 g de sel pour 100 g).").waitFor();
   await page.getByText("Source : Open Food Facts").waitFor();
+  // Additifs du plus au moins préoccupant ; un appui dit pourquoi.
+  const additives = page.locator("section[aria-labelledby='additifs'] summary");
+  const first = (await additives.first().innerText()).replace(/\s+/g, " ");
+  if (!/E202 · Sorbate de potassium .*Risque élevé/.test(first)) throw new Error(`premier additif : ${first}`);
+  const risks = (await additives.allInnerTexts()).map((t) => ["Risque élevé", "Risque modéré", "Risque limité", "Sans risque connu", "Non évalué"].findIndex((r) => t.includes(r)));
+  if (risks.some((r, i) => r < 0 || (i > 0 && r < risks[i - 1]))) throw new Error(`additifs mal classés : ${risks.join(",")}`);
+  await additives.first().click();
+  await page.getByText(/les tout-petits peuvent dépasser la dose journalière/).waitFor();
+  await page.getByText(/Additif à risque élevé : E202/).waitFor();
+  await page.locator("section[aria-labelledby='additifs']").scrollIntoViewIfNeeded();
+  await page.screenshot({ path: `${out}produits-additifs.png` });
   await page.getByRole("heading", { name: "Valeurs nutritionnelles" }).scrollIntoViewIfNeeded();
   await page.screenshot({ path: `${out}produits-nutrition.png` });
   const full = page.waitForRequest((r) => r.url().endsWith("front_fr.12.full.jpg"));

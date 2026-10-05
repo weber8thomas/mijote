@@ -1,4 +1,4 @@
-import type { Nutrients, ProductInfo, ProductPhoto } from "@mijote/shared";
+import { sortAdditives, type Nutrients, type ProductInfo, type ProductPhoto } from "@mijote/shared";
 
 // Open Food Facts : fiche d'un produit à partir de son code-barres (API v2, publique, sans clé).
 // Hors ligne ou produit inconnu : on ne plante jamais, l'interface propose la saisie à la main.
@@ -262,6 +262,8 @@ export function babyWarnings(product: ProductInfo): string[] {
   else if (/\bsel\b|\bsalt\b|\bsodium\b/.test(text)) out.push("Contient du sel : à garder pour les grands.");
   if (product.levels?.sugars === "high") out.push(`Riche en sucres${product.nutrition?.sugars !== undefined ? ` (${fmt(product.nutrition.sugars)} g pour 100 g)` : ""} : à limiter pour bébé.`);
   else if (/\bsucres?\b|\bsugar\b|sirop|dextrose|glucose|fructose|maltodextrine|saccharose|\bsucrose\b/.test(text)) out.push("Contient du sucre ajouté : à limiter pour bébé.");
+  const risky = sortAdditives(additives).filter((a) => a.risk === "high");
+  if (risky.length) out.push(`Additif${risky.length > 1 ? "s" : ""} à risque élevé : ${risky.map((a) => (a.name ? `${a.code} (${a.name.toLowerCase()})` : a.code)).join(", ")}.`);
   if (additives.length > MANY_ADDITIVES) out.push(`Beaucoup d'additifs (${additives.length}) : préfère plus simple pour bébé.`);
   if (product.nutriscore === "d" || product.nutriscore === "e") out.push(`Nutri-Score ${product.nutriscore.toUpperCase()} : plutôt occasionnel.`);
   if (product.nova === 4) out.push("Produit ultra-transformé (NOVA 4).");
