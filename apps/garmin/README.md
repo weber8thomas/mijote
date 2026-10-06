@@ -129,7 +129,9 @@ Tout en bas de la liste, la ligne **Réglages** (on y arrive en remontant depuis
 
 | Réglage | Valeurs |
 |---|---|
-| Affichage | **Auto** : quantité seulement au-delà d'une pièce, sans unité (`×3 · Fruits`) ; les poids et volumes disparaissent. **Complet** : `400 g · Fruits`. **Sans quantité** : le rayon seul. **Compact** : le nom seul, une ligne par article. |
+| Affichage | **Auto** : quantité seulement au-delà d'une pièce, sans unité (`×3 · Fruits`) ; les poids et volumes disparaissent. **Complet** : `400 g · Fruits`. **Sans quantité** : le rayon seul. **Compact** : le nom seul, une ligne par article, dessinée par l'appli (`CustomMenu`) en petite police. |
+| Tri | **Par rayon** (l'ordre du serveur), **A → Z** (accents ignorés) ou **Ordre d'ajout**. Les articles cochés restent en bas. Les titres de rayon n'existent que dans l'ordre par rayon. Le tri se fait sur la montre, donc hors ligne aussi. |
+| Taille (Compact) | **Petit** (lignes de 22 px, texte de 17 px : environ 10 articles à l'écran sans titres), **Moyen**, **Grand**. Sert au mode Compact seulement. |
 | Cochés | Visibles ou Masqués (un article coché reste affiché jusqu'au prochain rafraîchissement). |
 | Rayons | Titres (`— Fruits —`, puis `— Cochés —`) ou Sans titre. |
 | Statut | Le serveur répond-il, sa version, Home Assistant, ce qui reste à acheter, coches en attente, heure de la dernière synchro (`GET /api/watch/status`). |
@@ -154,8 +156,8 @@ Ces réglages sont sur la montre, pas dans Garmin Connect : l'appli est install�
 - `manifest.xml` : appli (`watch-app`), appareil `fr255m`, permission `Communications`, français. Pour une autre montre, ajoute son identifiant (`fr255`, `fr255s`, `fr255sm`) et télécharge l'appareil dans le SDK Manager.
 - `source/MijoteApp.mc` : démarrage, réglages.
 - `source/StartView.mc` : vue d'accueil qui ouvre la liste.
-- `source/ShopDelegate.mc` : boutons de la liste. `source/SettingsDelegate.mc` : réglages d'affichage. `source/StatusView.mc` : écran Statut.
+- `source/ShopDelegate.mc` : boutons de la liste. `source/SettingsDelegate.mc` : réglages d'affichage. `source/StatusView.mc` : écran Statut. `source/Row.mc` : ligne du mode Compact.
 - `source/Shop.mc` : liste, file de coches, cache, requêtes, messages.
 - `resources/` : textes, réglages (`settings.xml`), icône.
 - `resources-settings/properties.xml` : réglages vides. Rien de secret dans git.
-- Contrat des routes : `apps/server/src/watch.ts`. Chaque ligne de la liste est `[clé, nom, « quantité · rayon », coché, nombre de pièces, rayon]` ; les 4 premiers champs n'ont jamais changé, ce qui laisse marcher une appli plus ancienne. La liste fait 80 articles au plus, libellés de 24 caractères et sous-libellés de 22 ; ces longueurs se règlent côté serveur, sans recompiler la montre.
+- Contrat des routes : `apps/server/src/watch.ts`. Chaque ligne de la liste est `[clé, nom, « quantité · rayon », coché, nombre de pièces, rayon, rang alphabétique, rang d'ajout]` ; les 4 premiers champs n'ont jamais changé, ce qui laisse marcher une appli plus ancienne. La liste fait 80 articles au plus, libellés de 24 caractères et sous-libellés de 22 ; ces longueurs se règlent côté serveur, sans recompiler la montre.
