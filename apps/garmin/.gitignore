@@ -1,0 +1,13 @@
+# Build et clés : jamais dans git.
+bin/
+*.prg
+*.prg.debug.xml
+*.iq
+*.SET
+*.set
+developer_key*
+*.der
+*.pem
+# Secours « injection à la compilation » : contient l'URL et le jeton.
+local.jungle
+resources-local/

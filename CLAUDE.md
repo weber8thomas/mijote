@@ -10,6 +10,7 @@ Planificateur de repas familial de saison, partagé avec un bébé de 11-12 mois
 - Serveur : Hono + better-sqlite3/Drizzle (`household_state`, `action_log` 30 j, `member`, `session`, `meta`), phrase secrète (`HOUSEHOLD_PASSPHRASE`) → cookie httpOnly 1 an, sauvegarde quotidienne `VACUUM INTO`. Réglages par env (`apps/server/src/config.ts`, `.env.example`).
 - Home Assistant côté serveur (`apps/server/src/ha.ts`, client `@mijote/shared/ha-client`) : même `reconcileTodo`, jeton jamais sur les téléphones ; liste Google Keep (Gemini, « Ok Google ») via Google Keep Sync, articles reconnus par leur texte. En mode serveur `lib/ha-sync.ts` ne fait rien.
 - Claude : `@mijote/shared/ai` (invites, schémas, `convert`, images en base64). Serveur `/api/ai/*` avec limite du jour du foyer ; vitrine = appel direct (`lib/claude.ts` choisit).
+- Montre Garmin : `apps/garmin` (Connect IQ, Monkey C, hors workspaces npm) → serveur seulement, `/api/watch/list` et `/api/watch/check` (`apps/server/src/watch.ts`), jeton `WATCH_TOKEN` (en-tête Authorization, n'ouvre rien d'autre), coche `setChecked` « Montre » puis `kick()` HA. Liste de `shoppingWeekOf`, compacte (clé courte, Latin-1, 80 articles).
 - Docker : `Dockerfile` (racine, multi-étapes, non-root via `docker/entrypoint.sh`), `docker-compose.yml` (profil `with-caddy`), image `ghcr.io/weber8thomas/mijote` (`.github/workflows/docker.yml`). Installation : README.
 
 ## Organisation

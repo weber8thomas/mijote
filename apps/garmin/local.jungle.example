@@ -1,0 +1,4 @@
+# Secours : URL et jeton compilés dans l'appli (le .prg contient alors le jeton).
+# cp local.jungle.example local.jungle && cp -r resources-settings resources-local, remplis resources-local/properties.xml,
+# puis compile avec -f "monkey.jungle;local.jungle". local.jungle et resources-local/ sont ignorés par git.
+base.resourcePath = resources;resources-local

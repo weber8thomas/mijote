@@ -1,0 +1,5 @@
+<strings>
+    <string id="AppName">Mijoté</string>
+    <string id="ServerUrlTitle">Adresse du serveur (https://…)</string>
+    <string id="TokenTitle">Jeton de la montre (WATCH_TOKEN)</string>
+</strings>

@@ -1,0 +1,4 @@
+# Réglages vides par défaut (resources-settings) : l'URL et le jeton arrivent par le fichier .SET (voir README).
+project.manifest = manifest.xml
+base.sourcePath = source
+base.resourcePath = resources;resources-settings

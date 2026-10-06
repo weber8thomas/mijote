@@ -91,6 +91,23 @@ Le serveur synchronise la liste de courses avec une liste « À faire » de HA. 
 - `AI_DAILY_LIMIT` plafonne les demandes du foyer par jour.
 - Chaque recette proposée passe le linter bébé.
 
+### 5. Montre Garmin (facultatif)
+
+Une appli Connect IQ affiche au poignet ce qu'il reste à acheter. Tu coches aux boutons. Elle passe par le téléphone (Garmin Connect) et ne parle qu'au serveur, avec un jeton qui n'ouvre que la liste. Le reste de l'API lui reste fermé.
+
+1. Ajoute le jeton dans `.env` sans l'afficher, puis relance :
+   ```bash
+   sed -i '/^WATCH_TOKEN=/d' .env    # la ligne vide de .env.example
+   printf '\nWATCH_TOKEN=%s\n' "$(openssl rand -hex 32)" >> .env && chmod 600 .env
+   docker compose up -d
+   ```
+2. Vérifie depuis l'extérieur, en https : `curl -s -o /dev/null -w '%{http_code}\n' https://mijote.mondomaine.fr/api/watch/list` doit répondre `401`.
+   - `404` : le jeton n'est pas lu.
+   - `403` : le proxy n'envoie pas `X-Forwarded-Proto: https`.
+3. Installe l'appli sur la montre : voir [apps/garmin/README.md](apps/garmin/README.md).
+
+Une *Access List* Nginx Proxy Manager avec mot de passe gêne la montre : elle utilise elle aussi l'en-tête `Authorization`.
+
 ### Sauvegarde, restauration, mise à jour
 
 - **Sauvegarde** : chaque jour dans `data/backups/` (30 jours gardés), plus `data/mijote.sqlite`. Copie le dossier `data` ailleurs de temps en temps.

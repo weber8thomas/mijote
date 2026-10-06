@@ -5,10 +5,11 @@ import { deleteCookie, getCookie, setCookie } from "hono/cookie";
 import { streamSSE } from "hono/streaming";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
-import { COOKIE, createSession, endSession, listMembers, memberOf, rateLimiter, removeMember, renameMember, samePassphrase, type Member } from "./auth";
+import { clientIp, COOKIE, createSession, endSession, listMembers, memberOf, rateLimiter, removeMember, renameMember, samePassphrase, type Member } from "./auth";
 import type { Config } from "./config";
 import type { Db } from "./db";
 import { BadAction, type Envelope, type Household } from "./household";
+import { watchRoutes } from "./watch";
 
 // API du foyer (préfixe /api) et front (build de apps/web), sur la même origine.
 
@@ -29,7 +30,7 @@ export function createApp({ db, household, config, services = {} }: { db: Db; ho
 
   // ——— Rejoindre le foyer ———
   app.post("/api/auth/join", async (c) => {
-    const ip = c.req.header("x-forwarded-for")?.split(",")[0]?.trim() || c.req.header("x-real-ip") || "local";
+    const ip = clientIp((h) => c.req.header(h));
     if (!allowJoin(ip)) return c.json({ error: "Trop d'essais. Réessaie dans un quart d'heure." }, 429);
     const body = await c.req.json<{ passphrase?: string; displayName?: string }>().catch(() => ({}) as { passphrase?: string; displayName?: string });
     if (!body.passphrase || !samePassphrase(body.passphrase, config.passphrase)) return c.json({ error: "Phrase secrète incorrecte." }, 401);
@@ -38,6 +39,9 @@ export function createApp({ db, household, config, services = {} }: { db: Db; ho
     setCookie(c, COOKIE, token, { httpOnly: true, secure, sameSite: "Lax", path: "/", expires: expiresAt });
     return c.json({ member });
   });
+
+  // ——— Montre Garmin : son propre jeton, avant la garde de session (il n'ouvre que /api/watch) ———
+  app.route("/api/watch", watchRoutes({ household, token: config.watchToken, secure, kick: () => services.ha?.kick() }));
 
   // Tout le reste de l'API demande une session.
   app.use("/api/*", async (c, next) => {

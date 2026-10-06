@@ -1,7 +1,9 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
+import { createApp } from "./app";
 import { openDb } from "./db";
 import { startHaSync } from "./ha";
 import { Household } from "./household";
+import { watchKey } from "./watch";
 
 type Todo = { uid: string; summary: string; status: "needs_action" | "completed"; description?: string };
 
@@ -72,6 +74,31 @@ describe.each([
     expect(JSON.stringify(todos)).toBe(before);
     expect(household.snapshot().version).toBe(version);
     expect(ha.status().lastError).toBeUndefined();
+  });
+});
+
+describe("montre Garmin", () => {
+  it("une coche faite à la montre arrive dans la liste « À faire » de HA", async () => {
+    const { todos } = fakeHa({ keep: false });
+    const db = openDb(":memory:");
+    const household = new Household(db, () => NOW);
+    const ha = startHaSync(household, { url: "http://ha.local:8123", token: "t", entity: "todo.courses", intervalMs: 60_000 }, { autoStart: false });
+    const token = "0123456789abcdef0123456789abcdef";
+    const app = createApp({ db, household, config: { port: 0, dataDir: ":memory:", passphrase: "soupe-de-courge", watchToken: token }, services: { ha } });
+    const headers = { authorization: `Bearer ${token}`, "Content-Type": "application/json" };
+    await ha.sync();
+
+    const list = (await (await app.request("/api/watch/list", { headers })).json()) as { w: string; i: [string, string, string, boolean][] };
+    const k = list.i[0][0];
+    const item = household.snapshot().state.shopping[list.w].find((i) => watchKey(i.id) === k)!;
+    // La coche doit être plus récente que la dernière synchro (horloge à la milliseconde).
+    await new Promise((r) => setTimeout(r, 5));
+    const res = await app.request("/api/watch/check", { method: "POST", headers, body: JSON.stringify({ k, c: true, w: list.w, a: "montre-0001" }) });
+    expect(res.status).toBe(200);
+    await ha.sync();
+    expect(todos.find((t) => t.description?.includes(item.id))?.status).toBe("completed");
+    expect(household.snapshot().state.shopping[list.w].find((i) => i.id === item.id)?.checked).toBe(true);
+    ha.stop();
   });
 });
 

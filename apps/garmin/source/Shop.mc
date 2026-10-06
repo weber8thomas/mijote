@@ -1,0 +1,450 @@
+import Toybox.Application;
+import Toybox.Attention;
+import Toybox.Communications;
+import Toybox.Lang;
+import Toybox.Math;
+import Toybox.Time;
+import Toybox.Time.Gregorian;
+import Toybox.WatchUi;
+
+// La liste de courses et ses échanges avec le serveur du foyer (GET /api/watch/list, POST /api/watch/check).
+// Une requête à la fois : le Bluetooth en supporte peu en parallèle. Les coches attendent dans une file gardée
+// dans Storage ; faites hors ligne, elles partent au prochain rafraîchissement. La dernière liste reste en cache.
+class Shop {
+    private var _url as String = "";
+    private var _token as String = "";
+    // Dernière liste : semaine, articles [clé, nom, « quantité · rayon », coché], restants, articles coupés.
+    private var _week as String = "";
+    private var _rows as Array;
+    private var _left as Number = 0;
+    private var _more as Number = 0;
+    // Coches à envoyer : [clé, coché, actionId, semaine].
+    private var _pending as Array;
+    private var _busy as Boolean = false;
+    private var _wantList as Boolean = false;
+    private var _status as String = "";
+    private var _focusKey as String? = null;
+    private var _menu as WatchUi.Menu2? = null;
+    private var _count as Number = 0;
+    private var _seq as Number = 0;
+
+    function initialize() {
+        _rows = [];
+        _pending = [];
+        readSettings();
+        load();
+    }
+
+    // ——— Réglages et cache ———
+
+    function readSettings() as Void {
+        _url = clean(Application.Properties.getValue("serverUrl"), true);
+        _token = clean(Application.Properties.getValue("token"), false);
+    }
+
+    // Réglage sans espaces autour ; l'adresse sans « / » final, en https si rien n'est précisé.
+    private function clean(value as Object?, isUrl as Boolean) as String {
+        if (!(value instanceof String)) {
+            return "";
+        }
+        var str = value as String;
+        var chars = str.toCharArray();
+        var a = 0;
+        var b = chars.size();
+        while (a < b && chars[a] == ' ') {
+            a++;
+        }
+        while (b > a && (chars[b - 1] == ' ' || (isUrl && chars[b - 1] == '/'))) {
+            b--;
+        }
+        if (a >= b) {
+            return "";
+        }
+        var s = str.substring(a, b) as String;
+        if (isUrl && s.find("://") == null) {
+            s = "https://" + s;
+        }
+        return s;
+    }
+
+    private function load() as Void {
+        var list = Application.Storage.getValue("list");
+        if (list instanceof Dictionary) {
+            take(list as Dictionary);
+        }
+        var pending = Application.Storage.getValue("pending");
+        if (pending instanceof Array) {
+            _pending = pending as Array;
+            overlay();
+        }
+    }
+
+    function save() as Void {
+        store("pending", _pending);
+        if (!_week.equals("")) {
+            store("list", {"w" => _week, "i" => _rows, "left" => _left, "more" => _more});
+        }
+    }
+
+    private function store(key as String, value) as Void {
+        try {
+            Application.Storage.setValue(key, value);
+        } catch (e) {
+            // Stockage plein : pas de cache cette fois, la liste reste à l'écran.
+        }
+    }
+
+    // ——— Liste ———
+
+    // Lit une liste (du serveur ou du cache). Faux si elle est mal formée.
+    private function take(data as Dictionary) as Boolean {
+        var w = data["w"];
+        var rows = data["i"];
+        if (!(w instanceof String) || !(rows instanceof Array)) {
+            return false;
+        }
+        _week = w as String;
+        _rows = rows as Array;
+        _left = number(data["left"]);
+        _more = number(data["more"]);
+        return true;
+    }
+
+    private function number(v as Object?) as Number {
+        return (v instanceof Number) ? v as Number : 0;
+    }
+
+    // Les coches pas encore envoyées s'appliquent par-dessus la liste reçue.
+    private function overlay() as Void {
+        for (var n = 0; n < _pending.size(); n++) {
+            var p = _pending[n] as Array;
+            if ((p[3] as String).equals(_week)) {
+                setRow(p[0] as String, p[1] as Boolean);
+            }
+        }
+    }
+
+    private function row(k as String) as Array? {
+        for (var n = 0; n < _rows.size(); n++) {
+            var r = _rows[n] as Array;
+            if ((r[0] as String).equals(k)) {
+                return r;
+            }
+        }
+        return null;
+    }
+
+    private function setRow(k as String, c as Boolean) as Void {
+        var r = row(k);
+        if (r != null && r[3] != c) {
+            r[3] = c;
+            _left += c ? -1 : 1;
+        }
+    }
+
+    private function keys() as String {
+        var s = "";
+        for (var n = 0; n < _rows.size(); n++) {
+            s = s + ((_rows[n] as Array)[0] as String) + ",";
+        }
+        return s;
+    }
+
+    private function waiting(k as String) as Boolean {
+        for (var n = 0; n < _pending.size(); n++) {
+            if (((_pending[n] as Array)[0] as String).equals(k)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    // ——— Menu ———
+
+    function buildMenu() as WatchUi.Menu2 {
+        var menu = new WatchUi.Menu2({:title => title()});
+        menu.addItem(new WatchUi.MenuItem("Rafraîchir", _status.equals("") ? null : _status, :refresh, null));
+        _menu = menu;
+        fill(menu);
+        menu.setFocus(focusIndex());
+        return menu;
+    }
+
+    // Un article par ligne, après la ligne « Rafraîchir ».
+    private function fill(menu as WatchUi.Menu2) as Void {
+        for (var n = 0; n < _rows.size(); n++) {
+            var r = _rows[n] as Array;
+            menu.addItem(new WatchUi.ToggleMenuItem(r[1] as String, r[2] as String, r[0] as String, r[3] as Boolean, null));
+        }
+        _count = 1 + _rows.size();
+        if (_more > 0) {
+            menu.addItem(new WatchUi.MenuItem("+" + _more.toString() + " articles", "Sur le téléphone", :more, null));
+            _count++;
+        }
+        if (_rows.size() == 0) {
+            menu.addItem(new WatchUi.MenuItem(_week.equals("") ? "Pas encore de liste" : "Rien à acheter", null, :none, null));
+            _count++;
+        }
+    }
+
+    // Liste reçue : mise à jour sur place si ce sont les mêmes articles, sinon on remplit à nouveau.
+    private function redraw(same as Boolean) as Void {
+        var menu = _menu;
+        if (menu == null) {
+            return;
+        }
+        menu.setTitle(title());
+        if (same) {
+            for (var n = 0; n < _rows.size(); n++) {
+                var r = _rows[n] as Array;
+                var item = menu.getItem(n + 1);
+                if (item instanceof WatchUi.ToggleMenuItem) {
+                    var t = item as WatchUi.ToggleMenuItem;
+                    t.setLabel(r[1] as String);
+                    t.setSubLabel(r[2] as String);
+                    t.setEnabled(r[3] as Boolean);
+                }
+            }
+        } else {
+            for (var n = _count - 1; n >= 1; n--) {
+                menu.deleteItem(n);
+            }
+            fill(menu);
+            menu.setFocus(focusIndex());
+        }
+        WatchUi.requestUpdate();
+    }
+
+    // Focus : le dernier article coché, sinon le premier de la liste.
+    private function focusIndex() as Number {
+        var k = _focusKey;
+        if (k != null) {
+            for (var n = 0; n < _rows.size(); n++) {
+                if (((_rows[n] as Array)[0] as String).equals(k)) {
+                    return n + 1;
+                }
+            }
+        }
+        return _rows.size() > 0 ? 1 : 0;
+    }
+
+    private function title() as String {
+        if (_week.equals("")) {
+            return "Mijoté";
+        }
+        return (_left > 0 ? _left : 0).toString() + " à acheter";
+    }
+
+    private function updateTitle() as Void {
+        var menu = _menu;
+        if (menu != null) {
+            menu.setTitle(title());
+            WatchUi.requestUpdate();
+        }
+    }
+
+    // L'état s'affiche sous « Rafraîchir ».
+    private function setStatus(s as String) as Void {
+        _status = s;
+        var menu = _menu;
+        if (menu != null) {
+            var item = menu.getItem(0);
+            if (item != null) {
+                item.setSubLabel(s);
+            }
+            WatchUi.requestUpdate();
+        }
+    }
+
+    // Article coché ou décoché, à l'écran (sans requête).
+    private function show(k as String, c as Boolean) as Void {
+        setRow(k, c);
+        var menu = _menu;
+        if (menu != null) {
+            var i = menu.findItemById(k);
+            if (i >= 0) {
+                var item = menu.getItem(i);
+                if (item instanceof WatchUi.ToggleMenuItem) {
+                    (item as WatchUi.ToggleMenuItem).setEnabled(c);
+                }
+            }
+        }
+        updateTitle();
+    }
+
+    // ——— Actions ———
+
+    // « Rafraîchir » (et l'ouverture) : envoie les coches en attente, puis recharge la liste.
+    function refresh() as Void {
+        _wantList = true;
+        pump();
+    }
+
+    // START sur un article : le menu l'a déjà basculé, on garde la coche et on l'envoie.
+    function toggle(k as String, c as Boolean) as Void {
+        setRow(k, c);
+        if (_pending.size() >= 100) {
+            _pending = _pending.slice(1, null);
+        }
+        _seq++;
+        _pending.add([k, c, actionId(), _week]);
+        _focusKey = k;
+        store("pending", _pending);
+        updateTitle();
+        pump();
+    }
+
+    // Identifiant unique d'une coche (date, compteur, aléa) : le serveur ignore un renvoi.
+    private function actionId() as String {
+        return Time.now().value().toString() + "-" + _seq.toString() + "-" + (Math.rand() % 1000000).toString();
+    }
+
+    private function pump() as Void {
+        if (_busy) {
+            return;
+        }
+        if (_url.equals("") || _token.equals("")) {
+            setStatus("Règle URL et jeton");
+            return;
+        }
+        if (_pending.size() > 0) {
+            var p = _pending[0] as Array;
+            _busy = true;
+            setStatus("Envoi...");
+            Communications.makeWebRequest(
+                _url + "/api/watch/check",
+                {"k" => p[0], "c" => p[1], "w" => p[3], "a" => p[2]},
+                {
+                    :method => Communications.HTTP_REQUEST_METHOD_POST,
+                    :headers => {"Authorization" => "Bearer " + _token, "Content-Type" => Communications.REQUEST_CONTENT_TYPE_JSON},
+                    :responseType => Communications.HTTP_RESPONSE_CONTENT_TYPE_JSON
+                },
+                method(:onCheck)
+            );
+        } else if (_wantList) {
+            _wantList = false;
+            _busy = true;
+            setStatus("Chargement...");
+            Communications.makeWebRequest(
+                _url + "/api/watch/list",
+                null,
+                {
+                    :method => Communications.HTTP_REQUEST_METHOD_GET,
+                    :headers => {"Authorization" => "Bearer " + _token},
+                    :responseType => Communications.HTTP_RESPONSE_CONTENT_TYPE_JSON
+                },
+                method(:onList)
+            );
+        }
+    }
+
+    function onCheck(code as Number, data as Dictionary or String or Null) as Void {
+        _busy = false;
+        if (_pending.size() == 0) {
+            pump();
+            return;
+        }
+        // 200 : fait. 400 : refusée pour de bon. 409 : semaine changée ou article disparu → on recharge.
+        if (code == 200 || code == 400 || code == 409) {
+            var k = (_pending[0] as Array)[0] as String;
+            _pending = _pending.slice(1, null);
+            store("pending", _pending);
+            if (code == 200 && data instanceof Dictionary) {
+                // L'état du serveur fait foi (un renvoi ignoré redonne la vraie valeur), sauf si une autre coche attend.
+                if (!waiting(k)) {
+                    show(k, (data as Dictionary)["c"] == true);
+                }
+                vibe(true);
+            } else {
+                _wantList = true;
+            }
+            if (_pending.size() == 0 && !_wantList) {
+                setStatus(upToDate());
+                save();
+            }
+            pump();
+            return;
+        }
+        fail(code);
+    }
+
+    function onList(code as Number, data as Dictionary or String or Null) as Void {
+        _busy = false;
+        if (code != 200 || !(data instanceof Dictionary)) {
+            fail(code);
+            return;
+        }
+        var d = data as Dictionary;
+        if (d["v"] != 1) {
+            setStatus("Mets à jour l'appli");
+            return;
+        }
+        var before = keys();
+        var beforeMore = _more;
+        if (!take(d)) {
+            fail(-400);
+            return;
+        }
+        overlay();
+        save();
+        redraw(before.equals(keys()) && beforeMore == _more);
+        setStatus(upToDate());
+        // Des coches faites pendant le chargement attendent peut-être.
+        pump();
+    }
+
+    private function fail(code as Number) as Void {
+        var m = message(code);
+        if (_pending.size() > 0) {
+            m = m + " (" + _pending.size().toString() + ")";
+            vibe(false);
+        }
+        setStatus(m);
+    }
+
+    private function message(code as Number) as String {
+        if (code == -104) {
+            return "Téléphone absent";
+        }
+        if (code == -2 || code == -300) {
+            return "Pas de réponse";
+        }
+        if (code == -101) {
+            return "Réessaie";
+        }
+        if (code == -1001 || code == 403) {
+            return "https requis";
+        }
+        if (code == -400) {
+            return "Réponse illisible";
+        }
+        if (code == -402 || code == -403) {
+            return "Liste trop longue";
+        }
+        if (code == 401) {
+            return "Jeton refusé";
+        }
+        if (code == 404) {
+            return "Montre non activée";
+        }
+        if (code == 429) {
+            return "Trop d'essais";
+        }
+        if (code >= 500) {
+            return "Serveur en panne";
+        }
+        return "Erreur " + code.toString();
+    }
+
+    private function upToDate() as String {
+        var t = Gregorian.info(Time.now(), Time.FORMAT_SHORT);
+        return "À jour " + (t.hour as Number).format("%02d") + ":" + (t.min as Number).format("%02d");
+    }
+
+    // Vibration courte : coche enregistrée. Longue : coche pas envoyée.
+    private function vibe(ok as Boolean) as Void {
+        if (Attention has :vibrate) {
+            Attention.vibrate([new Attention.VibeProfile(ok ? 50 : 100, ok ? 80 : 500)]);
+        }
+    }
+}

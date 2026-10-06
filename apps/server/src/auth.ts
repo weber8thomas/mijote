@@ -54,6 +54,9 @@ export function removeMember(db: Db, id: string) {
   db.orm.delete(member).where(eq(member.id, id)).run();
 }
 
+/** Adresse du client : la première de X-Forwarded-For (posée par le reverse proxy), sinon X-Real-IP. */
+export const clientIp = (header: (name: string) => string | undefined) => header("x-forwarded-for")?.split(",")[0]?.trim() || header("x-real-ip") || "local";
+
 /** Limite les essais de phrase secrète : 10 par quart d'heure et par adresse. */
 export function rateLimiter(max = 10, windowMs = 15 * 60_000) {
   const hits = new Map<string, number[]>();
@@ -62,5 +65,15 @@ export function rateLimiter(max = 10, windowMs = 15 * 60_000) {
     recent.push(now);
     hits.set(key, recent);
     return recent.length <= max;
+  };
+}
+
+/** Ne compte que les échecs (jeton refusé) : `blocked` regarde sans compter, `fail` ajoute un échec. */
+export function failureLimiter(max = 10, windowMs = 15 * 60_000) {
+  const fails = new Map<string, number[]>();
+  const recent = (key: string, now: number) => (fails.get(key) ?? []).filter((t) => now - t < windowMs);
+  return {
+    blocked: (key: string, now = Date.now()) => recent(key, now).length >= max,
+    fail: (key: string, now = Date.now()) => void fails.set(key, [...recent(key, now), now]),
   };
 }

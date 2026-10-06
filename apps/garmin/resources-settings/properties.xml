@@ -1,0 +1,5 @@
+<properties>
+    <!-- Laissés vides ici : jamais d'adresse ni de jeton dans git. -->
+    <property id="serverUrl" type="string"></property>
+    <property id="token" type="string"></property>
+</properties>
