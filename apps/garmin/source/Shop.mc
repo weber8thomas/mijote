@@ -162,7 +162,7 @@ class Shop {
     // ——— Menu ———
 
     function buildMenu() as WatchUi.Menu2 {
-        var menu = new WatchUi.Menu2({:title => title()});
+        var menu = new WatchUi.Menu2({:title => menuTitle()});
         menu.addItem(new WatchUi.MenuItem("Rafraîchir", _status.equals("") ? null : _status, :refresh, null));
         _menu = menu;
         fill(menu);
@@ -174,7 +174,7 @@ class Shop {
     private function fill(menu as WatchUi.Menu2) as Void {
         for (var n = 0; n < _rows.size(); n++) {
             var r = _rows[n] as Array;
-            menu.addItem(new WatchUi.ToggleMenuItem(r[1] as String, r[2] as String, r[0] as String, r[3] as Boolean, null));
+            menu.addItem(new WatchUi.ToggleMenuItem(fit(r[1] as String), r[2] as String, r[0] as String, r[3] as Boolean, null));
         }
         _count = 1 + _rows.size();
         if (_more > 0) {
@@ -193,14 +193,14 @@ class Shop {
         if (menu == null) {
             return;
         }
-        menu.setTitle(title());
+        menu.setTitle(menuTitle());
         if (same) {
             for (var n = 0; n < _rows.size(); n++) {
                 var r = _rows[n] as Array;
                 var item = menu.getItem(n + 1);
                 if (item instanceof WatchUi.ToggleMenuItem) {
                     var t = item as WatchUi.ToggleMenuItem;
-                    t.setLabel(r[1] as String);
+                    t.setLabel(fit(r[1] as String));
                     t.setSubLabel(r[2] as String);
                     t.setEnabled(r[3] as Boolean);
                 }
@@ -228,7 +228,15 @@ class Shop {
         return _rows.size() > 0 ? 1 : 0;
     }
 
-    private function title() as String {
+    // L'écran rond coupe net les libellés trop longs : on raccourcit avec « … ».
+    private function fit(label as String) as String {
+        if (label.length() <= 15) {
+            return label;
+        }
+        return (label.substring(0, 14) as String) + "…";
+    }
+
+    private function menuTitle() as String {
         if (_week.equals("")) {
             return "Mijoté";
         }
@@ -238,7 +246,7 @@ class Shop {
     private function updateTitle() as Void {
         var menu = _menu;
         if (menu != null) {
-            menu.setTitle(title());
+            menu.setTitle(menuTitle());
             WatchUi.requestUpdate();
         }
     }
