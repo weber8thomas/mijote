@@ -13,7 +13,7 @@ const body = async (r: Response | Promise<Response>): Promise<any> => (await r).
 const TOKEN = "0123456789abcdef0123456789abcdef-montre";
 const WEEK = "2026-10-05";
 const NEXT = "2026-10-12";
-type Row = [string, string, string, boolean, number, string];
+type Row = [string, string, string, boolean, number, string, number, number];
 
 /** La montre seule, avec une horloge réglable (mercredi par défaut). */
 function setup({ off = false, secure = false } = {}) {
@@ -124,7 +124,7 @@ describe("montre : liste", () => {
     expect(first.i.length).toBe(items().filter((i) => !i.haveAlready).length);
     expect(first.left).toBe(first.i.length);
     for (const row of first.i) {
-      expect(row).toHaveLength(6);
+      expect(row).toHaveLength(8);
       expect(typeof row[0]).toBe("string");
       expect(row[1].length).toBeLessThanOrEqual(NAME_MAX);
       expect(row[2].length).toBeLessThanOrEqual(SUB_MAX);
@@ -141,7 +141,7 @@ describe("montre : liste", () => {
     const have = items().find((i) => watchKey(i.id) === b[0])!;
     household.apply([{ actionId: "h1", action: { type: "setHave", weekStart: WEEK, itemId: have.id, have: true, at: "2026-10-07T10:00:00.000Z" } }], "phone");
     const after = await list();
-    expect(after.i.at(-1)).toEqual([a[0], a[1], a[2], true, a[4], a[5]]);
+    expect(after.i.at(-1)).toEqual([a[0], a[1], a[2], true, a[4], a[5], a[6], a[7]]);
     expect(after.i.some((r) => r[0] === b[0])).toBe(false);
     expect(after.left).toBe(first.left - 2);
   });
@@ -157,6 +157,17 @@ describe("montre : liste", () => {
     for (const it of pieces) expect(key.get(watchKey(it.id))![4]).toBe(Math.round(it.qty * 2) / 2);
     for (const it of weighed) expect(key.get(watchKey(it.id))![4]).toBe(0);
     expect(household).toBeDefined();
+  });
+
+  it("rangs de tri : alphabétique (accents ignorés) et ordre d'ajout", async () => {
+    const { list, items } = setup();
+    const rows = (await list()).i;
+    expect(rows.map((r) => r[6]).sort((x, y) => x - y)).toEqual(rows.map((_, n) => n));
+    const byAlpha = [...rows].sort((x, y) => x[6] - y[6]).map((r) => r[1]);
+    expect(byAlpha).toEqual([...byAlpha].sort(new Intl.Collator("fr").compare));
+    const added = [...rows].sort((x, y) => x[7] - y[7]).map((r) => r[0]);
+    const present = new Set(rows.map((r) => r[0]));
+    expect(added).toEqual(items().map((i) => watchKey(i.id)).filter((k) => present.has(k)));
   });
 
   it(`coupée à ${MAX_ITEMS} articles, sous 8 Ko`, async () => {

@@ -1,6 +1,7 @@
 import Toybox.Application;
 import Toybox.Attention;
 import Toybox.Communications;
+import Toybox.Graphics;
 import Toybox.Lang;
 import Toybox.Math;
 import Toybox.Time;
@@ -32,6 +33,13 @@ class Shop {
     private var _hideDone as Boolean = false;
     private var _heads as Boolean = false;
     private var _first as Number = 0;
+    // Tri : 0 par rayon (ordre du serveur), 1 alphabétique, 2 ordre d'ajout. Taille (Compact) : 0 petit, 1 moyen, 2 grand.
+    private var _sort as Number = 0;
+    private var _size as Number = 0;
+    // Taille du CustomMenu affiché (-1 : menu standard), pour savoir quand le remplacer.
+    private var _built as Number = -1;
+    // Le menu affiché est-il un CustomMenu (mode Compact) ?
+    private var _custom as Boolean = false;
     private var _synced as String = "";
 
     function initialize() {
@@ -81,6 +89,14 @@ class Shop {
         var mode = Application.Storage.getValue("mode");
         if (mode instanceof Number && (mode as Number) >= 0 && (mode as Number) < 4) {
             _mode = mode as Number;
+        }
+        var sort = Application.Storage.getValue("sort");
+        if (sort instanceof Number && (sort as Number) >= 0 && (sort as Number) < 3) {
+            _sort = sort as Number;
+        }
+        var size = Application.Storage.getValue("size");
+        if (size instanceof Number && (size as Number) >= 0 && (size as Number) < 3) {
+            _size = size as Number;
         }
         _hideDone = Application.Storage.getValue("hide") == true;
         _heads = Application.Storage.getValue("heads") == true;
@@ -174,8 +190,19 @@ class Shop {
     // ——— Menu ———
 
     function buildMenu() as WatchUi.Menu2 {
-        var menu = new WatchUi.Menu2({:title => menuTitle()});
-        menu.addItem(new WatchUi.MenuItem("Rafraîchir", _status.equals("") ? null : _status, :refresh, null));
+        var menu;
+        if (_mode == 3) {
+            // Compact : lignes dessinées par l'appli (Row), petite police, peu de hauteur.
+            _custom = true;
+            _built = _size;
+            menu = new WatchUi.CustomMenu(([22, 26, 30] as Array<Number>)[_size], Graphics.COLOR_BLACK, {});
+            menu.addItem(new Row(:refresh, 2, topText(), false, rowPx()));
+        } else {
+            _custom = false;
+            _built = -1;
+            menu = new WatchUi.Menu2({:title => menuTitle()});
+            menu.addItem(new WatchUi.MenuItem("Rafraîchir", _status.equals("") ? null : _status, :refresh, null));
+        }
         _menu = menu;
         fill(menu);
         menu.setFocus(focusIndex(menu));
@@ -188,20 +215,22 @@ class Shop {
         _first = 0;
         var last = "";
         var shown = 0;
-        for (var n = 0; n < _rows.size(); n++) {
-            var r = _rows[n] as Array;
+        var order = ordered();
+        for (var o = 0; o < order.size(); o++) {
+            var r = _rows[order[o]] as Array;
             if (_hideDone && r[3] == true) {
                 continue;
             }
-            if (_heads) {
+            // Titres de rayon seulement dans l'ordre par rayon.
+            if (_heads && _sort == 0) {
                 var g = r[3] == true ? "Cochés" : aisle(r);
                 if (!g.equals(last)) {
-                    menu.addItem(new WatchUi.MenuItem("— " + g + " —", null, :head, null));
+                    menu.addItem(headItem(g));
                     _count++;
                     last = g;
                 }
             }
-            menu.addItem(new WatchUi.ToggleMenuItem(fit(r[1] as String), sub(r), r[0] as String, r[3] as Boolean, null));
+            menu.addItem(articleItem(r));
             if (_first == 0) {
                 _first = _count;
             }
@@ -209,15 +238,89 @@ class Shop {
             shown++;
         }
         if (_more > 0) {
-            menu.addItem(new WatchUi.MenuItem("+" + _more.toString() + " articles", "Sur le téléphone", :more, null));
+            menu.addItem(actionItem(:more, "+" + _more.toString() + " articles", "Sur le téléphone"));
             _count++;
         }
         if (shown == 0) {
-            menu.addItem(new WatchUi.MenuItem(_week.equals("") ? "Pas encore de liste" : "Rien à acheter", null, :none, null));
+            menu.addItem(actionItem(:none, _week.equals("") ? "Pas encore de liste" : "Rien à acheter", null));
             _count++;
         }
-        menu.addItem(new WatchUi.MenuItem("Réglages", modeName(), :settings, null));
+        menu.addItem(actionItem(:settings, "Réglages", modeName()));
         _count++;
+    }
+
+    // Les lignes selon le menu affiché : Row en Compact (CustomMenu), éléments standard sinon.
+    private function articleItem(r as Array) {
+        if (_custom) {
+            return new Row(r[0] as String, 0, r[1] as String, r[3] as Boolean, rowPx());
+        }
+        return new WatchUi.ToggleMenuItem(fit(r[1] as String), sub(r), r[0] as String, r[3] as Boolean, null);
+    }
+
+    private function headItem(g as String) {
+        var t = "— " + g + " —";
+        return _custom ? new Row(:head, 1, t, false, rowPx()) : new WatchUi.MenuItem(t, null, :head, null);
+    }
+
+    private function actionItem(id as Symbol, label as String, detail as String?) {
+        return _custom ? new Row(id, 2, label, false, rowPx()) : new WatchUi.MenuItem(label, detail, id, null);
+    }
+
+    // Compact : la première ligne dit « N à acheter », ou l'état s'il n'est pas « à jour » (Téléphone absent…).
+    private function topText() as String {
+        return (_status.equals("") || _status.find("À jour") == 0) ? menuTitle() : _status;
+    }
+
+    private function rowPx() as Number {
+        return ([17, 19, 22] as Array<Number>)[_size];
+    }
+
+    // Ordre d'affichage : indices des lignes. Par rayon : celui du serveur. Sinon tri par insertion (80 lignes au plus),
+    // les cochés en dernier, sur le rang envoyé par le serveur (la position reçue pour une liste en cache plus ancienne).
+    private function ordered() as Array<Number> {
+        var n = _rows.size();
+        var idx = new [n] as Array<Number>;
+        for (var i = 0; i < n; i++) {
+            idx[i] = i;
+        }
+        if (_sort == 0) {
+            return idx;
+        }
+        var f = _sort == 1 ? 6 : 7;
+        for (var i = 1; i < n; i++) {
+            var cur = idx[i];
+            var ck = rank(cur, f);
+            var j = i - 1;
+            while (j >= 0 && rank(idx[j], f) > ck) {
+                idx[j + 1] = idx[j];
+                j--;
+            }
+            idx[j + 1] = cur;
+        }
+        return idx;
+    }
+
+    private function rank(i as Number, f as Number) as Number {
+        var r = _rows[i] as Array;
+        return (r[3] == true ? 100000 : 0) + (r.size() > f ? number(r[f]) : i);
+    }
+
+    // Mode ou taille changés dans les réglages : si le type de menu change (taille du CustomMenu), on remplace le menu à la sortie.
+    function applyKind() as Void {
+        if ((_mode == 3 ? _size : -1) != _built) {
+            WatchUi.switchToView(buildMenu(), new ShopDelegate(self), WatchUi.SLIDE_IMMEDIATE);
+        }
+    }
+
+    private function retitle(menu as WatchUi.Menu2) as Void {
+        if (_custom) {
+            var top = menu.getItem(0);
+            if (top instanceof Row) {
+                (top as Row).setText(topText());
+            }
+        } else {
+            menu.setTitle(menuTitle());
+        }
     }
 
     // Rayon seul d'une ligne (les listes en cache d'une ancienne version n'ont que « quantité · rayon »).
@@ -253,9 +356,9 @@ class Shop {
         if (menu == null) {
             return;
         }
-        menu.setTitle(menuTitle());
+        retitle(menu);
         // Sur place seulement si les lignes se suivent sans titre ni coché masqué (sinon leurs places changent).
-        if (same && !_hideDone && !_heads) {
+        if (same && !_hideDone && !_heads && !_custom && _sort == 0) {
             for (var n = 0; n < _rows.size(); n++) {
                 var r = _rows[n] as Array;
                 var item = menu.getItem(n + 1);
@@ -309,6 +412,14 @@ class Shop {
         return _hideDone ? "Masqués" : "Visibles";
     }
 
+    function sortName() as String {
+        return (["Par rayon", "A → Z", "Ordre d'ajout"] as Array<String>)[_sort];
+    }
+
+    function sizeName() as String {
+        return (["Petit", "Moyen", "Grand"] as Array<String>)[_size];
+    }
+
     function headsName() as String {
         return _heads ? "Titres" : "Sans titre";
     }
@@ -316,6 +427,8 @@ class Shop {
     function buildSettings() as WatchUi.Menu2 {
         var m = new WatchUi.Menu2({:title => "Réglages"});
         m.addItem(new WatchUi.MenuItem("Affichage", modeName(), :mode, null));
+        m.addItem(new WatchUi.MenuItem("Tri", sortName(), :sort, null));
+        m.addItem(new WatchUi.MenuItem("Taille (Compact)", sizeName(), :size, null));
         m.addItem(new WatchUi.MenuItem("Cochés", hideName(), :hide, null));
         m.addItem(new WatchUi.MenuItem("Rayons", headsName(), :heads, null));
         m.addItem(new WatchUi.MenuItem("Statut", null, :status, null));
@@ -326,6 +439,17 @@ class Shop {
         _mode = (_mode + 1) % 4;
         store("mode", _mode);
         redraw(false);
+    }
+
+    function nextSort() as Void {
+        _sort = (_sort + 1) % 3;
+        store("sort", _sort);
+        redraw(false);
+    }
+
+    function nextSize() as Void {
+        _size = (_size + 1) % 3;
+        store("size", _size);
     }
 
     function flipHide() as Void {
@@ -389,7 +513,7 @@ class Shop {
     private function updateTitle() as Void {
         var menu = _menu;
         if (menu != null) {
-            menu.setTitle(menuTitle());
+            retitle(menu);
             WatchUi.requestUpdate();
         }
     }
@@ -399,9 +523,13 @@ class Shop {
         _status = s;
         var menu = _menu;
         if (menu != null) {
-            var item = menu.getItem(0);
-            if (item != null) {
-                item.setSubLabel(s);
+            if (_custom) {
+                retitle(menu);
+            } else {
+                var item = menu.getItem(0);
+                if (item != null) {
+                    item.setSubLabel(s);
+                }
             }
             WatchUi.requestUpdate();
         }
@@ -417,6 +545,8 @@ class Shop {
                 var item = menu.getItem(i);
                 if (item instanceof WatchUi.ToggleMenuItem) {
                     (item as WatchUi.ToggleMenuItem).setEnabled(c);
+                } else if (item instanceof Row) {
+                    (item as Row).setChecked(c);
                 }
             }
         }

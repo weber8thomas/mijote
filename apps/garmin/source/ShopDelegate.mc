@@ -15,6 +15,9 @@ class ShopDelegate extends WatchUi.Menu2InputDelegate {
         if (id instanceof String && item instanceof WatchUi.ToggleMenuItem) {
             // Le ToggleMenuItem a déjà basculé : isEnabled() est la nouvelle valeur.
             _shop.toggle(id as String, (item as WatchUi.ToggleMenuItem).isEnabled());
+        } else if (id instanceof String && item instanceof Row) {
+            // Mode Compact : la ligne ne bascule pas seule.
+            _shop.toggle(id as String, (item as Row).flip());
         } else if (id == :refresh) {
             _shop.refresh();
         } else if (id == :settings) {

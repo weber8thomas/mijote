@@ -54,12 +54,17 @@ export function watchList(state: HouseholdState, now: Date) {
   const byId = ingredientsOfState(state).byId;
   const shown = sortItems((state.shopping[w] ?? []).filter((i) => !i.haveAlready), byId);
   const ordered = [...shown.filter((i) => !i.checked), ...shown.filter((i) => i.checked)];
-  // [clé, nom, « quantité · rayon », coché, nombre de pièces (0 : au poids ou sans quantité), rayon seul]. Les 4 premiers champs
-  // n'ont jamais changé : une appli plus ancienne continue de marcher. Les modes d'affichage de la montre se servent des 2 derniers.
+  // [clé, nom, « quantité · rayon », coché, nombre de pièces (0 : au poids ou sans quantité), rayon seul, rang alphabétique, rang d'ajout]. Les 4 premiers champs
+  // n'ont jamais changé : une appli plus ancienne continue de marcher. Les modes d'affichage et les tris de la montre se servent des autres.
+  // Rangs pour les tris de la montre (elle trie seule, hors ligne) : alphabétique, et ordre d'ajout (l'ordre du tableau de la semaine).
+  const alpha = new Map([...shown].sort((a, b) => FR.compare(itemName(a, byId), itemName(b, byId))).map((it, n) => [it.id, n]));
+  const added = new Map((state.shopping[w] ?? []).map((it, n) => [it.id, n]));
   const row = (it: ShoppingItem) =>
-    [watchKey(it.id), watchText(itemName(it, byId), NAME_MAX), watchText(it.qty ? `${formatQty(it.qty, it.unit)} · ${it.aisle}` : it.aisle, SUB_MAX), it.checked, pieces(it), watchText(it.aisle, SUB_MAX)] as const;
+    [watchKey(it.id), watchText(itemName(it, byId), NAME_MAX), watchText(it.qty ? `${formatQty(it.qty, it.unit)} · ${it.aisle}` : it.aisle, SUB_MAX), it.checked, pieces(it), watchText(it.aisle, SUB_MAX), alpha.get(it.id) ?? 0, added.get(it.id) ?? 0] as const;
   return { v: 1, w, left: remaining(state.shopping[w]), more: Math.max(0, ordered.length - MAX_ITEMS), i: ordered.slice(0, MAX_ITEMS).map(row) };
 }
+
+const FR = new Intl.Collator("fr");
 
 /** Nombre de pièces (au demi près) : 0 pour un poids, un volume ou sans quantité. */
 const pieces = (it: ShoppingItem) => (it.qty && it.unit === "piece" ? Math.round(it.qty * 2) / 2 : 0);
