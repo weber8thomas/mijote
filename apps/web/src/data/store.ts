@@ -40,6 +40,8 @@ export type DeviceState = {
   /** Nom de cet appareil (qui a coché quoi). */
   member: string;
   installSeen?: boolean;
+  /** Mode magasin : ranger aussi au placard ce qu'on scanne (désactivé par défaut). */
+  shelveOnScan?: boolean;
   /** Connexions : Home Assistant, IA. Gardées sur cet appareil, jamais exportées. */
   integrations?: Integrations;
   /** État de la synchro de la liste avec Home Assistant (vitrine : faite par cet appareil). */
@@ -313,6 +315,10 @@ export const actions = {
 
   setPrice: (ingredientId: string, price: number | undefined) => void dispatch({ type: "setPrice", ingredientId, price }),
 
+  setShelveOnScan(shelveOnScan: boolean) {
+    set({ ...state, shelveOnScan });
+  },
+
   setInstallSeen() {
     set({ ...state, installSeen: true });
   },
@@ -331,7 +337,7 @@ export const actions = {
 
   /** Vitrine seulement : repart de l'état de départ. */
   reset() {
-    set({ ...initial(), member: state.member, integrations: state.integrations });
+    set({ ...initial(), member: state.member, integrations: state.integrations, shelveOnScan: state.shelveOnScan });
   },
 
   newId: uid,

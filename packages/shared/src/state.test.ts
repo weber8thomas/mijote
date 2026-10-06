@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { applyAction, applyActionWithResult, initialHousehold, pickHousehold, shoppingWeekOf, type Action, type HouseholdState } from "./state";
+import { applyAction, applyActionWithResult, initialHousehold, pickHousehold, shoppingWeekOf, withShopping, type Action, type HouseholdState } from "./state";
 
 const NOW = new Date("2026-10-05T09:00:00");
 const W = "2026-10-12";
@@ -69,5 +69,41 @@ describe("état du foyer partagé", () => {
     const s1 = replay(s0, journal(s0));
     expect(shoppingWeekOf(s1, new Date("2026-10-07T10:00:00"))).toBe("2026-10-05");
     expect(shoppingWeekOf(s1, new Date("2026-10-10T10:00:00"))).toBe(W);
+  });
+
+  it("« presque fini » : à racheter, reste marqué après l'ajout aux courses, repasse en stock une fois coché", () => {
+    const s1 = replay(s0, journal(s0));
+    const add: Action = { type: "addInventory", items: [{ id: "i1", name: "Riz", ingredientId: "riz", location: "placard", addedAt: at(1) }, { id: "i2", name: "Papier cuisson", location: "placard", addedAt: at(1) }] };
+    const s2 = applyAction(s1, add);
+    const low: Action = { type: "updateInventory", id: "i1", patch: { low: true } };
+    const lowed = applyAction(s2, low);
+    expect(applyAction(lowed, low)).toEqual(lowed);
+    const [loweredPaper] = [applyAction(lowed, { type: "updateInventory", id: "i2", patch: { low: true } })];
+    // Ajout aux courses (deux fois : pas de doublon), l'article reste « presque fini ».
+    const text = "riz, papier cuisson";
+    const addA: Action = { type: "addToShopping", weekStart: W, text, at: at(2) };
+    const added = applyAction(applyAction(loweredPaper, addA), { ...addA, at: at(3) });
+    expect(added.shopping[W].filter((i) => i.ingredientId === "riz")).toHaveLength(1);
+    expect(added.inventory?.filter((i) => i.low).map((i) => i.id)).toEqual(["i1", "i2"]);
+    // Coché en courses : seul l'article racheté repasse en stock.
+    const rice = added.shopping[W].find((i) => i.ingredientId === "riz")!;
+    const bought = applyAction(added, { type: "setChecked", weekStart: W, itemId: rice.id, checked: true, at: at(4) });
+    expect(bought.inventory?.map((i) => [i.id, !!i.low])).toEqual([["i1", false], ["i2", true]]);
+    const paper = bought.shopping[W].find((i) => i.label === "papier cuisson")!;
+    const bought2 = applyAction(bought, { type: "setChecked", weekStart: W, itemId: paper.id, checked: true, at: at(5) });
+    expect(bought2.inventory?.some((i) => i.low)).toBe(false);
+    // Via Home Assistant aussi.
+    const viaHa = applyAction(added, { type: "haChanges", weekStart: W, changes: [{ kind: "check", itemId: rice.id, checked: true }], at: at(6) });
+    expect(viaHa.inventory?.find((i) => i.id === "i1")?.low).toBe(false);
+  });
+
+  it("« presque fini » n'est plus compté à la maison pour les courses des recettes", () => {
+    const s1 = replay(s0, journal(s0));
+    const week = s1.shopping[W];
+    const wanted = week.find((i) => !i.manual)!;
+    const inv = (low: boolean): HouseholdState => ({ ...s1, shopping: {}, inventory: [{ id: "i9", name: "x", ingredientId: wanted.ingredientId, location: "placard" as const, addedAt: at(1), low }] });
+    // Liste recalculée de zéro : en stock → déjà à la maison ; « presque fini » → à acheter.
+    expect(withShopping(inv(false), W).shopping[W].find((i) => i.ingredientId === wanted.ingredientId)?.haveAlready).toBe(true);
+    expect(withShopping(inv(true), W).shopping[W].find((i) => i.ingredientId === wanted.ingredientId)?.haveAlready).toBe(false);
   });
 });

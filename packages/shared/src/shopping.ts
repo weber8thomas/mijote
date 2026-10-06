@@ -196,7 +196,7 @@ export function parseShoppingText(text: string, ingredients: Ingredient[]): Pars
     });
 }
 
-const slug = (t: string) =>
+export const slug = (t: string) =>
   norm(t)
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-|-$/g, "");

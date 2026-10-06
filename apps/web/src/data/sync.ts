@@ -60,7 +60,7 @@ function render() {
   if (!saved) return;
   const household = saved.pending.reduce((s, p) => applyAction(s, p.action), saved.confirmed);
   const device = getState();
-  replaceState({ ...household, member: member?.displayName ?? device.member, installSeen: device.installSeen, integrations: device.integrations, haSync: device.haSync } as State);
+  replaceState({ ...household, member: member?.displayName ?? device.member, installSeen: device.installSeen, shelveOnScan: device.shelveOnScan, integrations: device.integrations, haSync: device.haSync } as State);
 }
 
 async function api<T>(path: string, init?: RequestInit): Promise<T> {

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { INGREDIENTS, ingredientMap, RECIPES } from "./content";
-import { guessLocation, matchProduct, rankByInventory } from "./inventory";
+import { guessLocation, matchProduct, planStoreShelving, rankByInventory } from "./inventory";
 import type { Recipe } from "./schemas";
 
 const ingredients = ingredientMap();
@@ -88,5 +88,31 @@ describe("matchProduct", () => {
     expect(matchProduct("Pâte à tartiner aux noisettes et au cacao", INGREDIENTS)).toBeUndefined();
     expect(matchProduct("Biscuits fourrés au chocolat", INGREDIENTS)).toBeUndefined();
     expect(matchProduct("", INGREDIENTS)).toBeUndefined();
+  });
+});
+
+describe("planStoreShelving", () => {
+  const list = INGREDIENTS;
+  const lentils = { name: "Lentilles vertes du Puy" } as Parameters<typeof planStoreShelving>[1];
+
+  it("range le produit reconnu à son emplacement, avec son code-barres", () => {
+    const item = planStoreShelving("3017620422003", lentils, list, new Set());
+    expect(item).toMatchObject({ name: "Lentilles vertes du Puy", location: "placard", barcode: "3017620422003" });
+    expect(item?.ingredientId).toBeTruthy();
+  });
+
+  it("range un produit non reconnu au placard, tel quel", () => {
+    const item = planStoreShelving("3017620422003", { name: "Pâte à tartiner aux noisettes" } as typeof lentils, list, new Set());
+    expect(item).toMatchObject({ ingredientId: undefined, location: "placard" });
+  });
+
+  it("ne range pas deux fois le même code dans la séance", () => {
+    expect(planStoreShelving("3017620422003", lentils, list, new Set(["3017620422003"]))).toBeUndefined();
+  });
+
+  it("ne range rien sans produit, sans nom ou avec un code qui n'est pas un code-barres", () => {
+    expect(planStoreShelving("3017620422003", undefined, list, new Set())).toBeUndefined();
+    expect(planStoreShelving("3017620422003", { name: "  " } as typeof lentils, list, new Set())).toBeUndefined();
+    expect(planStoreShelving("QR-abc", lentils, list, new Set())).toBeUndefined();
   });
 });

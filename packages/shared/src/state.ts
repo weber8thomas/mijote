@@ -6,6 +6,7 @@
 import { AI_SAMPLES, INGREDIENTS, PANTRY_BASICS, RECIPES } from "./content";
 import { addDays, dayIndex, mondayOf } from "./dates";
 import type { LocalChange } from "./ha-sync";
+import { clearLowBought } from "./inventory";
 import { householdPortions } from "./pricing";
 import { chooseEntry, generateWeek, rerollChoices, unchooseEntry, type PlanContext } from "./planner";
 import { DEFAULT_THRESHOLDS } from "./pricing";
@@ -85,7 +86,8 @@ export function withShopping<S extends HouseholdState>(s: S, weekStart: string):
   const week = s.weeks[weekStart];
   if (!week || week.status !== "validated") return s;
   const pantryInStock = new Set(Object.entries(s.pantry).filter(([, v]) => v).map(([k]) => k));
-  const atHome = new Set((s.inventory ?? []).flatMap((i) => (i.ingredientId ? [i.ingredientId] : [])));
+  // « Presque fini » n'est plus à la maison : les recettes qui en ont besoin le remettent aux courses.
+  const atHome = new Set((s.inventory ?? []).flatMap((i) => (i.ingredientId && !i.low ? [i.ingredientId] : [])));
   const items = buildShoppingList({ week, recipes: recipeMapOf(s), ingredients: ingredientsOfState(s).byId, pantryInStock, atHome, previous: s.shopping[weekStart] });
   return { ...s, shopping: { ...s.shopping, [weekStart]: items } };
 }
@@ -227,8 +229,12 @@ export function applyActionWithResult<S extends HouseholdState>(s: S, a: Action)
       const week = s.weeks[a.weekStart];
       return done(week ? withShopping({ ...s, weeks: { ...s.weeks, [a.weekStart]: { ...week, status: "validated", validatedAt: a.at } } }, a.weekStart) : s);
     }
-    case "setChecked":
-      return done(mapItems(s, a.weekStart, (i) => (i.id === a.itemId ? { ...i, checked: a.checked, checkedBy: a.checked ? a.by : undefined, updatedAt: a.at } : i)));
+    case "setChecked": {
+      const next = mapItems(s, a.weekStart, (i) => (i.id === a.itemId ? { ...i, checked: a.checked, checkedBy: a.checked ? a.by : undefined, updatedAt: a.at } : i));
+      // Racheté : un article « presque fini » du même nom repasse en stock (sans recalculer : l'article coché reste dans la liste).
+      const bought = a.checked ? (s.shopping[a.weekStart] ?? []).filter((i) => i.id === a.itemId) : [];
+      return done(bought.length ? { ...next, inventory: clearLowBought(next.inventory, bought) } : next);
+    }
     case "setHave":
       return done(mapItems(s, a.weekStart, (i) => (i.id === a.itemId ? { ...i, haveAlready: a.have, updatedAt: a.at } : i)));
     case "addToShopping": {
@@ -251,7 +257,9 @@ export function applyActionWithResult<S extends HouseholdState>(s: S, a: Action)
     case "haChanges": {
       const { list, byId } = ingredientsOfState(s);
       let items = [...(s.shopping[a.weekStart] ?? [])];
+      let inv = s.inventory;
       for (const c of a.changes) {
+        if (c.kind === "check" && c.checked) inv = clearLowBought(inv, items.filter((it) => it.id === c.itemId));
         if (c.kind === "check") items = items.map((it) => (it.id === c.itemId ? { ...it, checked: c.checked, checkedBy: c.checked ? "Home Assistant" : undefined, updatedAt: a.at } : it));
         if (c.kind === "remove") items = items.filter((it) => it.id !== c.itemId);
         if (c.kind === "have") items = items.map((it) => (it.id === c.itemId ? { ...it, haveAlready: true, updatedAt: a.at } : it));
@@ -263,7 +271,7 @@ export function applyActionWithResult<S extends HouseholdState>(s: S, a: Action)
           items.push({ ...manualItem(a.weekStart, { ...(line ?? { text: c.summary }), label: c.summary }, byId, new Date(a.at), id), checked: c.done, updatedAt: a.at });
         }
       }
-      return done(setShopping(s, a.weekStart, items));
+      return done(inv === s.inventory ? setShopping(s, a.weekStart, items) : { ...setShopping(s, a.weekStart, items), inventory: inv });
     }
     case "removeShoppingItem":
       return done(setShopping(s, a.weekStart, (s.shopping[a.weekStart] ?? []).filter((i) => i.id !== a.itemId)));

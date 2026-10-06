@@ -2,6 +2,7 @@ import {
   guessLocation,
   illustrationOf,
   LOCATION_LABELS,
+  lowItems,
   PANTRY_BASICS,
   parseShoppingText,
   rankByInventory,
@@ -11,7 +12,7 @@ import {
   type ProductInfo,
   type StorageLocation,
 } from "@mijote/shared";
-import { ArrowRightLeft, Camera, Check, ChevronRight, PackageSearch, Plus, ScanBarcode, ShoppingBasket, Trash2 } from "lucide-react";
+import { ArrowRightLeft, BatteryLow, Camera, Check, ChevronRight, PackageSearch, Plus, ScanBarcode, ShoppingBasket, Trash2 } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import { DropdownMenu } from "radix-ui";
 import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
@@ -19,13 +20,13 @@ import { toast } from "sonner";
 import { Art } from "@/components/art";
 import { FridgePhotoSheet } from "@/components/fridge-photo";
 import { Chip, EmptyState, PageHeader, RecipeVisual, Segmented } from "@/components/kit";
-import { addNameToShopping, INTO, LOCATIONS, LocationPicker, NutriBadge, ProductDetails, storedToast } from "@/components/product";
+import { addNameToShopping, INTO, LOCATIONS, LocationPicker, NutriBadge, ProductDetails, shoppingLabel, storedToast } from "@/components/product";
 import { openScan } from "@/components/scan";
 import { Shell } from "@/components/shell";
 import { Sheet } from "@/components/sheet";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { actions, ingredientsOf, recipesOf, useStore } from "@/data/store";
+import { actions, ingredientsOf, recipesOf, shoppingWeek, useStore } from "@/data/store";
 import { go } from "@/lib/router";
 import { useSelectedWeek } from "@/lib/ui";
 import { cn } from "@/lib/utils";
@@ -54,6 +55,22 @@ function removeItem(item: InventoryItem) {
   void _id;
   void _at;
   toast(`${item.name} : retiré`, { action: { label: "Annuler", onClick: () => actions.addInventory([rest]) } });
+}
+
+/** Bascule « presque fini » (un tap, réversible) ; l'article reste dans son rayon. */
+function toggleLow(item: InventoryItem) {
+  const low = !item.low;
+  actions.updateInventory(item.id, { low });
+  toast(low ? `${item.name} : presque fini` : `${item.name} : de nouveau en stock`, { action: { label: "Annuler", onClick: () => actions.updateInventory(item.id, { low: !low }) } });
+}
+
+/** Ajoute les articles « presque finis » aux courses de la semaine en cours (pas de doublon : voir `revive` dans addToShopping). Ils restent « presque finis » jusqu'au rachat. */
+function restock(items: InventoryItem[], ingredients: Map<string, Ingredient>) {
+  const weekStart = shoppingWeek();
+  const added = items.flatMap((i) => actions.addToShopping(weekStart, shoppingLabel((i.ingredientId && ingredients.get(i.ingredientId)?.name) || i.name)));
+  toast.success(`${items.length > 1 ? `${items.length} articles` : items[0].name} : ajouté${items.length > 1 ? "s" : ""} aux courses`, {
+    action: { label: "Annuler", onClick: () => added.forEach((i) => actions.removeShoppingItem(weekStart, i.id)) },
+  });
 }
 
 function moveItem(item: InventoryItem, location: StorageLocation) {
@@ -162,6 +179,7 @@ export function PantryView({ scan: scanFirst = false }: { scan?: boolean } = {})
 
       <div className="lg:grid lg:grid-cols-[minmax(0,1fr)_23rem] lg:items-start lg:gap-8">
         <section aria-label="Inventaire">
+          <LowGroup items={lowItems(inventory)} ingredients={byId} />
           <Segmented
             className="mb-4 flex w-full lg:w-auto"
             value={location}
@@ -210,6 +228,30 @@ export function PantryView({ scan: scanFirst = false }: { scan?: boolean } = {})
   );
 }
 
+// ——— Presque fini : à racheter ———
+
+function LowGroup({ items, ingredients }: { items: InventoryItem[]; ingredients: Map<string, Ingredient> }) {
+  if (!items.length) return null;
+  return (
+    <section aria-labelledby="low-title" className="paper mb-4 rounded-3xl border border-border p-4 shadow-card">
+      <h2 id="low-title" className="font-heading text-2xl">
+        Presque fini
+      </h2>
+      <p className="mt-1 mb-3 text-sm text-muted-foreground">Touche un article pour le remettre en stock.</p>
+      <div className="flex flex-wrap gap-2">
+        {items.map((i) => (
+          <Chip key={i.id} active onClick={() => toggleLow(i)} className="h-12 px-4">
+            <span className="first-letter:uppercase">{i.name}</span>
+          </Chip>
+        ))}
+      </div>
+      <Button size="lg" className="mt-3 h-12 w-full" onClick={() => restock(items, ingredients)}>
+        <ShoppingBasket aria-hidden /> Ajouter aux courses ({items.length})
+      </Button>
+    </section>
+  );
+}
+
 // ——— Une ligne de l'inventaire ———
 
 function Thumb({ item, className }: { item: { ingredientId?: string; product?: ProductInfo }; className?: string }) {
@@ -236,8 +278,18 @@ function InventoryRow({ item, onOpen }: { item: InventoryItem; onOpen: () => voi
         <span className="min-w-0 flex-1">
           <span className="block truncate font-semibold first-letter:uppercase">{item.name}</span>
           {sub && <span className="block truncate text-sm text-muted-foreground">{sub}</span>}
+          {item.low && <span className="block text-sm font-semibold text-primary-ink">Presque fini</span>}
         </span>
         {item.product?.nutriscore && <NutriBadge grade={item.product.nutriscore} />}
+      </button>
+      <button
+        type="button"
+        onClick={() => toggleLow(item)}
+        aria-pressed={!!item.low}
+        className={cn("grid size-12 shrink-0 place-items-center rounded-full hover:bg-muted focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:outline-none", item.low ? "text-primary-ink" : "text-muted-foreground")}
+        aria-label={`Presque fini : ${item.name}`}
+      >
+        <BatteryLow className="size-4.5" />
       </button>
       <MoveMenu item={item} />
       <button type="button" onClick={() => removeItem(item)} className="grid size-12 shrink-0 place-items-center rounded-full text-muted-foreground hover:bg-muted hover:text-primary-ink focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:outline-none" aria-label={`Retirer : ${item.name}`}>

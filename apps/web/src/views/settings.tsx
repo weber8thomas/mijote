@@ -118,6 +118,10 @@ export function SettingsView() {
           <LinkRow onClick={() => go("/produits")} icon={<PackageSearch className="size-5" />}>
             Mes produits
           </LinkRow>
+          {/* Préférence de cet appareil (comme le nom et les connexions) : c'est le téléphone qui scanne en magasin. */}
+          <Row label="Ranger ce que je scanne en magasin" hint="Chaque produit scanné est aussi rangé à la maison (placard, frigo ou congélateur). Sur cet appareil.">
+            <input type="checkbox" checked={!!s.shelveOnScan} onChange={(e) => actions.setShelveOnScan(e.target.checked)} aria-label="Ranger ce que je scanne en magasin" className="size-6 accent-[var(--primary)]" />
+          </Row>
           <LinkRow onClick={() => setHa(true)} icon={<HouseWifi className="size-5" />} detail={(onServer ? serverHa?.enabled : s.integrations?.ha) ? "relié" : undefined}>
             Home Assistant
           </LinkRow>

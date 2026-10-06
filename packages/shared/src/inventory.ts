@@ -1,5 +1,5 @@
-import type { Ingredient, Recipe, StorageLocation } from "./schemas";
-import { matchIngredient } from "./shopping";
+import type { Ingredient, InventoryItem, ProductInfo, Recipe, ShoppingItem, StorageLocation } from "./schemas";
+import { matchIngredient, slug } from "./shopping";
 
 // Inventaire de la maison (placard, frigo, congélateur) : où ranger un produit, et quoi cuisiner avec ce qu'on a.
 
@@ -81,4 +81,35 @@ export function matchProduct(name: string, ingredients: Ingredient[]): Ingredien
   const known = new Set([ing.name, ing.plural ?? "", ing.pieceName ?? ""].flatMap(words));
   const hits = product.filter((w) => known.has(w)).length;
   return hits / product.length >= 0.5 ? ing : undefined;
+}
+
+/**
+ * Rangement automatique en mode magasin : l'article à ranger pour un produit scanné, ou rien.
+ * Rien si le produit est inconnu, si le code n'est pas un code-barres, ou si ce code a déjà été rangé pendant la séance
+ * (`shelved` : codes déjà rangés). Nom et emplacement suivent la même logique que le rangement à la main (matchProduct, guessLocation).
+ */
+export function planStoreShelving(code: string, product: ProductInfo | undefined, ingredients: Ingredient[], shelved: ReadonlySet<string>): Omit<InventoryItem, "id" | "addedAt"> | undefined {
+  const barcode = code.trim();
+  const name = product?.name.trim();
+  if (!product || !name || !/^\d{8,14}$/.test(barcode) || shelved.has(barcode)) return undefined;
+  const match = matchProduct(name, ingredients);
+  return { name, ingredientId: match?.id, location: guessLocation(match), barcode, product };
+}
+
+// ——— « Presque fini » ———
+// Un article de l'inventaire marqué `low` n'est plus « à la maison » (les courses des recettes le comptent de nouveau)
+// et se range dans le groupe « à racheter ». Règle : il reste « presque fini » après son ajout aux courses, jusqu'à ce
+// qu'il soit racheté (l'article des courses est coché : `clearLowBought`) ou remis « en stock » d'un tap par le foyer.
+
+/** Articles « presque finis », dans l'ordre de l'inventaire. */
+export const lowItems = (inventory: InventoryItem[] | undefined) => (inventory ?? []).filter((i) => i.low);
+
+/** L'article des courses est-il l'achat de cet article d'inventaire ? (même ingrédient, ou même libellé hors catalogue) */
+export const isRestockOf = (item: Pick<InventoryItem, "ingredientId" | "name">, shopping: Pick<ShoppingItem, "ingredientId">) =>
+  item.ingredientId ? item.ingredientId === shopping.ingredientId : shopping.ingredientId === `divers:${slug(item.name)}`;
+
+/** Racheté : remet « en stock » les articles « presque finis » correspondant à ces articles de courses cochés. */
+export function clearLowBought(inventory: InventoryItem[] | undefined, bought: Pick<ShoppingItem, "ingredientId">[]): InventoryItem[] | undefined {
+  if (!inventory?.some((i) => i.low && bought.some((b) => isRestockOf(i, b)))) return inventory;
+  return inventory.map((i) => (i.low && bought.some((b) => isRestockOf(i, b)) ? { ...i, low: false } : i));
 }

@@ -1,4 +1,4 @@
-import { itemName, matchProduct, matchShoppingItem, type InventoryItem, type ProductInfo, type ShoppingItem } from "@mijote/shared";
+import { itemName, matchProduct, matchShoppingItem, planStoreShelving, type InventoryItem, type ProductInfo, type ShoppingItem } from "@mijote/shared";
 import { Check, ChevronRight, Loader2, Plus, ScanBarcode, ShoppingBasket, Undo2, WifiOff } from "lucide-react";
 import { motion } from "motion/react";
 import { lazy, Suspense, useEffect, useRef, useState, useSyncExternalStore } from "react";
@@ -17,6 +17,7 @@ import { cn } from "@/lib/utils";
 // - « fiche » : ouvre la fiche du produit (#/produit/<code>) ;
 // - « placard » : fiche résumée puis rangement au placard, au frigo ou au congélateur ;
 // - « magasin » : coche l'article de la liste de courses, et la caméra reste ouverte pour enchaîner.
+//   Si le réglage « Ranger ce que je scanne en magasin » est activé, le produit est aussi rangé à la maison (une fois par code et par séance).
 
 // Le lecteur (caméra + polyfill) n'est chargé qu'à la première ouverture.
 const BarcodeScanner = lazy(() => import("@/components/scanner").then((m) => ({ default: m.BarcodeScanner })));
@@ -189,24 +190,32 @@ function ShelfSheet({ code, open, onOpenChange, onStored, onRescan }: { code: st
 
 // ——— Mode magasin : chaque scan coche l'article de la liste ———
 
-/** Articles cochés pendant une séance de scan (pour le bilan à la fermeture). */
-type Session = Map<string, { weekStart: string; name: string }>;
+/** Articles cochés et produits rangés (par code-barres) pendant une séance de scan, pour le bilan à la fermeture. */
+type Session = { ticked: Map<string, { weekStart: string; name: string }>; shelved: Map<string, InventoryItem> };
 
 function StoreScanner({ onClose }: { onClose: () => void }) {
   // n : numéro de lecture (le même produit relu plus tard donne un nouveau résultat).
   const [hit, setHit] = useState<{ code: string; n: number } | null>(null);
-  const [session] = useState<Session>(() => new Map());
+  const [session] = useState<Session>(() => ({ ticked: new Map(), shelved: new Map() }));
   // En fermant : un seul toast-bilan, avec « Annuler » (pendant le scan, la carte du bas sert de toast et laisse l'en-tête libre).
   const finish = () => {
     onClose();
-    const ticked = [...session.entries()].filter(([id, t]) => getState().shopping[t.weekStart]?.find((i) => i.id === id)?.checked);
-    if (!ticked.length) return;
-    const text = ticked.length === 1 ? `${ticked[0][1].name} : coché` : `${ticked.length} articles cochés`;
-    toast.success(text, {
-      description: ticked.length > 1 ? ticked.map(([, t]) => t.name).join(", ") : undefined,
+    const ticked = [...session.ticked.entries()].filter(([id, t]) => getState().shopping[t.weekStart]?.find((i) => i.id === id)?.checked);
+    const shelved = [...session.shelved.values()];
+    if (!ticked.length && !shelved.length) return;
+    const parts = [
+      ticked.length ? (ticked.length === 1 ? `${ticked[0][1].name} : coché` : `${ticked.length} articles cochés`) : "",
+      shelved.length ? (shelved.length === 1 ? `${shelved[0].name} : rangé ${INTO[shelved[0].location]}` : `${shelved.length} produits rangés`) : "",
+    ].filter(Boolean);
+    const names = ticked.length + shelved.length > 1 ? (ticked.length > 1 ? ticked.map(([, t]) => t.name) : shelved.length > 1 ? shelved.map((i) => i.name) : undefined) : undefined;
+    toast.success(parts.join(" · "), {
+      description: names?.join(", "),
       action: {
         label: "Annuler",
-        onClick: () => ticked.forEach(([id, t]) => getState().shopping[t.weekStart]?.find((i) => i.id === id)?.checked && actions.toggleChecked(t.weekStart, id)),
+        onClick: () => {
+          ticked.forEach(([id, t]) => getState().shopping[t.weekStart]?.find((i) => i.id === id)?.checked && actions.toggleChecked(t.weekStart, id));
+          shelved.forEach((i) => actions.removeInventory(i.id));
+        },
       },
     });
   };
@@ -250,6 +259,8 @@ async function storeLookup(code: string): Promise<{ result: Lookup; memo?: Produ
 function StoreResult({ code, session, onOpen }: { code: string; session: Session; onOpen: () => void }) {
   const [outcome, setOutcome] = useState<Outcome>({ kind: "loading" });
   const [memo, setMemo] = useState<ProductMemo | undefined>(() => getState().products?.[code]);
+  // Produit rangé à la maison par ce scan (réglage « Ranger ce que je scanne en magasin »).
+  const [shelved, setShelved] = useState<InventoryItem>();
   const ran = useRef(false);
 
   useEffect(() => {
@@ -259,6 +270,15 @@ function StoreResult({ code, session, onOpen }: { code: string; session: Session
       setMemo(memo);
       const product = result.status === "found" ? result.product : memo?.product;
       if (!product) return setOutcome({ kind: result.status === "offline" ? "offline" : "unknown" });
+      // Rangement à la maison : une seule fois par code-barres dans la séance, que l'article soit sur la liste ou non.
+      if (getState().shelveOnScan) {
+        const draft = planStoreShelving(code, product, ingredientsOf(getState()).list, new Set(session.shelved.keys()));
+        const [item] = draft ? actions.addInventory([draft]) : [];
+        if (item?.barcode) {
+          session.shelved.set(item.barcode, item);
+          setShelved(item);
+        }
+      }
       const weekStart = getSelectedWeek();
       const { list, byId } = ingredientsOf(getState());
       const item = matchShoppingItem(product, getState().shopping[weekStart] ?? [], list);
@@ -268,7 +288,7 @@ function StoreResult({ code, session, onOpen }: { code: string; session: Session
       actions.toggleChecked(weekStart, item.id);
       navigator.vibrate?.([20, 60, 20]);
       const label = name.charAt(0).toUpperCase() + name.slice(1);
-      session.set(item.id, { weekStart, name: label });
+      session.ticked.set(item.id, { weekStart, name: label });
       setOutcome({ kind: "ticked", product, item, name: label });
     });
   }, [code, session]);
@@ -278,7 +298,12 @@ function StoreResult({ code, session, onOpen }: { code: string; session: Session
     const weekStart = getSelectedWeek();
     const current = getState().shopping[weekStart]?.find((i) => i.id === outcome.item.id);
     if (current?.checked) actions.toggleChecked(weekStart, outcome.item.id);
-    session.delete(outcome.item.id);
+    session.ticked.delete(outcome.item.id);
+    if (shelved?.barcode) {
+      actions.removeInventory(shelved.id);
+      session.shelved.delete(shelved.barcode);
+      setShelved(undefined);
+    }
     setOutcome({ ...outcome, undone: true });
   };
 
@@ -289,7 +314,7 @@ function StoreResult({ code, session, onOpen }: { code: string; session: Session
     const added = actions.addToShopping(weekStart, shoppingLabel(name));
     for (const it of added) {
       if (!it.checked) actions.toggleChecked(weekStart, it.id);
-      session.set(it.id, { weekStart, name: shoppingLabel(name).replace(/^./, (c) => c.toUpperCase()) });
+      session.ticked.set(it.id, { weekStart, name: shoppingLabel(name).replace(/^./, (c) => c.toUpperCase()) });
     }
     setOutcome({ ...outcome, added: true });
   };
@@ -340,6 +365,12 @@ function StoreResult({ code, session, onOpen }: { code: string; session: Session
               <ChevronRight className="size-5 shrink-0 text-muted-foreground" aria-hidden />
             </button>
             <StatusLine outcome={outcome} />
+            {shelved && (
+              <p className="flex min-h-10 items-center gap-2 rounded-2xl bg-sage-soft px-3 text-sm font-semibold text-sage-ink">
+                <Check className="size-4.5" aria-hidden />
+                <span>Rangé {INTO[shelved.location]}</span>
+              </p>
+            )}
             <BabyBox product={outcome.product} compact />
             <div className="grid grid-cols-2 gap-2">
               {outcome.kind === "ticked" && !outcome.undone ? (

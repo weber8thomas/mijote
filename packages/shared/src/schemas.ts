@@ -316,5 +316,7 @@ export const InventoryItem = z.object({
   barcode: z.string().optional(),
   product: ProductInfo.optional(),
   addedAt: z.string(),
+  /** « Presque fini » : plus compté comme à la maison, à racheter. Absent = en stock (états déjà enregistrés). */
+  low: z.boolean().optional(),
 });
 export type InventoryItem = z.infer<typeof InventoryItem>;
