@@ -41,7 +41,7 @@ export function createApp({ db, household, config, services = {} }: { db: Db; ho
   });
 
   // ——— Montre Garmin : son propre jeton, avant la garde de session (il n'ouvre que /api/watch) ———
-  app.route("/api/watch", watchRoutes({ household, token: config.watchToken, secure, kick: () => services.ha?.kick() }));
+  app.route("/api/watch", watchRoutes({ household, token: config.watchToken, secure, ha: !!services.ha, kick: () => services.ha?.kick() }));
 
   // Tout le reste de l'API demande une session.
   app.use("/api/*", async (c, next) => {

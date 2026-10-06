@@ -13,7 +13,7 @@ const body = async (r: Response | Promise<Response>): Promise<any> => (await r).
 const TOKEN = "0123456789abcdef0123456789abcdef-montre";
 const WEEK = "2026-10-05";
 const NEXT = "2026-10-12";
-type Row = [string, string, string, boolean];
+type Row = [string, string, string, boolean, number, string];
 
 /** La montre seule, avec une horloge réglable (mercredi par défaut). */
 function setup({ off = false, secure = false } = {}) {
@@ -103,6 +103,19 @@ describe("montre : accès", () => {
   });
 });
 
+describe("montre : statut", () => {
+  it("serveur en ligne, version, Home Assistant, ce qui reste", async () => {
+    const { call, list } = setup();
+    const res = await call("/status");
+    expect(res.status).toBe(200);
+    const data = (await res.json()) as { ver: unknown };
+    const l = await list();
+    expect(data).toMatchObject({ v: 1, ok: true, ha: false, left: l.left, total: l.i.length, at: new Date("2026-10-07T10:00:00").toISOString() });
+    expect(typeof data.ver).toBe("number");
+    expect((await call("/status", {}, null)).status).toBe(401);
+  });
+});
+
 describe("montre : liste", () => {
   it("ce qui reste, par rayon, puis ce qui est coché ; « déjà à la maison » exclu", async () => {
     const { household, list, check, items } = setup();
@@ -111,11 +124,13 @@ describe("montre : liste", () => {
     expect(first.i.length).toBe(items().filter((i) => !i.haveAlready).length);
     expect(first.left).toBe(first.i.length);
     for (const row of first.i) {
-      expect(row).toHaveLength(4);
+      expect(row).toHaveLength(6);
       expect(typeof row[0]).toBe("string");
       expect(row[1].length).toBeLessThanOrEqual(NAME_MAX);
       expect(row[2].length).toBeLessThanOrEqual(SUB_MAX);
       expect(row[3]).toBe(false);
+      expect(Number.isFinite(row[4]) && row[4] >= 0).toBe(true);
+      expect(row[5].length).toBeLessThanOrEqual(SUB_MAX);
     }
     const state = household.snapshot().state;
     expect(first.i.map((r) => r[0])).toEqual(sortItems(items(), ingredientsOfState(state).byId).map((i) => watchKey(i.id)));
@@ -126,9 +141,22 @@ describe("montre : liste", () => {
     const have = items().find((i) => watchKey(i.id) === b[0])!;
     household.apply([{ actionId: "h1", action: { type: "setHave", weekStart: WEEK, itemId: have.id, have: true, at: "2026-10-07T10:00:00.000Z" } }], "phone");
     const after = await list();
-    expect(after.i.at(-1)).toEqual([a[0], a[1], a[2], true]);
+    expect(after.i.at(-1)).toEqual([a[0], a[1], a[2], true, a[4], a[5]]);
     expect(after.i.some((r) => r[0] === b[0])).toBe(false);
     expect(after.left).toBe(first.left - 2);
+  });
+
+  it("nombre de pièces seulement pour les articles comptés : 0 au poids, au volume ou sans quantité", async () => {
+    const { household, list, items } = setup();
+    const byUnit = (u: string) => items().filter((i) => !i.haveAlready && i.qty && i.unit === u);
+    const key = new Map((await list()).i.map((r) => [r[0], r] as const));
+    const pieces = byUnit("piece");
+    const weighed = items().filter((i) => !i.haveAlready && (!i.qty || i.unit !== "piece"));
+    expect(pieces.length).toBeGreaterThan(0);
+    expect(weighed.length).toBeGreaterThan(0);
+    for (const it of pieces) expect(key.get(watchKey(it.id))![4]).toBe(Math.round(it.qty * 2) / 2);
+    for (const it of weighed) expect(key.get(watchKey(it.id))![4]).toBe(0);
+    expect(household).toBeDefined();
   });
 
   it(`coupée à ${MAX_ITEMS} articles, sous 8 Ko`, async () => {

@@ -27,6 +27,12 @@ class Shop {
     private var _menu as WatchUi.Menu2? = null;
     private var _count as Number = 0;
     private var _seq as Number = 0;
+    // Affichage (réglé sur la montre, gardé dans Storage) : 0 auto, 1 complet, 2 sans quantité, 3 compact.
+    private var _mode as Number = 0;
+    private var _hideDone as Boolean = false;
+    private var _heads as Boolean = false;
+    private var _first as Number = 0;
+    private var _synced as String = "";
 
     function initialize() {
         _rows = [];
@@ -72,6 +78,12 @@ class Shop {
         if (list instanceof Dictionary) {
             take(list as Dictionary);
         }
+        var mode = Application.Storage.getValue("mode");
+        if (mode instanceof Number && (mode as Number) >= 0 && (mode as Number) < 4) {
+            _mode = mode as Number;
+        }
+        _hideDone = Application.Storage.getValue("hide") == true;
+        _heads = Application.Storage.getValue("heads") == true;
         var pending = Application.Storage.getValue("pending");
         if (pending instanceof Array) {
             _pending = pending as Array;
@@ -166,25 +178,73 @@ class Shop {
         menu.addItem(new WatchUi.MenuItem("Rafraîchir", _status.equals("") ? null : _status, :refresh, null));
         _menu = menu;
         fill(menu);
-        menu.setFocus(focusIndex());
+        menu.setFocus(focusIndex(menu));
         return menu;
     }
 
-    // Un article par ligne, après la ligne « Rafraîchir ».
+    // Un article par ligne, après la ligne « Rafraîchir » ; « Réglages » tout en bas (on y arrive en remontant depuis « Rafraîchir »).
     private function fill(menu as WatchUi.Menu2) as Void {
+        _count = 1;
+        _first = 0;
+        var last = "";
+        var shown = 0;
         for (var n = 0; n < _rows.size(); n++) {
             var r = _rows[n] as Array;
-            menu.addItem(new WatchUi.ToggleMenuItem(fit(r[1] as String), r[2] as String, r[0] as String, r[3] as Boolean, null));
+            if (_hideDone && r[3] == true) {
+                continue;
+            }
+            if (_heads) {
+                var g = r[3] == true ? "Cochés" : aisle(r);
+                if (!g.equals(last)) {
+                    menu.addItem(new WatchUi.MenuItem("— " + g + " —", null, :head, null));
+                    _count++;
+                    last = g;
+                }
+            }
+            menu.addItem(new WatchUi.ToggleMenuItem(fit(r[1] as String), sub(r), r[0] as String, r[3] as Boolean, null));
+            if (_first == 0) {
+                _first = _count;
+            }
+            _count++;
+            shown++;
         }
-        _count = 1 + _rows.size();
         if (_more > 0) {
             menu.addItem(new WatchUi.MenuItem("+" + _more.toString() + " articles", "Sur le téléphone", :more, null));
             _count++;
         }
-        if (_rows.size() == 0) {
+        if (shown == 0) {
             menu.addItem(new WatchUi.MenuItem(_week.equals("") ? "Pas encore de liste" : "Rien à acheter", null, :none, null));
             _count++;
         }
+        menu.addItem(new WatchUi.MenuItem("Réglages", modeName(), :settings, null));
+        _count++;
+    }
+
+    // Rayon seul d'une ligne (les listes en cache d'une ancienne version n'ont que « quantité · rayon »).
+    private function aisle(r as Array) as String {
+        return r.size() > 5 ? r[5] as String : r[2] as String;
+    }
+
+    // Sous-libellé d'une ligne selon le mode ; rien en mode compact.
+    private function sub(r as Array) as String? {
+        if (_mode == 1) {
+            return r[2] as String;
+        }
+        if (_mode == 3) {
+            return null;
+        }
+        var a = aisle(r);
+        if (_mode == 2) {
+            return a;
+        }
+        // Auto : la quantité seulement au-delà d'une pièce, sans unité (« ×3 · Fruits »).
+        var q = r.size() > 4 ? r[4] : 0;
+        var x = (q instanceof Number || q instanceof Float) ? (q as Numeric).toFloat() : 0.0;
+        if (x > 1.0) {
+            var whole = x.toNumber();
+            return "×" + whole.toString() + (x - whole > 0.25 ? ",5" : "") + " · " + a;
+        }
+        return a;
     }
 
     // Liste reçue : mise à jour sur place si ce sont les mêmes articles, sinon on remplit à nouveau.
@@ -194,14 +254,18 @@ class Shop {
             return;
         }
         menu.setTitle(menuTitle());
-        if (same) {
+        // Sur place seulement si les lignes se suivent sans titre ni coché masqué (sinon leurs places changent).
+        if (same && !_hideDone && !_heads) {
             for (var n = 0; n < _rows.size(); n++) {
                 var r = _rows[n] as Array;
                 var item = menu.getItem(n + 1);
                 if (item instanceof WatchUi.ToggleMenuItem) {
                     var t = item as WatchUi.ToggleMenuItem;
                     t.setLabel(fit(r[1] as String));
-                    t.setSubLabel(r[2] as String);
+                    var s = sub(r);
+                    if (s != null) {
+                        t.setSubLabel(s);
+                    }
                     t.setEnabled(r[3] as Boolean);
                 }
             }
@@ -210,22 +274,21 @@ class Shop {
                 menu.deleteItem(n);
             }
             fill(menu);
-            menu.setFocus(focusIndex());
+            menu.setFocus(focusIndex(menu));
         }
         WatchUi.requestUpdate();
     }
 
     // Focus : le dernier article coché, sinon le premier de la liste.
-    private function focusIndex() as Number {
+    private function focusIndex(menu as WatchUi.Menu2) as Number {
         var k = _focusKey;
         if (k != null) {
-            for (var n = 0; n < _rows.size(); n++) {
-                if (((_rows[n] as Array)[0] as String).equals(k)) {
-                    return n + 1;
-                }
+            var i = menu.findItemById(k);
+            if (i >= 0) {
+                return i;
             }
         }
-        return _rows.size() > 0 ? 1 : 0;
+        return _first;
     }
 
     // L'écran rond coupe net les libellés trop longs : on raccourcit avec « … ».
@@ -234,6 +297,86 @@ class Shop {
             return label;
         }
         return (label.substring(0, 14) as String) + "…";
+    }
+
+    // ——— Réglages d'affichage ———
+
+    function modeName() as String {
+        return ["Auto", "Complet", "Sans quantité", "Compact"][_mode] as String;
+    }
+
+    function hideName() as String {
+        return _hideDone ? "Masqués" : "Visibles";
+    }
+
+    function headsName() as String {
+        return _heads ? "Titres" : "Sans titre";
+    }
+
+    function buildSettings() as WatchUi.Menu2 {
+        var m = new WatchUi.Menu2({:title => "Réglages"});
+        m.addItem(new WatchUi.MenuItem("Affichage", modeName(), :mode, null));
+        m.addItem(new WatchUi.MenuItem("Cochés", hideName(), :hide, null));
+        m.addItem(new WatchUi.MenuItem("Rayons", headsName(), :heads, null));
+        m.addItem(new WatchUi.MenuItem("Statut", null, :status, null));
+        return m;
+    }
+
+    function nextMode() as Void {
+        _mode = (_mode + 1) % 4;
+        store("mode", _mode);
+        redraw(false);
+    }
+
+    function flipHide() as Void {
+        _hideDone = !_hideDone;
+        store("hide", _hideDone);
+        redraw(false);
+    }
+
+    function flipHeads() as Void {
+        _heads = !_heads;
+        store("heads", _heads);
+        redraw(false);
+    }
+
+    // ——— Statut ———
+
+    // GET /api/watch/status : le serveur répond-il, sa version, Home Assistant, ce qui reste.
+    function fetchStatus(cb as Method) as Void {
+        if (_url.equals("") || _token.equals("")) {
+            cb.invoke(0, null);
+            return;
+        }
+        Communications.makeWebRequest(
+            _url + "/api/watch/status",
+            null,
+            {
+                :method => Communications.HTTP_REQUEST_METHOD_GET,
+                :headers => {"Authorization" => "Bearer " + _token},
+                :responseType => Communications.HTTP_RESPONSE_CONTENT_TYPE_JSON
+            },
+            cb
+        );
+    }
+
+    // Lignes de l'écran « Statut ».
+    function statusLines(code as Number, data as Dictionary or String or Null) as Array<String> {
+        var lines = [] as Array<String>;
+        if (code == 200 && data instanceof Dictionary) {
+            var d = data as Dictionary;
+            lines.add("Serveur en ligne");
+            lines.add("v" + number(d["ver"]).toString() + " · HA " + (d["ha"] == true ? "oui" : "non"));
+            lines.add(number(d["left"]).toString() + " à acheter / " + number(d["total"]).toString());
+        } else if (code == 0) {
+            lines.add("Règle URL et jeton");
+        } else {
+            lines.add("Serveur injoignable");
+            lines.add(message(code));
+        }
+        lines.add("En attente : " + _pending.size().toString());
+        lines.add(_synced.equals("") ? "Pas encore synchro" : "Synchro " + _synced);
+        return lines;
     }
 
     private function menuTitle() as String {
@@ -446,7 +589,8 @@ class Shop {
 
     private function upToDate() as String {
         var t = Gregorian.info(Time.now(), Time.FORMAT_SHORT);
-        return "À jour " + (t.hour as Number).format("%02d") + ":" + (t.min as Number).format("%02d");
+        _synced = (t.hour as Number).format("%02d") + ":" + (t.min as Number).format("%02d");
+        return "À jour " + _synced;
     }
 
     // Vibration courte : coche enregistrée. Longue : coche pas envoyée.

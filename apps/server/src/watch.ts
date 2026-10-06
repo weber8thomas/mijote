@@ -54,9 +54,15 @@ export function watchList(state: HouseholdState, now: Date) {
   const byId = ingredientsOfState(state).byId;
   const shown = sortItems((state.shopping[w] ?? []).filter((i) => !i.haveAlready), byId);
   const ordered = [...shown.filter((i) => !i.checked), ...shown.filter((i) => i.checked)];
-  const row = (it: ShoppingItem) => [watchKey(it.id), watchText(itemName(it, byId), NAME_MAX), watchText(it.qty ? `${formatQty(it.qty, it.unit)} · ${it.aisle}` : it.aisle, SUB_MAX), it.checked] as const;
+  // [clé, nom, « quantité · rayon », coché, nombre de pièces (0 : au poids ou sans quantité), rayon seul]. Les 4 premiers champs
+  // n'ont jamais changé : une appli plus ancienne continue de marcher. Les modes d'affichage de la montre se servent des 2 derniers.
+  const row = (it: ShoppingItem) =>
+    [watchKey(it.id), watchText(itemName(it, byId), NAME_MAX), watchText(it.qty ? `${formatQty(it.qty, it.unit)} · ${it.aisle}` : it.aisle, SUB_MAX), it.checked, pieces(it), watchText(it.aisle, SUB_MAX)] as const;
   return { v: 1, w, left: remaining(state.shopping[w]), more: Math.max(0, ordered.length - MAX_ITEMS), i: ordered.slice(0, MAX_ITEMS).map(row) };
 }
+
+/** Nombre de pièces (au demi près) : 0 pour un poids, un volume ou sans quantité. */
+const pieces = (it: ShoppingItem) => (it.qty && it.unit === "piece" ? Math.round(it.qty * 2) / 2 : 0);
 
 const remaining = (items: ShoppingItem[] = []) => items.filter((i) => !i.haveAlready && !i.checked).length;
 
@@ -64,6 +70,7 @@ export function watchRoutes({
   household,
   token,
   secure = false,
+  ha = false,
   kick = () => {},
   now = () => new Date(),
 }: {
@@ -72,6 +79,8 @@ export function watchRoutes({
   token?: string;
   /** Adresse publique en https : la requête doit arriver en https (X-Forwarded-Proto du reverse proxy). */
   secure?: boolean;
+  /** Home Assistant est branché (écran « Statut » de la montre). */
+  ha?: boolean;
   /** Synchro Home Assistant après une coche. */
   kick?: () => void;
   now?: () => Date;
@@ -96,6 +105,13 @@ export function watchRoutes({
   });
 
   app.get("/list", (c) => c.json(watchList(household.snapshot().state, now())));
+
+  /** Écran « Statut » de la montre : le serveur répond, la semaine, ce qui reste, Home Assistant. */
+  app.get("/status", (c) => {
+    const { state, version } = household.snapshot();
+    const items = (state.shopping[shoppingWeekOf(state, now())] ?? []).filter((i) => !i.haveAlready);
+    return c.json({ v: 1, ok: true, ver: version, ha, left: remaining(items), total: items.length, at: now().toISOString() });
+  });
 
   /** Coche ou décoche un article. Renvoyer la même coche (même `a`) ne fait rien. */
   app.post("/check", async (c) => {

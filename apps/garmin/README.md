@@ -123,6 +123,19 @@ monkeyc -d fr255m -f "monkey.jungle;local.jungle" -o bin/MIJOTE.prg -y ~/.garmin
 
 Garmin Connect doit rester connecté à la montre. Mets la batterie de Garmin Connect en **Sans restriction** : Paramètres → Applis → Garmin Connect → Batterie. Sinon, l'appli affiche souvent « Téléphone absent ».
 
+## Réglages d'affichage
+
+Tout en bas de la liste, la ligne **Réglages** (on y arrive en remontant depuis « Rafraîchir »). START change la valeur de la ligne ; elle est gardée sur la montre.
+
+| Réglage | Valeurs |
+|---|---|
+| Affichage | **Auto** : quantité seulement au-delà d'une pièce, sans unité (`×3 · Fruits`) ; les poids et volumes disparaissent. **Complet** : `400 g · Fruits`. **Sans quantité** : le rayon seul. **Compact** : le nom seul, une ligne par article. |
+| Cochés | Visibles ou Masqués (un article coché reste affiché jusqu'au prochain rafraîchissement). |
+| Rayons | Titres (`— Fruits —`, puis `— Cochés —`) ou Sans titre. |
+| Statut | Le serveur répond-il, sa version, Home Assistant, ce qui reste à acheter, coches en attente, heure de la dernière synchro (`GET /api/watch/status`). |
+
+Ces réglages sont sur la montre, pas dans Garmin Connect : l'appli est installée en USB, et Garmin Connect ne peut modifier que les applis du Store.
+
 ## Messages
 
 | À l'écran | Ce que ça veut dire |
@@ -141,8 +154,8 @@ Garmin Connect doit rester connecté à la montre. Mets la batterie de Garmin Co
 - `manifest.xml` : appli (`watch-app`), appareil `fr255m`, permission `Communications`, français. Pour une autre montre, ajoute son identifiant (`fr255`, `fr255s`, `fr255sm`) et télécharge l'appareil dans le SDK Manager.
 - `source/MijoteApp.mc` : démarrage, réglages.
 - `source/StartView.mc` : vue d'accueil qui ouvre la liste.
-- `source/ShopDelegate.mc` : boutons.
+- `source/ShopDelegate.mc` : boutons de la liste. `source/SettingsDelegate.mc` : réglages d'affichage. `source/StatusView.mc` : écran Statut.
 - `source/Shop.mc` : liste, file de coches, cache, requêtes, messages.
 - `resources/` : textes, réglages (`settings.xml`), icône.
 - `resources-settings/properties.xml` : réglages vides. Rien de secret dans git.
-- Contrat des routes : `apps/server/src/watch.ts`. La liste fait 80 articles au plus, libellés de 24 caractères et sous-libellés de 22 ; ces longueurs se règlent côté serveur, sans recompiler la montre.
+- Contrat des routes : `apps/server/src/watch.ts`. Chaque ligne de la liste est `[clé, nom, « quantité · rayon », coché, nombre de pièces, rayon]` ; les 4 premiers champs n'ont jamais changé, ce qui laisse marcher une appli plus ancienne. La liste fait 80 articles au plus, libellés de 24 caractères et sous-libellés de 22 ; ces longueurs se règlent côté serveur, sans recompiler la montre.

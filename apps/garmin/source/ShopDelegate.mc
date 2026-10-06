@@ -1,7 +1,7 @@
 import Toybox.Lang;
 import Toybox.WatchUi;
 
-// Boutons de la liste : HAUT/BAS défilent (géré par le menu), START coche ou rafraîchit, RETOUR quitte (par défaut).
+// Boutons de la liste : HAUT/BAS défilent (géré par le menu), START coche, rafraîchit ou ouvre les réglages, RETOUR quitte (par défaut).
 class ShopDelegate extends WatchUi.Menu2InputDelegate {
     private var _shop as Shop;
 
@@ -17,6 +17,8 @@ class ShopDelegate extends WatchUi.Menu2InputDelegate {
             _shop.toggle(id as String, (item as WatchUi.ToggleMenuItem).isEnabled());
         } else if (id == :refresh) {
             _shop.refresh();
+        } else if (id == :settings) {
+            WatchUi.pushView(_shop.buildSettings(), new SettingsDelegate(_shop), WatchUi.SLIDE_LEFT);
         }
     }
 }
