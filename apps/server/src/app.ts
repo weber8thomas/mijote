@@ -6,7 +6,7 @@ import { streamSSE } from "hono/streaming";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { clientIp, COOKIE, createSession, endSession, listMembers, memberOf, rateLimiter, removeMember, renameMember, samePassphrase, type Member } from "./auth";
-import { castRoutes, type CastService } from "./cast";
+import { castHookRoutes, castRoutes, type CastService } from "./cast";
 import type { Config } from "./config";
 import type { Db } from "./db";
 import { BadAction, type Envelope, type Household } from "./household";
@@ -45,6 +45,9 @@ export function createApp({ db, household, config, services = {} }: { db: Db; ho
 
   // ——— Montre Garmin : son propre jeton, avant la garde de session (il n'ouvre que /api/watch) ———
   app.route("/api/watch", watchRoutes({ household, token: config.watchToken, secure, ha: !!services.ha, kick: () => services.ha?.kick() }));
+
+  // ——— Écran de cuisine, côté Home Assistant : son propre jeton, avant la garde de session ———
+  if (services.cast) app.route("/api/cast-hook", castHookRoutes({ household, service: services.cast, token: config.castToken, secure }));
 
   // Tout le reste de l'API demande une session.
   app.use("/api/*", async (c, next) => {

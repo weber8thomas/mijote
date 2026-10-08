@@ -1,7 +1,8 @@
 import { connect as netConnect, createServer, type Server, type Socket } from "node:net";
 import { afterEach, describe, expect, it } from "vitest";
+import { RECIPES } from "@mijote/shared";
 import { createApp } from "./app";
-import { CAST_NAMESPACE, decodeMessage, encodeMessage, Framer, startCast, type CastMessage, type CastService } from "./cast";
+import { CAST_NAMESPACE, castHookRoutes, decodeMessage, encodeMessage, Framer, plannedRecipeId, startCast, type CastMessage, type CastService } from "./cast";
 import { loadConfig, type Config } from "./config";
 import { openDb } from "./db";
 import { Household } from "./household";
@@ -237,5 +238,116 @@ describe("cast : routes des téléphones", () => {
     const refused = await post({ recipeId: "boeuf-carottes-mijote" });
     expect(refused.status).toBe(502);
     expect(((await refused.json()) as { error: string }).error).toMatch(/NOT_FOUND/);
+  });
+});
+
+describe("cast : routes de Home Assistant", () => {
+  const TOKEN = "0123456789abcdef0123456789abcdef-cuisine";
+  const WEEK = "2026-10-05";
+
+  async function hook({ withToken = true, secure = false, at = "2026-10-07T18:30:00" } = {}) {
+    const hub = await setup();
+    hub.household.apply([{ actionId: "g1", action: { type: "generate", weekStart: WEEK, seed: 7 } }], "phone");
+    const routes = castHookRoutes({ household: hub.household, service: hub.cast, token: withToken ? TOKEN : undefined, secure, now: () => new Date(at) });
+    const call = (path: string, init: RequestInit = {}, auth: string | null = `Bearer ${TOKEN}`) =>
+      routes.request(path, { ...init, headers: { ...(auth ? { authorization: auth } : {}), "Content-Type": "application/json", ...(init.headers as Record<string, string>) } });
+    const show = (b: unknown, auth?: string | null) => call("/show", { method: "POST", body: JSON.stringify(b) }, auth);
+    const shown = () => hub.recipes().map((m) => (m.payload.recipe as { id: string }).id);
+    return { ...hub, call, show, shown, isRunning: hub.hub.isRunning };
+  }
+
+  it("CAST_TOKEN facultatif, 32 caractères au moins", () => {
+    const env = { HOUSEHOLD_PASSPHRASE: "soupe-de-courge" };
+    expect(loadConfig(env).castToken).toBeUndefined();
+    expect(() => loadConfig({ ...env, CAST_TOKEN: "x".repeat(31) })).toThrow(/CAST_TOKEN/);
+    expect(loadConfig({ ...env, CAST_TOKEN: ` ${TOKEN}\n` }).castToken).toBe(TOKEN);
+  });
+
+  it("le jeton, dans l'en-tête Authorization seulement ; sans jeton configuré : introuvable", async () => {
+    const { call, show, shown } = await hook();
+    expect((await show({ q: "boeuf carottes" }, null)).status).toBe(401);
+    expect((await show({ q: "boeuf carottes" }, "Bearer faux-jeton")).status).toBe(401);
+    expect((await show({ q: "boeuf carottes" }, `Basic ${TOKEN}`)).status).toBe(401);
+    expect((await call(`/status?token=${TOKEN}`, {}, null)).status).toBe(401);
+    expect(shown()).toEqual([]);
+    expect((await (await hook({ withToken: false })).call("/status")).status).toBe(404);
+    expect((await (await hook({ secure: true })).call("/status")).status).toBe(403);
+  });
+
+  it("par son nom, comme on le dit à voix haute", async () => {
+    const { show, shown } = await hook();
+    const r = await show({ q: "la recette de bœuf aux carotte" });
+    expect(r.status).toBe(200);
+    expect(await body(r)).toMatchObject({ shown: "Bœuf carottes", current: { recipeId: "boeuf-carottes-mijote" } });
+    expect(shown()).toEqual(["boeuf-carottes-mijote"]);
+  });
+
+  it("nom inconnu : 404 ; ambigu : 409 avec les candidates, et rien n'est affiché", async () => {
+    const { household, show, shown } = await hook();
+    const boeuf = RECIPES.find((r) => r.id === "boeuf-carottes-mijote")!;
+    for (const [id, title] of [["soupe-verte", "Soupe verte"], ["soupe-rouge", "Soupe rouge"]] as const) {
+      household.apply([{ actionId: `r-${id}`, action: { type: "addRecipe", recipe: { ...boeuf, id, slug: id, title, source: "manual" } } }], "phone");
+    }
+    expect((await show({ q: "lasagnes à la fraise" })).status).toBe(404);
+    const ambiguous = await show({ q: "soupe" });
+    expect(ambiguous.status).toBe(409);
+    expect((await body(ambiguous)).candidates).toEqual(["Soupe rouge", "Soupe verte"]);
+    expect(shown()).toEqual([]);
+    // Une recette ajoutée par le foyer se retrouve comme les autres.
+    expect((await show({ q: "soupe verte" })).status).toBe(200);
+    expect(shown()).toEqual(["soupe-verte"]);
+  });
+
+  it("le repas prévu : « dinner » ce soir, « now » selon l'heure", async () => {
+    const evening = await hook();
+    const state = evening.household.snapshot().state;
+    const dinner = plannedRecipeId(state, "dinner", new Date("2026-10-07T18:30:00"))!;
+    const lunch = plannedRecipeId(state, "lunch", new Date("2026-10-07T12:00:00"))!;
+    expect(dinner).toBeTruthy();
+    expect(lunch).toBeTruthy();
+    expect((await evening.show({ meal: "dinner" })).status).toBe(200);
+    expect((await evening.show({ meal: "now" })).status).toBe(200); // 18 h 30 : le soir
+    expect(evening.shown()).toEqual([dinner, dinner]);
+
+    const noon = await hook({ at: "2026-10-07T12:00:00" });
+    await noon.show({ meal: "now" });
+    expect(noon.shown()).toEqual([lunch]);
+  });
+
+  it("rien de prévu (autre semaine) : 404 ; créneau inconnu : 400", async () => {
+    const { show } = await hook({ at: "2026-11-18T18:30:00" });
+    expect((await show({ meal: "dinner" })).status).toBe(404);
+    expect((await show({ meal: "goûter" })).status).toBe(400);
+  });
+
+  it("sans rien : reprend la recette de l'écran ; recipeId direct ; une seule désignation à la fois", async () => {
+    const { show, shown } = await hook();
+    expect((await show({})).status).toBe(400);
+    await show({ recipeId: "boeuf-carottes-mijote", adults: 2, babies: 0 });
+    expect((await show({})).status).toBe(200);
+    expect(shown()).toEqual(["boeuf-carottes-mijote", "boeuf-carottes-mijote"]);
+    expect((await show({ q: "boeuf", meal: "dinner" })).status).toBe(400);
+    expect((await show({ q: 12 })).status).toBe(400);
+    expect((await show({ recipeId: "boeuf-carottes-mijote", adults: -1 })).status).toBe(400);
+  });
+
+  it("stop ferme l'appli, status dit ce qui est à l'écran", async () => {
+    const { call, show, isRunning } = await hook();
+    await show({ recipeId: "boeuf-carottes-mijote" });
+    expect(isRunning()).toBe(true);
+    expect(await body(call("/status"))).toMatchObject({ enabled: true, current: { title: "Bœuf carottes" } });
+    expect((await call("/stop", { method: "POST" })).status).toBe(200);
+    expect(isRunning()).toBe(false);
+  });
+
+  it("branchée dans l'appli : avant la session des téléphones, avec le jeton seulement", async () => {
+    const { cast, household } = await setup();
+    const db = openDb(":memory:");
+    const config = loadConfig({ HOUSEHOLD_PASSPHRASE: "soupe-de-courge", CAST_TOKEN: TOKEN });
+    const app = createApp({ db, household, config, services: { cast } });
+    expect((await app.request("/api/cast-hook/status", { headers: { authorization: `Bearer ${TOKEN}` } })).status).toBe(200);
+    expect((await app.request("/api/cast-hook/status")).status).toBe(401);
+    // Le jeton n'ouvre rien d'autre.
+    expect((await app.request("/api/state", { headers: { authorization: `Bearer ${TOKEN}` } })).status).toBe(401);
   });
 });

@@ -16,6 +16,8 @@ export type Config = {
   watchToken?: string;
   /** Nest Hub de la cuisine : adresse IP et identifiant de l'appli Cast (console Cast, appli « Mijoté »). */
   cast?: { host: string; appId: string };
+  /** Jeton de Home Assistant pour l'écran de cuisine (routes /api/cast-hook). Absent : pas d'accès. */
+  castToken?: string;
 };
 
 export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
@@ -29,6 +31,8 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
   const castApp = env.CAST_APP_ID?.trim().toUpperCase();
   if (!!castHost !== !!castApp) throw new Error("CAST_HOST et CAST_APP_ID vont ensemble : renseigne les deux, ou aucun.");
   if (castApp && !/^[0-9A-F]{8}$/.test(castApp)) throw new Error("CAST_APP_ID invalide (8 caractères hexadécimaux, ex. 7E270F5D).");
+  const castToken = env.CAST_TOKEN?.trim() || undefined;
+  if (castToken && castToken.length < 32) throw new Error("CAST_TOKEN trop court (32 caractères au moins : openssl rand -hex 32).");
   const cast = castHost && castApp ? { host: castHost, appId: castApp } : undefined;
   return {
     port: Number(env.PORT || 8080),
@@ -40,5 +44,6 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
     ai,
     watchToken,
     cast,
+    castToken,
   };
 }

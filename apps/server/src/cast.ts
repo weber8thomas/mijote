@@ -1,7 +1,8 @@
-import { castRecipe, householdPortions, ingredientsOfState, recipeMapOf, type CastRecipe } from "@mijote/shared";
+import { castRecipe, dayIndex, findRecipeByName, householdPortions, ingredientsOfState, mondayOf, recipeMapOf, recipesOfState, Slot, type CastRecipe, type HouseholdState } from "@mijote/shared";
 import { Hono } from "hono";
 import type { Duplex } from "node:stream";
 import { connect as tlsConnect } from "node:tls";
+import { clientIp, failureLimiter, rateLimiter, samePassphrase } from "./auth";
 import type { Household } from "./household";
 
 // Écran de cuisine : le serveur lance l'appli Mijoté sur un Nest Hub (Google Cast) et lui envoie la recette.
@@ -308,6 +309,90 @@ export function castRoutes(service: CastService) {
     if ((body?.recipeId !== undefined && !recipeId) || (body?.adults !== undefined && adults === undefined) || (body?.babies !== undefined && babies === undefined)) return c.json({ error: "Requête invalide." }, 400);
     try {
       return c.json(await service.show({ recipeId, adults: adults || undefined, babies }));
+    } catch (e) {
+      if (e instanceof CastError) return c.json({ error: e.message }, e.status);
+      throw e;
+    }
+  });
+
+  app.post("/stop", async (c) => {
+    try {
+      return c.json(await service.stop());
+    } catch (e) {
+      if (e instanceof CastError) return c.json({ error: e.message }, e.status);
+      throw e;
+    }
+  });
+
+  return app;
+}
+
+// ——— Pour Home Assistant : un jeton, et la recette désignée par son nom ou par le plan de la semaine ———
+
+/** Le repas prévu aujourd'hui dans ce créneau (celui que le foyer a choisi, sinon la suggestion). */
+export function plannedRecipeId(state: HouseholdState, slot: Slot, at: Date): string | undefined {
+  const day = dayIndex(at);
+  const entries = (state.weeks[mondayOf(at)]?.entries ?? []).filter((e) => e.day === day && e.slot === slot);
+  return (entries.find((e) => e.confirmed) ?? entries[0])?.recipeId;
+}
+
+type HookBody = { q?: unknown; recipeId?: unknown; meal?: unknown; adults?: unknown; babies?: unknown };
+
+/**
+ * Routes de Home Assistant (jeton CAST_TOKEN dans l'en-tête Authorization, avant la session des téléphones) :
+ * POST /show { q | recipeId | meal } désigne la recette, sans rien : reprend celle de l'écran. POST /stop, GET /status.
+ *   q       : un nom dit à voix haute (« bœuf carottes »)
+ *   meal    : « lunch », « dinner », « dessert » ou « now » (le midi avant 15 h, le soir ensuite), d'après le plan de la semaine
+ */
+export function castHookRoutes({ household, service, token, secure = false, now = () => new Date() }: { household: Household; service: CastService; token?: string; secure?: boolean; now?: () => Date }) {
+  const app = new Hono();
+  const allow = rateLimiter(60, 60_000);
+  const refused = failureLimiter(10, 15 * 60_000);
+  const count = (v: unknown, max: number) => (typeof v === "number" && Number.isInteger(v) && v >= 0 && v <= max ? v : undefined);
+
+  app.use("*", async (c, next) => {
+    c.header("Cache-Control", "no-store");
+    if (!token) return c.json({ error: "Introuvable." }, 404);
+    if (secure && c.req.header("x-forwarded-proto")?.split(",")[0]?.trim() !== "https") return c.json({ error: "https requis." }, 403);
+    const ip = clientIp((h) => c.req.header(h));
+    if (refused.blocked(ip)) return c.json({ error: "Trop d'essais. Réessaie dans un quart d'heure." }, 429);
+    if (!allow(ip)) return c.json({ error: "Trop de requêtes. Réessaie dans une minute." }, 429);
+    const given = /^Bearer\s+(\S+)$/i.exec(c.req.header("authorization") ?? "")?.[1];
+    if (!given || !samePassphrase(given, token)) {
+      refused.fail(ip);
+      return c.json({ error: "Jeton refusé." }, 401);
+    }
+    await next();
+  });
+
+  app.get("/status", (c) => c.json(service.status()));
+
+  app.post("/show", async (c) => {
+    const body = ((await c.req.json<unknown>().catch(() => null)) ?? {}) as HookBody;
+    const adults = count(body.adults, 10);
+    const babies = count(body.babies, 4);
+    const given = [body.q, body.recipeId, body.meal].filter((v) => v !== undefined);
+    if (given.length > 1 || given.some((v) => typeof v !== "string" || v.length > 120) || (body.adults !== undefined && adults === undefined) || (body.babies !== undefined && babies === undefined)) {
+      return c.json({ error: "Requête invalide : une seule de q, recipeId, meal." }, 400);
+    }
+    const state = household.snapshot().state;
+    let recipeId: string | undefined;
+    if (typeof body.recipeId === "string") recipeId = body.recipeId;
+    else if (typeof body.meal === "string") {
+      const at = now();
+      const meal = body.meal === "now" ? (at.getHours() < 15 ? "lunch" : "dinner") : Slot.safeParse(body.meal).data;
+      if (!meal) return c.json({ error: "meal : lunch, dinner, dessert ou now." }, 400);
+      recipeId = plannedRecipeId(state, meal, at);
+      if (!recipeId) return c.json({ error: "Rien de prévu pour ce repas aujourd'hui." }, 404);
+    } else if (typeof body.q === "string") {
+      const match = findRecipeByName(recipesOfState(state).all, body.q);
+      if (!match) return c.json({ error: `Aucune recette ne correspond à « ${body.q.slice(0, 60)} ».` }, 404);
+      if ("candidates" in match) return c.json({ error: "Plusieurs recettes correspondent : précise.", candidates: match.candidates.slice(0, 5).map((r) => r.title) }, 409);
+      recipeId = match.recipe.id;
+    }
+    try {
+      const status = await service.show({ recipeId, adults: adults || undefined, babies });
+      return c.json({ ...status, shown: status.current?.title });
     } catch (e) {
       if (e instanceof CastError) return c.json({ error: e.message }, e.status);
       throw e;

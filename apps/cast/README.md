@@ -119,10 +119,46 @@ CAST_APP_ID=7E270F5D         # console Cast, appli « Mijoté »
 - Une connexion par commande, fermée aussitôt. Une commande à la fois (deux téléphones qui appuient ensemble passent l'un après l'autre).
 - Tests : `apps/server/src/cast.test.ts` (faux Hub TCP), `packages/shared/src/cast.test.ts`.
 
+## Demander une recette à voix haute
+
+Le point dur : **Google ne transmet pas un mot dit à voix haute** (« bœuf carottes ») à un script Home Assistant, et un Nest Hub ne peut pas envoyer sa phrase à Assist. Il y a donc deux voix, qui se complètent :
+
+| Voix | Recettes | Matériel | Phrase |
+|---|---|---|---|
+| **Google (le Hub lui-même)** | Une phrase par script : le repas du soir ou du midi, la reprise, la fermeture, et les recettes que tu choisis | Le Hub, Home Assistant exposé à Google | « Ok Google, active Recette du soir » |
+| **Assist (Home Assistant)** | **N'importe laquelle**, par son nom | Un micro Assist : HA Voice Preview Edition, un satellite ESP32, ou l'appli HA (bouton Assist) | « Affiche la recette bœuf carottes » |
+
+Dans les deux cas, c'est Home Assistant qui appelle le serveur : `POST /api/cast-hook/show`, avec le jeton `CAST_TOKEN` (en-tête `Authorization`, il n'ouvre que `/api/cast-hook`).
+
+| Corps JSON | Effet |
+|---|---|
+| `{"q": "bœuf carottes"}` | Recette par son nom : sans accents ni « œ », singulier ou pluriel, petits mots ignorés. Le titre le plus proche l'emporte ; à égalité, **409** avec les candidates (rien ne s'affiche) |
+| `{"meal": "dinner"}` | Le dîner prévu aujourd'hui dans le plan de la semaine (`lunch`, `dinner`, `dessert`, ou `now` : le midi avant 15 h, le soir ensuite) |
+| `{"recipeId": "boeuf-carottes-mijote"}` | Une recette précise |
+| `{}` | Reprend celle de l'écran, à sa page |
+
+Ajoute `adults` et `babies` pour changer les quantités. `POST /api/cast-hook/stop` ferme l'appli, `GET /status` dit ce qui est affiché.
+
+### Mise en place
+
+1. **Jeton** : `openssl rand -hex 32` → `CAST_TOKEN` dans l'environnement du serveur (avec `CAST_HOST` et `CAST_APP_ID`), puis `docker compose up -d`.
+2. **Test à la main, avant Home Assistant** :
+   ```bash
+   curl -X POST https://<ton-domaine>/api/cast-hook/show \
+     -H "Authorization: Bearer $CAST_TOKEN" -H "Content-Type: application/json" \
+     -d '{"q": "boeuf carottes"}'
+   ```
+3. **Générer la configuration de HA** (recettes du seed ; `--scripts` : celles qui auront leur propre phrase Google) :
+   ```bash
+   npx tsx apps/cast/ha-config.ts --url https://<ton-domaine> --scripts boeuf-carottes-mijote,tortilla-pommes-de-terre-epinards
+   ```
+   Copie `apps/cast/ha/packages/mijote_cast.yaml` dans `config/packages/` (avec `homeassistant: packages: !include_dir_named packages` dans `configuration.yaml`) et `apps/cast/ha/custom_sentences/fr/mijote.yaml` dans `config/custom_sentences/fr/`. Dans `secrets.yaml` : `mijote_cast_bearer: "Bearer <CAST_TOKEN>"`. Redémarre HA.
+4. **Assist** : « affiche la recette bœuf carottes », dans l'appli HA ou sur le micro Assist. Les recettes ajoutées ensuite par le foyer ne sont pas dans la liste : relance le générateur (ou utilise `{"q": …}` directement).
+5. **Google** : expose les scripts `Recette du soir`, `Recette du midi`, etc. à Google (Home Assistant Cloud, ou ton projet Google Cloud), puis dis « Ok Google, active Recette du soir ». Les sources disent que « active <nom> » marche surtout en anglais et que le script doit avoir un nom unique, parfois être rattaché à une pièce : **à vérifier sur ton Hub, sous Gemini**. Plan B : une routine Google Home, déclenchée par la phrase de ton choix, dont l'action est le script ou un interrupteur `input_boolean` exposé.
+
 ## Reste à faire
 
 - **Menu sur le Hub** : l'écran d'accueil du récepteur liste « Au menu cette semaine » et le toucher ouvre la recette. Demande un jeton en lecture seule pour que le récepteur interroge le serveur.
 - **Bouton sur les repas du jour** (la semaine, l'accueil), en plus de la fiche recette.
-- **Voix** : script HA (`rest_command` → `POST /api/cast/show`, avec un jeton dédié type `WATCH_TOKEN`) exposé à Google Home : « Ok Google, recette du soir ». Choisir une recette par son nom à la voix reste impossible.
 - **Minuteurs** : toucher une durée surlignée (« 1 h 30 ») lance un minuteur à l'écran.
 - **Récepteur en TS** : seconde entrée Vite, types partagés, journal masqué (appui long pour l'afficher).

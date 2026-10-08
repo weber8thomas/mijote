@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { castRecipe } from "./cast";
+import { castRecipe, findRecipeByName } from "./cast";
 import { ingredientMap, RECIPES } from "./content";
 
 const ingredients = ingredientMap();
@@ -30,5 +30,47 @@ describe("castRecipe : la recette pour l'écran de cuisine", () => {
     const c = castRecipe(boeuf, new Map([...ingredients].filter(([id]) => id !== "carotte")));
     expect(c.ingredients.some((i) => i.name === "carotte")).toBe(false);
     expect(c.ingredients).toHaveLength(boeuf.ingredients.length - 1);
+  });
+});
+
+describe("findRecipeByName : retrouver une recette dite à voix haute", () => {
+  const find = (q: string) => findRecipeByName(RECIPES, q);
+  const id = (m: ReturnType<typeof find>) => (m && "recipe" in m ? m.recipe.id : m && "candidates" in m ? m.candidates.map((r) => r.id) : undefined);
+
+  it("sans accents, sans « œ », au singulier comme au pluriel, avec ou sans petits mots", () => {
+    for (const q of ["bœuf carottes", "boeuf carotte", "Bœuf aux carottes", "la recette de boeuf carottes", "BOEUF CAROTTES"]) expect(id(find(q))).toBe("boeuf-carottes-mijote");
+  });
+
+  it("quelques mots suffisent quand un seul titre les contient", () => {
+    expect(id(find("potimarron"))).toBe("veloute-potimarron-lentilles-corail");
+    expect(id(find("tortilla"))).toBe("tortilla-pommes-de-terre-epinards");
+  });
+
+  it("plusieurs titres possibles : le plus proche (le moins de mots en plus) l'emporte", () => {
+    const lentilles = RECIPES.filter((r) => r.title.toLowerCase().includes("lentilles"));
+    expect(lentilles.length).toBeGreaterThan(1);
+    const shortest = [...lentilles].sort((a, b) => a.title.split(" ").length - b.title.split(" ").length)[0]!;
+    expect(id(find("lentilles"))).toBe(shortest.id);
+  });
+
+  it("ambigu à égalité : les candidates, jamais un choix au hasard", () => {
+    const a = { ...boeuf, id: "a", title: "Soupe verte" };
+    const b = { ...boeuf, id: "b", title: "Soupe rouge" };
+    expect(id(findRecipeByName([a, b], "soupe"))).toEqual(["b", "a"]);
+  });
+
+  it("inconnu, ou vide : rien", () => {
+    expect(find("lasagnes à la fraise")).toBeUndefined();
+    expect(find("la recette")).toBeUndefined();
+    expect(find("")).toBeUndefined();
+  });
+
+  it("une recette écartée n'est jamais proposée, un favori départage", () => {
+    const boeuf = RECIPES.find((r) => r.id === "boeuf-carottes-mijote")!;
+    expect(id(findRecipeByName([{ ...boeuf, status: "excluded" }], "boeuf carottes"))).toBeUndefined();
+    const a = { ...boeuf, id: "a", title: "Soupe verte" };
+    const b = { ...boeuf, id: "b", title: "Soupe rouge", status: "favorite" as const };
+    expect(id(findRecipeByName([a, b], "soupe"))).toBe("b");
+    expect(id(findRecipeByName([a, { ...b, status: "active" as const }], "soupe"))).toEqual(["b", "a"]);
   });
 });
