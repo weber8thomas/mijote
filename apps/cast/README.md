@@ -91,23 +91,38 @@ Compte environ 30 min, plus l'attente de la console Cast.
 - Si le test 3 échoue, il reste le toucher, déjà utile. On cherchera d'autres formulations, ou un autre type de média (vidéo).
 - Si le test 6 échoue, le serveur relancera l'appli sur la page en cours.
 
-## Plan si l'essai passe
+## Itérer sans déployer
 
-**1. Récepteur propre**
-- `packages/shared/src/cast.ts` : `castPayload(recipe, ingredients, servings)`, repris de `payload.ts`. Les quantités suivent les portions du repas planifié. Tests Vitest : pages, durées, page bébé.
-- Récepteur en TS sans React, comme seconde entrée Vite (`apps/web/cast.html`) : léger pour le Hub, types partagés.
-- Minuteurs : toucher une durée surlignée (« 1 h 30 ») lance un minuteur à l'écran.
-- Journal masqué (appui long pour l'afficher).
+`uv run apps/cast/serve.py` sert `apps/web/public` en HTTP sur le réseau, **sans cache**, puis affiche l'URL à mettre dans la console Cast (`http://<IP du Mac>:8799/cast/`). La console accepte le HTTP tant que l'appli n'est pas publiée, à condition d'utiliser l'IP du Mac (pas `localhost`). Redémarre le Hub après avoir changé l'URL. GitHub Pages met le fichier en cache 10 minutes : c'est ce qui rend les essais trompeurs.
 
-**2. Serveur du foyer**
-- `apps/server/src/cast.ts` : client Cast minimal en TS (TLS port 8009 + message protobuf `CastMessage`, environ 150 lignes, sans dépendance), ou une bibliothèque si l'une est maintenue.
-- Réglages : `CAST_APP_ID`, `CAST_HOST` (IP fixe, plus simple que le mDNS dans Docker).
-- Routes `POST /api/cast/show { recipeId, entryId?, page? }` et `POST /api/cast/stop` (cookie de session). Tests avec un faux appareil Cast, comme `watch.test.ts`.
+Quand le récepteur est prêt, remets l'URL de production (`https://mijote.laboiteaframboises.duckdns.org/cast/` ou GitHub Pages).
 
-**3. Appli**
-- Bouton « Afficher en cuisine » sur la fiche recette et sur les repas du jour, en mode serveur seulement (caché dans la vitrine).
-- Facultatif : la page en cours remonte au téléphone (message `{type:"page"}` → SSE), qui sert alors de télécommande.
+## Avec le serveur du foyer (fait)
 
-**4. Choisir à la voix (facultatif)**
-- Script HA `rest_command` → `/api/cast/show?today=dinner`, avec un jeton dédié `CAST_TOKEN` (comme `WATCH_TOKEN`). Exposé à Google Home : « Ok Google, recette du soir ».
-- Choisir une recette par son nom à la voix reste impossible : il n'y a plus d'actions vocales tierces.
+Le serveur parle directement au Hub (Cast v2 : TLS sur le port 8009, `apps/server/src/cast.ts`, sans dépendance) : plus besoin de `send.py` ni de `payload.ts`, qui restent pour l'essai.
+
+```env
+CAST_HOST=192.168.0.230      # IP fixe du Hub (à réserver dans le routeur)
+CAST_APP_ID=7E270F5D         # console Cast, appli « Mijoté »
+```
+
+| Route (session du foyer) | Effet |
+|---|---|
+| `POST /api/cast/show { recipeId, adults?, babies? }` | Lance l'appli et affiche la recette, quantités selon les adultes et bébés (ceux du foyer par défaut) |
+| `POST /api/cast/show {}` | **Reprend** la recette qui était à l'écran, à la page où elle s'était arrêtée |
+| `POST /api/cast/stop` | Ferme l'appli sur le Hub |
+| `GET /api/cast/status` | Hub configuré, recette à l'écran, dernière erreur |
+
+- **Si la recette disparaît** (le Hub ferme l'appli, ou la page se recharge) : le Hub garde la recette et la page en cours (`localStorage`, récepteur), et le serveur retient la dernière recette envoyée. `show {}` la remet à la bonne page. Le serveur ne relance rien tout seul : « Ok Google, arrête » doit rester respecté.
+- **Sur le téléphone** : bouton « Écran cuisine » à côté de « Mode cuisine » sur la fiche recette (mode serveur seulement). Il envoie les adultes et bébés réglés sur la fiche.
+- **Docker** : le conteneur doit joindre le Hub par son IP (réseau bridge par défaut : OK, pas de mDNS nécessaire).
+- Une connexion par commande, fermée aussitôt. Une commande à la fois (deux téléphones qui appuient ensemble passent l'un après l'autre).
+- Tests : `apps/server/src/cast.test.ts` (faux Hub TCP), `packages/shared/src/cast.test.ts`.
+
+## Reste à faire
+
+- **Menu sur le Hub** : l'écran d'accueil du récepteur liste « Au menu cette semaine » et le toucher ouvre la recette. Demande un jeton en lecture seule pour que le récepteur interroge le serveur.
+- **Bouton sur les repas du jour** (la semaine, l'accueil), en plus de la fiche recette.
+- **Voix** : script HA (`rest_command` → `POST /api/cast/show`, avec un jeton dédié type `WATCH_TOKEN`) exposé à Google Home : « Ok Google, recette du soir ». Choisir une recette par son nom à la voix reste impossible.
+- **Minuteurs** : toucher une durée surlignée (« 1 h 30 ») lance un minuteur à l'écran.
+- **Récepteur en TS** : seconde entrée Vite, types partagés, journal masqué (appui long pour l'afficher).

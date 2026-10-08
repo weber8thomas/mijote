@@ -15,3 +15,4 @@ export type * from "./basket-provider";
 export * from "./content";
 export * from "./state";
 export * from "./additives";
+export * from "./cast";

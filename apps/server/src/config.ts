@@ -14,6 +14,8 @@ export type Config = {
   ai?: { apiKey: string; model: string; dailyLimit: number };
   /** Jeton de la montre Garmin (routes /api/watch). Absent : pas d'accès montre. */
   watchToken?: string;
+  /** Nest Hub de la cuisine : adresse IP et identifiant de l'appli Cast (console Cast, appli « Mijoté »). */
+  cast?: { host: string; appId: string };
 };
 
 export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
@@ -23,6 +25,11 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
   const watchToken = env.WATCH_TOKEN?.trim() || undefined;
   if (watchToken && watchToken.length < 32) throw new Error("WATCH_TOKEN trop court (32 caractères au moins : openssl rand -hex 32).");
   const ai = env.ANTHROPIC_API_KEY ? { apiKey: env.ANTHROPIC_API_KEY, model: env.ANTHROPIC_MODEL || "claude-opus-5-5", dailyLimit: Number(env.AI_DAILY_LIMIT || 20) } : undefined;
+  const castHost = env.CAST_HOST?.trim();
+  const castApp = env.CAST_APP_ID?.trim().toUpperCase();
+  if (!!castHost !== !!castApp) throw new Error("CAST_HOST et CAST_APP_ID vont ensemble : renseigne les deux, ou aucun.");
+  if (castApp && !/^[0-9A-F]{8}$/.test(castApp)) throw new Error("CAST_APP_ID invalide (8 caractères hexadécimaux, ex. 7E270F5D).");
+  const cast = castHost && castApp ? { host: castHost, appId: castApp } : undefined;
   return {
     port: Number(env.PORT || 8080),
     dataDir: env.DATA_DIR || "./data",
@@ -32,5 +39,6 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
     ha,
     ai,
     watchToken,
+    cast,
   };
 }

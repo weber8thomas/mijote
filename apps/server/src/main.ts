@@ -21,6 +21,11 @@ if (config.ai) {
   services.ai = aiRoutes(household, config.ai);
 }
 
+if (config.cast) {
+  const { startCast } = await import("./cast");
+  services.cast = startCast(household, config.cast);
+}
+
 const app = createApp({ db, household, config, services });
 
 // Sauvegarde au démarrage puis chaque jour ; journal des actions gardé 30 jours.
@@ -39,7 +44,7 @@ if (config.dataDir !== ":memory:") {
 }
 
 serve({ fetch: app.fetch, port: config.port }, ({ port }) => {
-  console.log(`Mijoté écoute sur le port ${port} (données : ${db.file}${config.webDir ? `, front : ${config.webDir}` : ""}${config.ha ? `, Home Assistant : ${config.ha.entity}` : ""}${config.ai ? `, Claude : ${config.ai.model}` : ""})`);
+  console.log(`Mijoté écoute sur le port ${port} (données : ${db.file}${config.webDir ? `, front : ${config.webDir}` : ""}${config.ha ? `, Home Assistant : ${config.ha.entity}` : ""}${config.ai ? `, Claude : ${config.ai.model}` : ""}${config.cast ? `, écran de cuisine : ${config.cast.host}` : ""})`);
 });
 
 const stop = () => {

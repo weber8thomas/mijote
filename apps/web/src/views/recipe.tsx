@@ -1,5 +1,5 @@
 import { BABY_PORTION, ingredientLine, MONTHS, outOfSeason, SLOT_LABELS_LONG, type Recipe } from "@mijote/shared";
-import { Baby, Ban, ChefHat, ChevronLeft, ChevronRight, Clock, Flame, Heart, Leaf, Minus, Plus, RotateCcw, X } from "lucide-react";
+import { Baby, Ban, ChefHat, ChevronLeft, ChevronRight, Clock, Flame, Heart, Leaf, Minus, MonitorPlay, Plus, RotateCcw, X } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
@@ -7,6 +7,7 @@ import { Box, CostTier, Disclaimer, EmptyState, formatMinutes, IronGauge, Recipe
 import { Shell } from "@/components/shell";
 import { Button } from "@/components/ui/button";
 import { actions, ingredientsOf, recipeMap, today, useStore } from "@/data/store";
+import { castShow, hasServerCast } from "@/data/sync";
 import { back } from "@/lib/router";
 import { cn } from "@/lib/utils";
 
@@ -30,12 +31,26 @@ function RecipeDetail({ recipe }: { recipe: Recipe }) {
   const [adults, setAdults] = useState(s.household.adults);
   const [babies, setBabies] = useState(s.household.babies);
   const [cooking, setCooking] = useState(false);
+  const [casting, setCasting] = useState(false);
   const { per } = useCost(recipe);
   const factor = (adults + babies * BABY_PORTION) / recipe.servingsBase;
   const month = today().getMonth() + 1;
   const off = outOfSeason(recipe, ingredients, month);
   const fav = recipe.status === "favorite";
   const inLibrary = s.customRecipes.some((r) => r.id === recipe.id) || recipe.source === "seed";
+
+  /** Le Nest Hub de la cuisine affiche la recette, avec les quantités des adultes et bébés choisis ci-dessus. */
+  async function showInKitchen() {
+    setCasting(true);
+    try {
+      await castShow({ recipeId: recipe.id, adults, babies });
+      toast.success("Sur l'écran de la cuisine", { description: recipe.title });
+    } catch (e) {
+      toast.error("Écran de la cuisine injoignable", { description: e instanceof Error ? e.message : String(e) });
+    } finally {
+      setCasting(false);
+    }
+  }
 
   return (
     <Shell tab="recipes">
@@ -135,9 +150,16 @@ function RecipeDetail({ recipe }: { recipe: Recipe }) {
           <section>
             <div className="mb-3 flex items-center justify-between gap-3">
               <h2 className="text-2xl font-semibold">Étapes</h2>
-              <Button variant="outline" className="h-11" onClick={() => setCooking(true)}>
-                <ChefHat aria-hidden /> Mode cuisine
-              </Button>
+              <div className="flex flex-wrap justify-end gap-2">
+                {hasServerCast() && (
+                  <Button variant="outline" className="h-11" disabled={casting} onClick={() => void showInKitchen()}>
+                    <MonitorPlay aria-hidden /> {casting ? "Envoi…" : "Écran cuisine"}
+                  </Button>
+                )}
+                <Button variant="outline" className="h-11" onClick={() => setCooking(true)}>
+                  <ChefHat aria-hidden /> Mode cuisine
+                </Button>
+              </div>
             </div>
             <ol className="space-y-3">
               {recipe.steps.map((step, i) => (

@@ -6,6 +6,7 @@ import { streamSSE } from "hono/streaming";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { clientIp, COOKIE, createSession, endSession, listMembers, memberOf, rateLimiter, removeMember, renameMember, samePassphrase, type Member } from "./auth";
+import { castRoutes, type CastService } from "./cast";
 import type { Config } from "./config";
 import type { Db } from "./db";
 import { BadAction, type Envelope, type Household } from "./household";
@@ -17,6 +18,8 @@ import { watchRoutes } from "./watch";
 export type Services = {
   ha?: { status: () => unknown; check: () => Promise<unknown>; kick: () => void; sync: () => Promise<void> };
   ai?: { route: (app: Hono<Env>) => void };
+  /** Écran de cuisine : un Nest Hub (Google Cast) qui affiche la recette. */
+  cast?: CastService;
 };
 
 export type Env = { Variables: { member: Member } };
@@ -26,7 +29,7 @@ export function createApp({ db, household, config, services = {} }: { db: Db; ho
   const allowJoin = rateLimiter();
   const secure = config.publicUrl?.startsWith("https://") ?? false;
 
-  app.get("/api/health", (c) => c.json({ ok: true, app: "mijote", version: household.snapshot().version, ha: !!services.ha, ai: !!services.ai }));
+  app.get("/api/health", (c) => c.json({ ok: true, app: "mijote", version: household.snapshot().version, ha: !!services.ha, ai: !!services.ai, cast: !!services.cast }));
 
   // ——— Rejoindre le foyer ———
   app.post("/api/auth/join", async (c) => {
@@ -127,6 +130,10 @@ export function createApp({ db, household, config, services = {} }: { db: Db; ho
     await services.ha.sync();
     return c.json(services.ha.status());
   });
+
+  // ——— Écran de cuisine (Nest Hub) ———
+  if (services.cast) app.route("/api/cast", castRoutes(services.cast));
+  else app.get("/api/cast/status", (c) => c.json({ enabled: false }));
 
   if (services.ai) services.ai.route(app);
   else app.get("/api/ai/status", (c) => c.json({ enabled: false }));
