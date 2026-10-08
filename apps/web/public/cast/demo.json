@@ -1,0 +1,79 @@
+{
+  "v": 1,
+  "id": "boeuf-carottes-mijote",
+  "title": "Bœuf carottes",
+  "meta": "Préparation 20 min · cuisson 2 h 30 · 4 parts adultes",
+  "ingredients": [
+    {
+      "qty": "900 g",
+      "name": "bœuf à braiser (paleron)",
+      "note": "paleron ou macreuse"
+    },
+    {
+      "qty": "1 kg",
+      "name": "carotte"
+    },
+    {
+      "qty": "800 g",
+      "name": "pomme de terre",
+      "note": "à cuire à la vapeur"
+    },
+    {
+      "qty": "2",
+      "name": "oignons"
+    },
+    {
+      "qty": "2",
+      "name": "gousses d'ail"
+    },
+    {
+      "qty": "1 c. à soupe",
+      "name": "concentré de tomate"
+    },
+    {
+      "qty": "1 c. à soupe",
+      "name": "farine de blé"
+    },
+    {
+      "qty": "1 c. à café",
+      "name": "thym séché"
+    },
+    {
+      "qty": "2",
+      "name": "feuilles de laurier"
+    },
+    {
+      "qty": "2 c. à soupe",
+      "name": "huile d'olive"
+    },
+    {
+      "qty": "½",
+      "name": "persil plat",
+      "note": "ciselé"
+    },
+    {
+      "qty": "1 pincée",
+      "name": "sel",
+      "note": "au service, adultes"
+    },
+    {
+      "qty": "1 pincée",
+      "name": "poivre noir moulu",
+      "note": "au service, adultes"
+    }
+  ],
+  "steps": [
+    "Coupe le bœuf en gros cubes et fais-le dorer dans l'huile d'une cocotte.",
+    "Ajoute les oignons émincés et l'ail, saupoudre de farine et mélange.",
+    "Ajoute le concentre de tomate, le thym, le laurier et couvre d'eau à hauteur.",
+    "Laisse mijoter 1 h 30 à couvert, à feu très doux.",
+    "Ajoute les carottes en rondelles épaisses et poursuis 1 h, jusqu'à ce que la viande soit fondante. Cuis les pommes de terre à la vapeur.",
+    "Prélève la portion bébé, puis sale, poivre et parsème de persil."
+  ],
+  "baby": {
+    "when": "Prélever avant de saler et de poivrer",
+    "texture": "bœuf effiloché très finement, carottes et pommes de terre écrasées à la fourchette avec un peu de sauce",
+    "amount": "20 g de bœuf + 4 c. à soupe de carottes et pommes de terre",
+    "notes": "Fer du bœuf + vitamine C du persil. Les restes se gardent 2 jours au frais et se congèlent très bien."
+  }
+}

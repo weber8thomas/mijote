@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Mijoté en cuisine</title>
+    <!-- Essai Nest Hub (apps/cast/README.md) : récepteur Cast, 1024×600 tactile. Hors appli React, servi tel quel par la vitrine. -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600&family=Young+Serif&display=swap" rel="stylesheet" />
+    <script src="https://www.gstatic.com/cast/sdk/libs/caf_receiver/v3/cast_receiver_framework.js"></script>
+    <style>
+      :root {
+        --paper: #f7f1e5;
+        --paper-deep: #efe6d3;
+        --card: #fffaf1;
+        --ink: #2f2a24;
+        --muted: #6b6052;
+        --terracotta: #b85532;
+        --terracotta-soft: #f5ddd0;
+        --sage: #4f6b3f;
+        --sage-soft: #e4ead6;
+        --ochre-soft: #f8ebcc;
+        --ochre-ink: #7a5710;
+        --border: #e5d9c3;
+      }
+      * { box-sizing: border-box; }
+      html, body { margin: 0; height: 100%; overflow: hidden; }
+      body {
+        background: var(--paper);
+        color: var(--ink);
+        font: 400 24px/1.35 "Outfit", system-ui, sans-serif;
+        user-select: none;
+        -webkit-user-select: none;
+        touch-action: none;
+      }
+      #app { height: 100vh; display: flex; flex-direction: column; padding: 28px 40px 20px; }
+      header { display: flex; align-items: baseline; gap: 20px; }
+      h1 { font: 400 30px/1.15 "Young Serif", Georgia, serif; margin: 0; flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+      .where { color: var(--muted); font-weight: 500; font-size: 22px; white-space: nowrap; }
+      .dots { display: flex; gap: 8px; margin: 14px 0 0; }
+      .dots i { height: 6px; flex: 1; border-radius: 3px; background: var(--border); }
+      .dots i.on { background: var(--terracotta); }
+      main { flex: 1; display: flex; flex-direction: column; justify-content: center; min-height: 0; padding: 12px 0; }
+
+      .step { display: flex; gap: 28px; align-items: flex-start; }
+      .num { font: 400 96px/0.9 "Young Serif", Georgia, serif; color: var(--terracotta); min-width: 80px; text-align: right; }
+      .text { font-size: 42px; line-height: 1.25; font-weight: 500; }
+      .text.m { font-size: 36px; }
+      .text.s { font-size: 30px; }
+      .dur { background: var(--ochre-soft); color: var(--ochre-ink); border-radius: 10px; padding: 0 10px; white-space: nowrap; }
+
+      .baby { margin-top: 22px; background: var(--sage-soft); color: var(--sage); border-radius: 16px; padding: 14px 20px; font-size: 22px; }
+      .baby b { font-weight: 600; }
+
+      .ings-title { font: 400 34px/1.2 "Young Serif", Georgia, serif; margin: 0 0 6px; }
+      .meta { color: var(--muted); font-size: 22px; margin-bottom: 18px; }
+      .ings { columns: 2; column-gap: 48px; margin: 0; padding: 0; list-style: none; }
+      .ings.many { columns: 3; font-size: 20px; }
+      .ings li { break-inside: avoid; padding: 5px 0; border-bottom: 1px solid var(--border); }
+      .ings .q { font-weight: 600; color: var(--terracotta); }
+      .ings .n { color: var(--muted); font-size: 0.85em; }
+
+      .end { text-align: center; font: 400 64px/1.2 "Young Serif", Georgia, serif; }
+      .end small { display: block; font: 400 26px/1.4 "Outfit", sans-serif; color: var(--muted); margin-top: 10px; }
+
+      nav { display: flex; justify-content: space-between; }
+      nav button {
+        font: 500 22px "Outfit", sans-serif; color: var(--ink);
+        background: var(--card); border: 1px solid var(--border); border-radius: 999px;
+        min-height: 56px; padding: 0 26px;
+      }
+      nav button.next { background: var(--terracotta); color: #fff; border-color: var(--terracotta); }
+      nav button:disabled { opacity: 0.35; }
+
+      /* Journal de l'essai : 3 lignes entre les boutons ; un toucher l'agrandit. */
+      #log {
+        position: fixed; left: 240px; right: 240px; bottom: 20px; height: 56px; margin: 0; overflow: hidden;
+        display: flex; flex-direction: column; justify-content: flex-end;
+        background: var(--paper-deep); color: var(--muted); border-radius: 12px; padding: 4px 12px;
+        font: 12px/1.4 ui-monospace, Menlo, monospace; white-space: pre-wrap;
+      }
+      #log.full { left: 40px; right: 40px; bottom: 90px; height: auto; max-height: 420px; background: rgb(47 42 36 / 0.92); color: #f7f1e5; padding: 10px 14px; }
+      .wait { text-align: center; color: var(--muted); font-size: 30px; }
+    </style>
+  </head>
+  <body>
+    <div id="app"><main><p class="wait">Mijoté se prépare…</p></main></div>
+    <audio id="audio"></audio>
+    <pre id="log" data-notap></pre>
+    <script src="receiver.js"></script>
+  </body>
+</html>
