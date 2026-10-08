@@ -159,48 +159,69 @@ if (PREVIEW) {
   log("aperçu sans Cast : ← →, glisser ou toucher");
   demo().then((r) => show(r));
 } else {
-  context = cast.framework.CastReceiverContext.getInstance();
-  player = context.getPlayerManager();
-  player.setMediaElement($("#audio"));
-
+  // Chaque étape est isolée : une exception du SDK (que le navigateur masque en « Script error ») dit ici laquelle échoue,
+  // et le démarrage (context.start) est tenté quoi qu'il arrive : c'est lui que le Hub attend pour confirmer le lancement.
+  const step = (name, fn) => {
+    try {
+      fn();
+    } catch (err) {
+      log(`ÉCHEC ${name} : ${err?.message ?? err}`);
+    }
+  };
   const E = cast.framework.events.EventType;
-  player.addEventListener(E.PLAYER_LOAD_COMPLETE, () => syncFromPlayer("file"));
-  player.addEventListener(E.MEDIA_STATUS, () => syncFromPlayer("statut"));
-  player.addEventListener(E.ERROR, (e) => log(`erreur lecteur ${e.detailedErrorCode ?? ""}`));
+  const T = cast.framework.messages.MessageType;
+  const S = cast.framework.system.EventType;
+  const C = cast.framework.messages.Command;
+
+  step("contexte", () => {
+    context = cast.framework.CastReceiverContext.getInstance();
+    player = context.getPlayerManager();
+  });
+  step("élément audio", () => player.setMediaElement($("#audio")));
+  step("événements lecteur", () => {
+    player.addEventListener(E.PLAYER_LOAD_COMPLETE, () => syncFromPlayer("file"));
+    player.addEventListener(E.MEDIA_STATUS, () => syncFromPlayer("statut"));
+    player.addEventListener(E.ERROR, (e) => log(`erreur lecteur ${e.detailedErrorCode ?? ""}`));
+  });
 
   // Ce que l'Assistant (ou Gemini) envoie vraiment : c'est la question de l'essai.
-  const T = cast.framework.messages.MessageType;
   for (const type of ["QUEUE_UPDATE", "QUEUE_NEXT", "QUEUE_PREV", "PLAY", "PAUSE", "STOP", "SEEK", "FOCUS_STATE", "USER_ACTION"]) {
     if (!T[type]) continue;
-    player.setMessageInterceptor(T[type], (data) => {
-      const extra = ["jump", "currentItemId", "state", "userAction"].filter((k) => data?.[k] != null).map((k) => ` ${k}=${data[k]}`).join("");
-      log(`demande ${type}${extra}${data?.senderId ? ` de ${String(data.senderId).slice(0, 12)}` : ""}`);
-      return data;
+    step(`intercepteur ${type}`, () =>
+      player.setMessageInterceptor(T[type], (data) => {
+        const extra = ["jump", "currentItemId", "state", "userAction"].filter((k) => data?.[k] != null).map((k) => ` ${k}=${data[k]}`).join("");
+        log(`demande ${type}${extra}${data?.senderId ? ` de ${String(data.senderId).slice(0, 12)}` : ""}`);
+        return data;
+      }),
+    );
+  }
+
+  step("événements système", () => {
+    for (const k of ["READY", "SENDER_CONNECTED", "SENDER_DISCONNECTED", "VISIBILITY_CHANGED", "STANDBY_CHANGED", "SHUTDOWN", "ERROR"]) {
+      if (S[k]) context.addEventListener(S[k], (e) => log(`système ${k}${e?.reason ? ` (${e.reason})` : ""}`));
+    }
+  });
+
+  step("message de l'expéditeur", () =>
+    context.addCustomMessageListener(NS, (e) => {
+      const d = e.data ?? {};
+      if (d.type !== "recipe" || !d.recipe) return log(`message inconnu ${JSON.stringify(d).slice(0, 60)}`);
+      log(`recette reçue : ${d.recipe.title}`);
+      show(d.recipe, d.page ?? 0);
+      context.sendCustomMessage(NS, e.senderId, { type: "ok", pages: pages.length });
+    }),
+  );
+
+  step("démarrage", () => {
+    context.start({
+      touchScreenOptimizedApp: true,
+      skipPlayersLoad: true,
+      disableIdleTimeout: true,
+      supportedCommands: C.ALL_BASIC_MEDIA | C.QUEUE_NEXT | C.QUEUE_PREV,
+      customNamespaces: { [NS]: cast.framework.system.MessageType.JSON },
     });
-  }
-
-  const S = cast.framework.system.EventType;
-  for (const k of ["READY", "SENDER_CONNECTED", "SENDER_DISCONNECTED", "VISIBILITY_CHANGED", "STANDBY_CHANGED", "SHUTDOWN", "ERROR"]) {
-    if (S[k]) context.addEventListener(S[k], (e) => log(`système ${k}${e?.reason ? ` (${e.reason})` : ""}`));
-  }
-
-  context.addCustomMessageListener(NS, (e) => {
-    const d = e.data ?? {};
-    if (d.type !== "recipe" || !d.recipe) return log(`message inconnu ${JSON.stringify(d).slice(0, 60)}`);
-    log(`recette reçue : ${d.recipe.title}`);
-    show(d.recipe, d.page ?? 0);
-    context.sendCustomMessage(NS, e.senderId, { type: "ok", pages: pages.length });
+    log("récepteur démarré");
   });
-
-  const C = cast.framework.messages.Command;
-  context.start({
-    touchScreenOptimizedApp: true,
-    skipPlayersLoad: true,
-    disableIdleTimeout: true,
-    supportedCommands: C.ALL_BASIC_MEDIA | C.QUEUE_NEXT | C.QUEUE_PREV,
-    customNamespaces: { [NS]: cast.framework.system.MessageType.JSON },
-  });
-  log("récepteur démarré");
   // Lancé sans recette (CaC Tool, ou script sans --recipe) : la démo au bout de 3 s.
   setTimeout(() => recipe || demo().then((r) => recipe || show(r)), 3000);
 }
