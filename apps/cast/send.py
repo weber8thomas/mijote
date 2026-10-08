@@ -83,13 +83,24 @@ def main() -> int:
         ctrl = Mijote(args.app)
         cast.register_handler(ctrl)
         launched = threading.Event()
-        ctrl.launch(callback_function=lambda ok, _resp: launched.set())
-        launched.wait(20)
+        answer: dict = {}
+
+        def on_launch(ok, resp):
+            answer.update(ok=ok, resp=resp)
+            launched.set()
+
+        ctrl.launch(callback_function=on_launch)
+        if not launched.wait(30):
+            print("Aucune réponse du Hub au lancement en 30 s (en veille profonde ? redémarre-le).", file=sys.stderr)
+            return 1
+        # Réponse brute du Hub : LAUNCH_ERROR + reason (NOT_FOUND, CANCELLED…) si l'appli est refusée.
+        print(f"Réponse du Hub au lancement : ok={answer['ok']} {answer['resp']}")
         deadline = time.time() + 20
         while not ctrl.is_active and time.time() < deadline:
             time.sleep(0.2)
         if not ctrl.is_active:
-            print("Le récepteur ne répond pas (App ID ? écran enregistré dans la console ? redémarré ?)", file=sys.stderr)
+            print(f"Statut du Hub : {cast.status}", file=sys.stderr)
+            print("Le récepteur ne répond pas (App ID ? écran enregistré dans la console ? page injoignable ?)", file=sys.stderr)
             return 1
         print(f"Récepteur lancé sur {cast.cast_info.friendly_name}.")
 

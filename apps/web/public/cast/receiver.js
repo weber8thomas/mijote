@@ -26,6 +26,10 @@ function log(msg) {
   console.log("[mijote]", msg);
 }
 $("#log").addEventListener("click", () => $("#log").classList.toggle("full"));
+// Pas de console sur le Hub : les erreurs de la page vont dans le journal à l'écran.
+addEventListener("error", (e) => log(`ERREUR ${e.message} (${String(e.filename).split("/").pop()}:${e.lineno})`));
+addEventListener("unhandledrejection", (e) => log(`ERREUR promesse ${e.reason?.message ?? e.reason}`));
+log(`page chargée · SDK Cast : ${typeof cast !== "undefined" && cast.framework ? "oui" : "NON"}`);
 setInterval(() => log(`toujours là · ${pages[page]?.label ?? "—"}`), 5 * 60 * 1000);
 
 // —— Pages ——
